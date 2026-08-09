@@ -1,0 +1,181 @@
+<div class="upload-page">
+
+    <div class="upload-card">
+
+        <h1>📚 Đăng truyện mới</h1>
+
+        <p class="sub-title">
+            Điền đầy đủ thông tin trước khi đăng truyện.
+        </p>
+
+        <form method="POST" enctype="multipart/form-data">
+
+            <div class="form-grid">
+
+                <!-- Tên truyện -->
+                <div class="form-group full">
+
+                    <label>Tên truyện *</label>
+
+                    <input
+                        type="text"
+                        name="title"
+                        placeholder="Ví dụ: Solo Leveling"
+                        required>
+
+                </div>
+
+                <!-- Tác giả -->
+                <div class="form-group">
+
+                    <label>Tác giả *</label>
+
+                    <input
+                        type="text"
+                        name="author"
+                        required>
+
+                </div>
+
+                <!-- Họa sĩ -->
+                <div class="form-group">
+
+                    <label>Họa sĩ</label>
+
+                    <input
+                        type="text"
+                        name="artist">
+
+                </div>
+
+                <!-- Trạng thái -->
+                <div class="form-group">
+
+                    <label>Trạng thái</label>
+
+                    <select name="status">
+
+                        <option value="ongoing">
+                            Đang tiến hành
+                        </option>
+
+                        <option value="completed">
+                            Hoàn thành
+                        </option>
+
+                        <option value="hiatus">
+                            Tạm ngưng
+                        </option>
+
+                    </select>
+
+                </div>
+
+                <!-- Độ tuổi -->
+                <div class="form-group">
+
+                    <label>Độ tuổi</label>
+
+                    <select name="ageRating">
+
+                        <option value="all">Mọi lứa tuổi</option>
+                        <option value="16+">16+</option>
+                        <option value="18+">18+</option>
+
+                    </select>
+
+                </div>
+
+            </div>
+
+            <!-- Thể loại -->
+
+            <div class="form-group">
+
+                <label>Thể loại</label>
+
+                <div class="genre-box">
+
+                    <% const genres = allGenres.map(c => c.name); %>
+
+                    <% if(genres.length === 0){ %>
+                        <p class="genre-empty-hint">
+                            Chưa có thể loại nào, vui lòng liên hệ admin để thêm thể loại.
+                        </p>
+                    <% } %>
+
+                    <% genres.forEach(g=>{ %>
+
+                        <label class="genre-item">
+
+                            <input
+                                type="checkbox"
+                                name="genres"
+                                value="<%= g %>">
+
+                            <span>
+
+                                <%= g %>
+
+                            </span>
+
+                        </label>
+
+                    <% }) %>
+
+                </div>
+
+            </div>
+
+            <!-- Mô tả -->
+
+            <div class="form-group">
+
+                <label>Mô tả</label>
+
+                <textarea
+                    name="description"
+                    rows="6"
+                    placeholder="Giới thiệu nội dung truyện..."></textarea>
+
+            </div>
+
+            <!-- Ảnh -->
+
+            <div class="image-grid">
+
+                <div>
+
+                    <label>Ảnh bìa</label>
+
+                    <input
+                        type="file"
+                        name="cover"
+                        accept="image/*">
+
+                </div>
+
+                <div>
+
+                    <label>Banner</label>
+
+                    <input
+                        type="file"
+                        name="banner"
+                        accept="image/*">
+
+                </div>
+
+            </div>
+
+            <button class="upload-btn">
+
+                📤 Đăng truyện
+
+            </button>
+
+        </form>
+
+    </div>
+
+</div>

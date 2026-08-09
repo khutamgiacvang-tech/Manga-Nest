@@ -1,0 +1,75 @@
+<div class="ban-page">
+
+    <div class="ban-card">
+
+        <div class="ban-icon">
+    <img src="/images/meme-meo-cuoi-chi-tay-dep-nhat.jpg" alt="Account Banned">
+</div>
+
+        <h1>Tài khoản của bạn đã bị khóa</h1>
+
+        <% if (banInfo.isPermanentBan) { %>
+
+            <div class="ban-box danger">
+                <h3>Khóa vĩnh viễn</h3>
+
+                <p>
+                    Tài khoản này đã bị khóa vĩnh viễn.
+                </p>
+            </div>
+
+        <% } else { %>
+
+            <div class="ban-box warning">
+                <h3>Khóa đến</h3>
+
+                <p>
+
+                    <%= new Date(banInfo.banUntil).toLocaleString("vi-VN") %>
+
+                </p>
+            </div>
+
+        <% } %>
+
+        <div class="ban-box">
+
+            <h3>Lý do</h3>
+
+            <p>
+
+                <%= banInfo.banReason || "Không có." %>
+
+            </p>
+
+        </div>
+
+        <p class="ban-note">
+
+            Nếu bạn nghĩ đây là nhầm lẫn,
+            vui lòng liên hệ Fanpage MangaNest.
+
+        </p>
+
+        <div class="ban-buttons">
+
+            <a href="/" class="btn-home">
+
+                Trang chủ
+
+            </a>
+
+            <a
+                href="https://www.facebook.com/groups/1813009790145338"
+                target="_blank"
+                class="btn-contact">
+
+                Liên hệ Fanpage
+
+            </a>
+
+        </div>
+
+    </div>
+
+</div>

@@ -1,0 +1,85 @@
+<div class="library-page">
+
+    <h1>
+        ❤️ Danh sách theo dõi
+    </h1>
+
+    <% if(mangas.length === 0){ %>
+
+        <div class="empty-box">
+            Bạn chưa theo dõi truyện nào.
+        </div>
+
+    <% } else { %>
+
+        <div class="library-grid">
+
+            <% mangas.forEach(manga => { %>
+
+                <a href="/manga/<%= manga.slug %>" class="library-card">
+
+                    <img src="<%= manga.cover %>" alt="<%= manga.title %>">
+
+                    <div class="library-info">
+
+                        <h3>
+                            <%= manga.title %>
+                        </h3>
+
+                        <p>
+                            Nhóm dịch:
+                            <%= manga.translator?.displayName || manga.translator?.username %>
+                        </p>
+
+                        <small>
+                            <%= timeAgo(manga.lastUpdated) %>
+                        </small>
+
+                    </div>
+
+                </a>
+
+            <% }) %>
+
+        </div>
+
+    <% } %>
+
+    <!-- PHÂN TRANG LUÔN HIỂN THỊ -->
+    <div class="pagination">
+
+        <% if(currentPage > 1){ %>
+
+            <a href="/library?page=<%= currentPage - 1 %>" class="page-btn">
+                ‹ Trang trước
+            </a>
+
+        <% } else { %>
+
+            <span class="page-btn disabled">
+                ‹ Trang trước
+            </span>
+
+        <% } %>
+
+        <span class="page-info">
+            Trang <%= currentPage %> / <%= totalPages %>
+        </span>
+
+        <% if(currentPage < totalPages){ %>
+
+            <a href="/library?page=<%= currentPage + 1 %>" class="page-btn">
+                Trang sau ›
+            </a>
+
+        <% } else { %>
+
+            <span class="page-btn disabled">
+                Trang sau ›
+            </span>
+
+        <% } %>
+
+    </div>
+
+</div>

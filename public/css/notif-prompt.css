@@ -1,0 +1,132 @@
+/* ===========================
+   MangaNest - Popup gợi ý bật thông báo đẩy
+   (hiện khi user bấm "Theo dõi" lần đầu tiên)
+=========================== */
+
+.notif-prompt-modal {
+    position: fixed;
+    inset: 0;
+    display: none;
+    justify-content: center;
+    align-items: center;
+    z-index: 10000;
+}
+
+.notif-prompt-modal.show {
+    display: flex;
+    animation: notifPromptFadeIn .25s ease;
+}
+
+.notif-prompt-backdrop {
+    position: absolute;
+    inset: 0;
+    background: rgba(0, 0, 0, .72);
+    backdrop-filter: blur(8px);
+}
+
+.notif-prompt-container {
+    position: relative;
+    width: 460px;
+    max-width: 92%;
+    background: #17181f;
+    border-radius: 18px;
+    padding: 32px;
+    z-index: 2;
+    border: 1px solid rgba(255, 255, 255, .08);
+    box-shadow:
+        0 20px 60px rgba(0, 0, 0, .45),
+        0 0 25px rgba(255, 77, 79, .08);
+    animation: notifPromptPopup .3s ease;
+}
+
+.notif-prompt-close {
+    position: absolute;
+    top: 16px;
+    right: 16px;
+    width: 32px;
+    height: 32px;
+    border: none;
+    border-radius: 50%;
+    background: #242631;
+    color: #fff;
+    font-size: 18px;
+    line-height: 1;
+    cursor: pointer;
+    transition: .25s;
+}
+
+.notif-prompt-close:hover {
+    background: #ff4d4f;
+    transform: rotate(90deg);
+}
+
+.notif-prompt-title {
+    color: #fff;
+    font-size: 20px;
+    margin-bottom: 14px;
+}
+
+.notif-prompt-desc {
+    color: #9d9fa8;
+    line-height: 1.6;
+    font-size: 14.5px;
+    margin-bottom: 14px;
+}
+
+.notif-prompt-desc strong {
+    color: #d5d6db;
+}
+
+.notif-prompt-buttons {
+    display: flex;
+    justify-content: flex-end;
+    gap: 10px;
+    margin-top: 20px;
+}
+
+.notif-prompt-btn {
+    padding: 10px 18px;
+    border: none;
+    border-radius: 10px;
+    font-size: 14px;
+    font-weight: 600;
+    cursor: pointer;
+    transition: .25s;
+}
+
+.notif-prompt-btn-later {
+    background: #242631;
+    color: #c7c8cf;
+}
+
+.notif-prompt-btn-later:hover {
+    background: #2d2f3a;
+}
+
+.notif-prompt-btn-setup {
+    background: #ff4d4f;
+    color: #fff;
+}
+
+.notif-prompt-btn-setup:hover {
+    background: #ff6768;
+    transform: translateY(-1px);
+}
+
+@keyframes notifPromptFadeIn {
+    from { opacity: 0; }
+    to { opacity: 1; }
+}
+
+@keyframes notifPromptPopup {
+    from {
+        opacity: 0;
+        transform: translateY(25px) scale(.95);
+    }
+    to {
+        opacity: 1;
+        transform: translateY(0) scale(1);
+    }
+}
+
+/* Mobile */

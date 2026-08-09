@@ -1,0 +1,722 @@
+/* ==========================================================
+   RESPONSIVE.CSS - File responsive dùng chung cho toàn bộ web
+   Gom tất cả @media query từ các file CSS riêng lẻ về đây để
+   dễ quản lý, tránh trùng lặp / đè breakpoint lẫn nhau.
+   File này phải được load SAU CÙNG (sau mọi file CSS khác)
+   trong views/layouts/main.ejs để có độ ưu tiên cao nhất.
+   ========================================================== */
+
+/* ============================================================
+   Nguồn gốc: style.css
+   ============================================================ */
+
+@media (max-width:768px) {
+
+    .similar-box {
+
+        padding: 16px;
+
+    }
+
+    .similar-card img {
+
+        height: 190px;
+
+    }
+
+}
+
+@media(max-width:900px) {
+
+    .manga-header {
+        flex-direction: column;
+        align-items: center;
+
+        text-align: center;
+
+        margin-top: -120px;
+    }
+
+    .detail-layout {
+        grid-template-columns: 1fr;
+    }
+
+    .genre-list {
+        justify-content: center;
+    }
+
+    .author-line {
+        justify-content: center;
+    }
+}
+
+@media(max-width: 560px) {
+
+    .reader-mode-modal-options {
+        grid-template-columns: 1fr;
+    }
+
+}
+
+@media(max-width: 700px) {
+
+    .zen-cover-inner {
+        padding: 0 44px;
+    }
+
+    .zen-edge {
+        width: 40px;
+    }
+
+}
+
+@media(max-width:900px) {
+
+    .zen-side-image {
+        display: none;
+    }
+
+    .zen-image {
+        max-width: 100%;
+    }
+
+}
+
+@media(max-width:768px) {
+
+    .reader-container {
+        padding: 20px 10px 100px;
+    }
+
+    .reader-chapter-title {
+        font-size: 18px;
+    }
+
+    #floatingNav {
+        left: 10px;
+        bottom: 10px;
+    }
+
+    .float-select {
+        max-width: 100px;
+    }
+
+}
+
+@media (max-width: 768px) {
+    .comment-panel {
+        width: 100%;
+        right: -100%;
+    }
+}
+
+/* ============================================================
+   Nguồn gốc: navbar.css
+   ============================================================ */
+
+@media (max-width: 900px) {
+
+    .container {
+        height: 66px;
+        gap: 18px;
+    }
+
+    .logo {
+        font-size: 22px;
+    }
+
+    .hamburger-btn {
+        display: flex;
+        order: 1;
+    }
+
+    .logo {
+        order: 0;
+    }
+
+    .nav-menu {
+        order: 4;
+        position: absolute;
+        top: 100%;
+        left: 0;
+        width: 100%;
+        flex-direction: column;
+        gap: 0;
+        background: #171A21;
+        border-bottom: 1px solid rgba(255, 255, 255, .08);
+        box-shadow: 0 12px 24px rgba(0, 0, 0, .35);
+        max-height: 0;
+        overflow: hidden;
+        transition: max-height .25s ease;
+    }
+
+    .nav-menu.active {
+        max-height: 320px;
+    }
+
+    .nav-menu a {
+        padding: 14px 20px;
+        border-bottom: 1px solid rgba(255, 255, 255, .06);
+    }
+
+    .search-toggle-btn {
+        order: 2;
+        margin-left: auto;
+    }
+
+    .user-menu {
+        order: 3;
+        gap: 10px;
+    }
+
+    .notification-menu {
+        width: 320px;
+        right: -50px;
+    }
+
+    .dropdown-menu {
+        min-width: 200px;
+    }
+
+    .avatar {
+        width: 38px;
+        height: 38px;
+    }
+
+    .user-dropdown span {
+        display: none;
+    }
+
+    .search-overlay-inner {
+        min-height: 66px;
+        padding: 14px 0 18px;
+    }
+}
+
+@media (max-width: 600px) {
+
+    .container {
+        height: 60px;
+        width: 94%;
+        gap: 14px;
+    }
+
+    .logo span {
+        font-size: 15px;
+    }
+
+    .logo {
+        font-size: 20px;
+    }
+
+    .login-btn span,
+    .login-btn {
+        padding: 8px 12px;
+        font-size: 13px;
+    }
+
+    .notification-menu {
+        width: calc(100vw - 24px);
+        right: -46px;
+        max-height: 70vh;
+    }
+
+    .search-overlay-box {
+        padding: 10px 14px;
+        border-radius: 22px;
+    }
+
+    .search-overlay-box input {
+        font-size: 14px;
+    }
+
+    .search-close-btn {
+        font-size: 16px;
+        margin-left: 10px;
+    }
+}
+
+/* ============================================================
+   Nguồn gốc: home.css
+   ============================================================ */
+
+@media(max-width:900px){
+
+    .hero-slide{
+        flex-basis:96%;
+        height:360px;
+    }
+
+    .hero-info h1{
+        font-size:22px;
+    }
+
+    .hero-cta{
+        right:20px;
+        bottom:20px;
+    }
+
+    .home-card{
+        flex:0 0 140px;
+    }
+
+    .home-card img{
+        height:190px;
+    }
+
+    .rank-row{
+        grid-auto-columns:280px;
+    }
+
+}
+
+@media(max-width:600px){
+
+    .hero-slide{
+        height:420px;
+    }
+
+    .row-arrow{
+        display:none;
+    }
+
+}
+
+/* ============================================================
+   Nguồn gốc: footer.css
+   ============================================================ */
+
+@media(max-width:900px){
+
+    .footer-container{
+
+        grid-template-columns:1fr;
+
+        text-align:center;
+
+    }
+
+    .social-icons{
+
+        justify-content:center;
+
+    }
+
+}
+
+/* ============================================================
+   Nguồn gốc: auth-modal.css
+   ============================================================ */
+
+@media(max-width:768px) {
+
+    .auth-container {
+
+        width: 94%;
+
+        padding: 28px;
+
+        border-radius: 18px;
+
+    }
+
+    .auth-container h2 {
+
+        font-size: 24px;
+
+    }
+
+    .auth-tabs button {
+
+        font-size: 15px;
+
+        padding: 13px;
+
+    }
+
+    .submit-btn {
+
+        padding: 13px;
+
+    }
+
+}
+
+/* ============================================================
+   Nguồn gốc: notif-prompt.css
+   ============================================================ */
+
+@media (max-width: 768px) {
+    .notif-prompt-container {
+        width: 94%;
+        padding: 26px;
+        border-radius: 16px;
+    }
+
+    .notif-prompt-title {
+        font-size: 18px;
+    }
+
+    .notif-prompt-buttons {
+        flex-direction: column-reverse;
+    }
+
+    .notif-prompt-btn {
+        width: 100%;
+        padding: 12px;
+    }
+}
+
+/* ============================================================
+   Nguồn gốc: profile.css
+   ============================================================ */
+
+@media (max-width: 860px) {
+
+    .settings-layout {
+
+        flex-direction: column;
+
+    }
+
+    .settings-sidebar {
+
+        width: 100%;
+
+        position: static;
+
+    }
+
+    .settings-nav {
+
+        flex-direction: row;
+
+        flex-wrap: wrap;
+
+    }
+
+    .settings-nav-item {
+
+        width: auto;
+
+        flex: 1;
+
+        text-align: center;
+
+    }
+
+    .settings-section {
+
+        padding: 28px 20px;
+
+    }
+
+}
+
+/* ============================================================
+   Nguồn gốc: translator.css
+   ============================================================ */
+
+@media(max-width:768px) {
+
+    .upload-card {
+
+        padding: 25px;
+
+    }
+
+    .form-grid {
+
+        grid-template-columns: 1fr;
+
+    }
+
+    .form-group.full {
+
+        grid-column: auto;
+
+    }
+
+    .image-grid {
+
+        grid-template-columns: 1fr;
+
+    }
+
+}
+
+@media (max-width: 900px) {
+    .my-manga-status-columns {
+        flex-direction: column;
+    }
+
+    .my-manga-status-column {
+        min-width: 100%;
+    }
+}
+
+@media(max-width:900px) {
+
+    .manage-layout {
+
+        grid-template-columns: 1fr;
+
+    }
+
+}
+
+/* ============================================================
+   Nguồn gốc: admin.css
+   ============================================================ */
+
+@media (max-width: 900px) {
+    .admin-page {
+        padding: 0 16px;
+    }
+}
+
+/* ============================================================
+   Nguồn gốc: list.css
+   ============================================================ */
+
+@media(max-width:1200px){
+
+    .list-grid{
+        grid-template-columns:repeat(4,1fr);
+    }
+
+}
+
+@media(max-width:992px){
+
+    .list-grid{
+        grid-template-columns:repeat(3,1fr);
+    }
+
+}
+
+@media(max-width:768px){
+
+    .list-grid{
+        grid-template-columns:repeat(2,1fr);
+    }
+
+}
+
+@media(max-width:480px){
+
+    .list-grid{
+        grid-template-columns:1fr;
+    }
+
+}
+
+/* ============================================================
+   Nguồn gốc: library.css
+   ============================================================ */
+
+@media(max-width:1100px){
+
+    .library-grid{
+
+        grid-template-columns:repeat(3,1fr);
+
+    }
+
+}
+
+@media(max-width:600px){
+
+    .library-grid{
+
+        grid-template-columns:repeat(2,1fr);
+
+    }
+
+}
+
+/* ============================================================
+   Nguồn gốc: history.css
+   ============================================================ */
+
+@media (max-width: 900px) {
+
+    .history-page {
+        padding: 0 16px;
+        margin: 30px auto;
+    }
+
+    .history-page h1 {
+        font-size: 20px;
+        margin-bottom: 30px;
+    }
+
+    .history-timeline {
+        padding-left: 90px;
+    }
+
+    .history-timeline::before {
+        left: 70px;
+    }
+
+    .history-time-label {
+        left: -90px;
+        width: 62px;
+        font-size: 12px;
+    }
+
+    .history-time-label::after {
+        right: -21px;
+    }
+
+    .history-cover {
+        width: 56px;
+        height: 74px;
+    }
+}
+
+@media (max-width: 560px) {
+
+    .history-page {
+        padding: 0 12px;
+        margin: 20px auto;
+    }
+
+    .history-page h1 {
+        font-size: 18px;
+        margin-bottom: 20px;
+        text-align: center;
+    }
+
+    .history-timeline {
+        padding-left: 0;
+    }
+
+    .history-timeline::before {
+        display: none;
+    }
+
+    .history-timeline-item {
+        margin-bottom: 22px;
+    }
+
+    .history-time-label {
+        position: static;
+        display: inline-block;
+        width: auto;
+        text-align: left;
+        margin-bottom: 8px;
+        top: auto;
+    }
+
+    .history-time-label::after {
+        display: none;
+    }
+
+    .history-manga-card {
+        flex-direction: row;
+        gap: 12px;
+        padding: 12px;
+    }
+
+    .history-cover {
+        width: 52px;
+        height: 68px;
+    }
+
+    .history-manga-title {
+        font-size: 14px;
+    }
+
+    .history-chapter-info {
+        flex-direction: column;
+        align-items: flex-start;
+        gap: 4px;
+    }
+
+    .history-chapter-link {
+        font-size: 12.5px;
+    }
+}
+
+/* ============================================================
+   Nguồn gốc: banned.css
+   ============================================================ */
+
+@media (max-width: 700px) {
+
+    .ban-page {
+        padding: 30px 16px;
+    }
+
+    .ban-card {
+        padding: 30px 22px;
+        border-radius: 16px;
+    }
+
+    .ban-icon img {
+        width: 90px;
+        height: 90px;
+    }
+
+    .ban-card h1 {
+        font-size: 24px;
+        margin-bottom: 22px;
+    }
+
+    .ban-box {
+        padding: 14px;
+    }
+
+    .ban-box p {
+        font-size: 15px;
+    }
+
+    .ban-buttons {
+        flex-direction: column;
+        gap: 12px;
+        margin-top: 26px;
+    }
+
+    .btn-home,
+    .btn-contact {
+        width: 100%;
+        text-align: center;
+        padding: 12px 20px;
+    }
+}
+
+/* ============================================================
+   Nguồn gốc: policy.css
+   ============================================================ */
+
+@media (max-width: 700px) {
+
+    .policy-tabs {
+
+        gap: 18px;
+
+    }
+
+    .policy-header h1 {
+
+        font-size: 22px;
+
+    }
+
+}
+
+/* ============================================================
+   Nguồn gốc: search.css
+   ============================================================ */
+
+@media (max-width: 700px) {
+
+    .search-header h1 {
+
+        font-size: 24px;
+
+    }
+
+}
+

@@ -1,0 +1,81 @@
+<div class="upload-page">
+
+    <div class="upload-card">
+
+        <h1>
+
+            🌄 Đổi Banner
+
+        </h1>
+
+        <p class="sub-title">
+
+            <%= manga.title %>
+
+        </p>
+
+        <div style="margin-bottom:35px;text-align:center;">
+
+            <img
+
+                src="<%= manga.banner || '/images/no-banner.jpg' %>"
+
+                style="width:100%;max-width:700px;border-radius:15px;">
+
+        </div>
+
+        <form
+
+            action="/my-manga/<%= manga.slug %>/banner"
+
+            method="POST"
+
+            enctype="multipart/form-data">
+
+            <div class="form-group">
+
+                <label>
+
+                    Banner mới
+
+                </label>
+
+                <input
+
+                    type="file"
+
+                    name="banner"
+
+                    accept="image/*"
+
+                    required>
+
+            </div>
+
+            <div class="manage-buttons">
+
+                <button
+
+                    class="upload-btn">
+
+                    💾 Lưu Banner
+
+                </button>
+
+                <a
+
+                    href="/my-manga/<%= manga.slug %>"
+
+                    class="edit-btn">
+
+                    ← Quay lại
+
+                </a>
+
+            </div>
+
+        </form>
+
+    </div>
+
+</div>

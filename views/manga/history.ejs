@@ -1,0 +1,45 @@
+<div class="history-page">
+    <h1>LỊCH SỬ ĐỌC TRUYỆN</h1>
+
+    <% if(histories.length === 0){ %>
+        <div class="empty-box">
+            Chưa có lịch sử đọc.
+        </div>
+    <% } else { %>
+        <div class="history-timeline">
+            <% histories.forEach(item => { %>
+                <div class="history-timeline-item">
+                    <div class="history-time-label">
+                        <%= item.timeAgo || 'Vừa xong' %>
+                    </div>
+
+                    <div class="history-manga-card">
+                        <img src="<%= item.cover %>" class="history-cover" alt="<%= item.mangaTitle %>">
+                        
+                        <div class="history-content">
+                            <a href="/manga/<%= item.mangaSlug %>" class="history-manga-title">
+                                <%= item.mangaTitle %>
+                            </a>
+
+                            <div class="history-chapters-list">
+                                <% item.chapters.forEach(chap => { %>
+                                    <div class="history-chapter-row">
+                                        <div class="history-chapter-info">
+                                            <a href="/manga/<%= item.mangaSlug %>/chapter/<%= chap.chapterNumber %>" class="history-chapter-link">
+                                                Chương <%= chap.chapterNumber %><% if(chap.title){ %>: <%= chap.title %><% } %>
+                                            </a>
+                                        </div>
+                                        <div class="progress">
+                                            <div class="progress-bar <%= chap.progress === 100 ? 'completed' : '' %>" style="width: <%= chap.progress %>%"></div>
+                                        </div>
+                                        <div class="progress-text"><%= chap.progress %>%</div>
+                                    </div>
+                                <% }) %>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            <% }) %>
+        </div>
+    <% } %>
+</div>

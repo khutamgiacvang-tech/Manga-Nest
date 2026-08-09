@@ -1,0 +1,536 @@
+/* ===========================
+   MangaNest Auth Modal
+=========================== */
+
+* {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+}
+
+.auth-modal {
+
+    position: fixed;
+
+    inset: 0;
+
+    display: none;
+
+    justify-content: center;
+
+    align-items: center;
+
+    z-index: 9999;
+
+}
+
+.auth-modal.show {
+
+    display: flex;
+
+    animation: fadeIn .25s ease;
+
+}
+
+.auth-backdrop {
+
+    position: absolute;
+
+    inset: 0;
+
+    background: rgba(0, 0, 0, .72);
+
+    backdrop-filter: blur(8px);
+
+}
+
+.auth-container {
+
+    position: relative;
+
+    width: 460px;
+
+    max-width: 95%;
+
+    background: #17181f;
+
+    border-radius: 22px;
+
+    padding: 35px;
+
+    z-index: 2;
+
+    border: 1px solid rgba(255, 255, 255, .08);
+
+    box-shadow:
+
+        0 20px 60px rgba(0, 0, 0, .45),
+
+        0 0 25px rgba(255, 77, 79, .08);
+
+    animation: popup .3s ease;
+
+}
+
+.close-auth {
+
+    position: absolute;
+
+    top: 18px;
+
+    right: 18px;
+
+    width: 36px;
+
+    height: 36px;
+
+    border: none;
+
+    border-radius: 50%;
+
+    background: #242631;
+
+    color: #fff;
+
+    cursor: pointer;
+
+    transition: .25s;
+
+}
+
+.close-auth:hover {
+
+    background: #ff4d4f;
+
+    transform: rotate(90deg);
+
+}
+
+.auth-tabs {
+
+    display: flex;
+
+    margin-bottom: 30px;
+
+    border-bottom: 1px solid rgba(255, 255, 255, .08);
+
+}
+
+.auth-tabs button {
+
+    flex: 1;
+
+    padding: 15px;
+
+    background: none;
+
+    border: none;
+
+    color: #8b8d96;
+
+    cursor: pointer;
+
+    font-size: 16px;
+
+    font-weight: 600;
+
+    transition: .25s;
+
+}
+
+.auth-tabs button.active {
+
+    color: #fff;
+
+    border-bottom: 3px solid #ff4d4f;
+
+}
+
+.auth-container h2 {
+
+    color: #fff;
+
+    font-size: 28px;
+
+    margin-bottom: 8px;
+
+}
+
+.auth-container p {
+
+    color: #9d9fa8;
+
+    margin-bottom: 25px;
+
+    line-height: 1.6;
+
+}
+
+.auth-container input {
+
+    width: 100%;
+
+    padding: 14px 16px;
+
+    margin-bottom: 15px;
+
+    background: #23252f;
+
+    border: 1px solid transparent;
+
+    border-radius: 12px;
+
+    color: #fff;
+
+    font-size: 15px;
+
+    transition: .25s;
+
+}
+
+.auth-container input::placeholder {
+
+    color: #7f828d;
+
+}
+
+.auth-container input:focus {
+
+    outline: none;
+
+    border-color: #ff4d4f;
+
+    background: #2b2e39;
+
+}
+
+.submit-btn {
+
+    width: 100%;
+
+    padding: 14px;
+
+    border: none;
+
+    border-radius: 12px;
+
+    background: #ff4d4f;
+
+    color: white;
+
+    font-size: 16px;
+
+    font-weight: bold;
+
+    cursor: pointer;
+
+    transition: .25s;
+
+}
+
+.submit-btn:hover {
+
+    background: #ff6768;
+
+    transform: translateY(-2px);
+
+}
+
+.divider {
+
+    display: flex;
+
+    align-items: center;
+
+    margin: 25px 0;
+
+    color: #777;
+
+}
+
+.divider::before,
+
+.divider::after {
+
+    content: "";
+
+    flex: 1;
+
+    height: 1px;
+
+    background: #333;
+
+}
+
+.divider::before {
+
+    margin-right: 15px;
+
+}
+
+.divider::after {
+
+    margin-left: 15px;
+
+}
+
+.google-btn,
+
+.discord-btn {
+
+    width: 100%;
+
+    display: flex;
+
+    align-items: center;
+
+    justify-content: center;
+
+    gap: 10px;
+
+    padding: 13px;
+
+    border-radius: 12px;
+
+    text-decoration: none;
+
+    font-weight: 600;
+
+    margin-bottom: 12px;
+
+    transition: .25s;
+
+}
+
+.google-btn {
+
+    background: #fff;
+
+    color: #222;
+
+}
+
+.google-btn:hover {
+
+    transform: translateY(-2px);
+
+}
+
+.discord-btn {
+
+    background: #5865F2;
+
+    color: #fff;
+
+}
+
+.discord-btn:hover {
+
+    background: #6975ff;
+
+    transform: translateY(-2px);
+
+}
+
+.google-btn img,
+
+.discord-btn img {
+
+    width: 22px;
+
+    height: 22px;
+
+}
+
+.auth-footer {
+
+    margin-top: 25px;
+
+    text-align: center;
+
+    color: #999;
+
+}
+
+.auth-footer span {
+
+    color: #ff4d4f;
+
+    cursor: pointer;
+
+    font-weight: bold;
+
+}
+
+.auth-footer span:hover {
+
+    text-decoration: underline;
+
+}
+
+/* Animation */
+
+@keyframes fadeIn {
+
+    from {
+
+        opacity: 0;
+
+    }
+
+    to {
+
+        opacity: 1;
+
+    }
+
+}
+
+@keyframes popup {
+
+    from {
+
+        opacity: 0;
+
+        transform: translateY(25px) scale(.95);
+
+    }
+
+    to {
+
+        opacity: 1;
+
+        transform: translateY(0) scale(1);
+
+    }
+
+}
+
+/* Mobile */
+
+.password-group {
+
+    position: relative;
+
+}
+
+.password-group input {
+
+    padding-right: 50px;
+
+}
+
+.toggle-password {
+
+    position: absolute;
+
+    right: 16px;
+
+    top: 50%;
+
+    transform: translateY(-50%);
+
+    cursor: pointer;
+
+    color: #999;
+
+    user-select: none;
+
+    transition: .25s;
+
+}
+
+.toggle-password:hover {
+
+    color: #ff4d4f;
+
+}
+
+.forgot-password {
+
+    text-align: right;
+
+    margin: -5px 0 18px;
+
+}
+
+.forgot-password a {
+
+    color: #bdbdbd;
+
+    text-decoration: none;
+
+    font-size: 14px;
+
+}
+
+.forgot-password a:hover {
+
+    color: #ff4d4f;
+
+}
+
+.auth-switch {
+
+    text-align: center;
+
+    margin-top: 18px;
+
+    color: #999;
+
+}
+
+.auth-switch span {
+
+    color: #ff4d4f;
+
+    cursor: pointer;
+
+    font-weight: 600;
+
+}
+
+/* ===========================
+   Trang Quên mật khẩu / Reset mật khẩu (không phải modal)
+   Tái sử dụng style của .auth-container, chỉ thêm wrapper để căn giữa trang
+=========================== */
+
+.auth-page-wrap {
+
+    min-height: 70vh;
+
+    display: flex;
+
+    justify-content: center;
+
+    align-items: center;
+
+    padding: 60px 20px;
+
+}
+
+.auth-page-wrap .auth-container {
+
+    animation: popup .3s ease;
+
+}
+
+.auth-page-back {
+
+    display: inline-block;
+
+    margin-top: 18px;
+
+    color: #9aa0ac;
+
+    text-decoration: none;
+
+    font-size: 14px;
+
+}
+
+.auth-page-back:hover {
+
+    color: #ff4d4f;
+
+}

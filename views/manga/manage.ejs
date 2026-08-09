@@ -1,0 +1,314 @@
+<div class="translator-page">
+
+    <h1 class="manage-title">
+        <%= manga.title %>
+    </h1>
+
+    <p class="subtitle">
+        Quản lý truyện
+    </p>
+
+    <div class="manage-layout">
+
+        <!-- LEFT -->
+
+        <div class="left-panel">
+
+            <img
+                src="<%= manga.cover || '/images/no-cover.png' %>"
+                class="manage-cover">
+
+            <div class="left-buttons">
+
+                <a
+                    href="/upload/<%= manga.slug %>/chapter"
+                    class="upload-btn">
+
+                    📤 Upload Chapter
+
+                </a>
+
+            </div>
+
+        </div>
+
+
+        <!-- RIGHT -->
+
+        <div class="right-panel">
+
+            <table class="info-table">
+
+                <tr>
+
+                    <td>Tác giả</td>
+
+                    <td><%= manga.author %></td>
+
+                </tr>
+
+                <tr>
+
+                    <td>Họa sĩ</td>
+
+                    <td><%= manga.artist || "-" %></td>
+
+                </tr>
+
+                <tr>
+
+                    <td>Chapter</td>
+
+                    <td><%= manga.totalChapters %></td>
+
+                </tr>
+
+                <tr>
+
+                    <td>Trạng thái truyện</td>
+
+                    <td>
+
+                        <% if(manga.publishStatus==="ongoing"){ %>
+
+                            Đang tiến hành
+
+                        <% }else if(manga.publishStatus==="completed"){ %>
+
+                            Hoàn thành
+
+                        <% }else{ %>
+
+                            Tạm ngưng
+
+                        <% } %>
+
+                    </td>
+
+                </tr>
+
+                <tr>
+
+                    <td>Duyệt</td>
+
+                    <td>
+
+                        <% if(manga.status==="pending"){ %>
+
+                            <span class="badge pending">
+
+                                ⏳ Chờ Admin duyệt
+
+                            </span>
+
+                        <% }else if(manga.status==="approved"){ %>
+
+                            <span class="badge approved">
+
+                                ✅ Đã duyệt
+
+                            </span>
+
+                        <% }else{ %>
+
+                            <span class="badge rejected">
+
+                                ❌ Đã từ chối
+
+                            </span>
+
+                        <% } %>
+
+                    </td>
+
+                </tr>
+
+            </table>
+
+
+            <div class="manage-buttons">
+
+                <a href="/my-manga/<%= manga.slug %>/edit" class="edit-btn">
+
+                    ✏️ Sửa thông tin
+
+                </a>
+
+                <a href="/my-manga/<%= manga.slug %>/cover" class="edit-btn">
+
+                    🖼 Đổi Cover
+
+                </a>
+
+                <a href="/my-manga/<%= manga.slug %>/banner" class="edit-btn">
+
+                    🌄 Đổi Banner
+
+                </a>
+
+                <a href="/my-manga/<%= manga.slug %>/delete" class="delete-btn" onclick="confirmDelete(event,this)">
+
+                    🗑 Xóa truyện
+
+                </a>
+
+            </div>
+
+        </div>
+
+    </div>
+
+
+
+    <!-- ===================== -->
+
+    <!-- CHAPTER -->
+
+    <!-- ===================== -->
+
+
+
+    <div class="chapter-section">
+
+        <h2 class="chapter-title">
+
+            📖 Danh sách Chapter
+
+        </h2>
+
+        <% if(chapters.length===0){ %>
+
+            <div class="empty-box">
+
+                Chưa có chapter nào.
+
+            </div>
+
+        <% } %>
+
+        <div class="chapter-list-scroll">
+
+        <% chapters.forEach(chapter=>{ %>
+        <div class="chapter-card">
+
+            <div class="chapter-info">
+
+                <h3>
+
+                    Chapter <%= chapter.chapterNumber %>
+
+                    <% if(chapter.isDeleted){ %>
+                        <span class="chapter-status-badge chapter-status-deleted">🗑 Đã bị xóa</span>
+                    <% } else if(chapter.isHidden){ %>
+                        <span class="chapter-status-badge chapter-status-hidden">🚫 Đã bị ẩn</span>
+                    <% } %>
+
+                </h3>
+
+                <p>
+
+                    <%= chapter.title || "Không có tiêu đề" %>
+
+                </p>
+
+                <small>
+
+                    <%= chapter.totalPages %> trang
+
+                </small>
+
+                <% if(chapter.isHidden && chapter.hiddenReason){ %>
+                    <div class="chapter-status-reason">
+                        ⚠️ Lý do: <%= chapter.hiddenReason %> —
+                        <a href="/my-manga/<%= manga.slug %>/chapter/<%= chapter._id %>/status">Xem chi tiết</a>
+                    </div>
+                <% } %>
+
+            </div>
+
+            <div class="chapter-action">
+
+                <% if(!chapter.isDeleted){ %>
+                    <a
+                        href="/my-manga/<%= manga.slug %>/chapter/<%= chapter._id %>/edit"
+                        class="edit-btn"
+                    >
+
+                        ✏️ Sửa
+
+                    </a>
+                <% } %>
+
+                <a
+                    href="/my-manga/<%= manga.slug %>/chapter/<%= chapter._id %>/delete"
+                    class="delete-btn"
+                    onclick="confirmDeleteChapter(event,this)"
+                >
+
+                    🗑 Xóa
+
+                </a>
+
+            </div>
+
+        </div>
+
+        <% }) %>
+
+        </div>
+
+    </div>
+
+</div>
+
+<script>
+
+function confirmDelete(event,element){
+
+    event.preventDefault();
+
+    Swal.fire({
+        title:"Xóa truyện?",
+        text:"Bạn có chắc muốn xóa truyện này?",
+        icon:"warning",
+        showCancelButton:true,
+        confirmButtonText:"🗑 Xóa",
+        cancelButtonText:"Hủy",
+        confirmButtonColor:"#ef4444"
+    }).then((result)=>{
+
+        if(result.isConfirmed){
+
+            window.location.href=element.href;
+
+        }
+
+    });
+
+}
+
+function confirmDeleteChapter(event,element){
+
+    event.preventDefault();
+
+    Swal.fire({
+        title:"Xóa Chapter?",
+        text:"Bạn có chắc muốn xóa Chapter này?",
+        icon:"warning",
+        showCancelButton:true,
+        confirmButtonText:"🗑 Xóa",
+        cancelButtonText:"Hủy",
+        confirmButtonColor:"#ef4444"
+    }).then((result)=>{
+
+        if(result.isConfirmed){
+
+            window.location.href=element.href;
+
+        }
+
+    });
+
+}
+
+</script>

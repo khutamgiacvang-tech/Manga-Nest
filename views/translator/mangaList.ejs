@@ -1,0 +1,49 @@
+<div class="tp-page" id="tp-app"
+    data-username="<%= translator.username %>"
+    data-tab="<%= activeTab %>"
+    data-period="<%= period || '' %>"
+    data-page="<%= currentPage %>"
+>
+
+    <div class="tp-header">
+        <img
+            src="<%= translator.avatar || '/images/icon/avatar.png' %>"
+            class="tp-avatar"
+        >
+        <h1 class="tp-name"><%= translator.displayName || translator.username %></h1>
+
+        <% if(translator.description){ %>
+            <p class="tp-desc"><%= translator.description %></p>
+        <% } %>
+
+        <% if(translator.facebook){ %>
+            <a href="<%= translator.facebook %>" target="_blank" class="tp-social-btn">
+                <%= translator.facebook %>
+            </a>
+        <% } %>
+    </div>
+
+    <div class="tp-tabs">
+        <a href="/translator/<%= translator.username %>" class="tp-tab js-tab <%= activeTab === 'home' ? 'active' : '' %>" data-tab="home">Trang chính</a>
+        <a href="/translator/<%= translator.username %>/new-mangas" class="tp-tab js-tab <%= activeTab === 'new' ? 'active' : '' %>" data-tab="new">Truyện mới</a>
+        <a href="/translator/<%= translator.username %>/top-mangas" class="tp-tab js-tab <%= activeTab === 'top' ? 'active' : '' %>" data-tab="top">Truyện nổi bật</a>
+    </div>
+
+    <div id="tp-content">
+        <%- include('partials/listContent', { translator, mangas, pageTitle, activeTab, period, currentPage, totalPages, timeAgo: function(d){
+            if(!d) return "";
+            const now = new Date(); const past = new Date(d); const diffMs = now - past;
+            const seconds = Math.floor(diffMs/1000), minutes = Math.floor(seconds/60), hours = Math.floor(minutes/60),
+                  days = Math.floor(hours/24), months = Math.floor(days/30), years = Math.floor(days/365);
+            if(years>0) return years+" năm trước";
+            if(months>0) return months+" tháng trước";
+            if(days>0) return days+" ngày trước";
+            if(hours>0) return hours+" giờ trước";
+            if(minutes>0) return minutes+" phút trước";
+            return "vừa xong";
+        } }) %>
+    </div>
+
+</div>
+
+<%- include('partials/styleAndScript') %>

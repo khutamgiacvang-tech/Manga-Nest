@@ -1,0 +1,132 @@
+.manga-list-page{
+
+    width:92%;
+    max-width:1400px;
+
+    margin:40px auto 80px;
+
+}
+
+.page-title{
+
+    color:#fff;
+
+    font-size:40px;
+    font-weight:800;
+
+    margin-bottom:35px;
+
+}
+
+.list-grid{
+
+    display:grid;
+
+    grid-template-columns:repeat(5,minmax(0,1fr));
+
+    gap:25px;
+
+}
+
+.list-card{
+
+    text-decoration:none;
+
+    color:#fff;
+
+}
+
+.list-card img{
+
+    width:100%;
+    height:270px;
+
+    object-fit:cover;
+
+    border-radius:10px;
+
+    transition:.25s;
+
+}
+
+.list-card:hover img{
+
+    transform:translateY(-6px);
+
+}
+
+.list-card h3{
+
+    margin-top:10px;
+
+    font-size:15px;
+
+    font-weight:700;
+
+    line-height:1.4;
+
+    display:-webkit-box;
+
+    -webkit-line-clamp:2;
+    line-clamp:2;
+
+    -webkit-box-orient:vertical;
+
+    overflow:hidden;
+
+}
+
+.pagination{
+
+    margin-top:50px;
+
+    display:flex;
+
+    justify-content:center;
+    align-items:center;
+
+    gap:20px;
+
+}
+
+.page-btn{
+
+    background:#2563eb;
+
+    color:#fff;
+
+    padding:12px 22px;
+
+    border-radius:8px;
+
+    text-decoration:none;
+
+    font-weight:700;
+
+    transition:.2s;
+
+}
+
+.page-btn:hover{
+
+    background:#1d4ed8;
+
+}
+
+.page-btn.disabled{
+
+    background:#3a3a3a;
+
+    cursor:not-allowed;
+
+    pointer-events:none;
+
+}
+
+.page-number{
+
+    color:#fff;
+
+    font-weight:700;
+
+}

@@ -1,0 +1,418 @@
+<header class="navbar">
+    <div class="container">
+        <!-- Logo -->
+        <a href="/" class="logo">
+            📚 <span>MangaNest</span>
+        </a>
+
+        <!-- Hamburger (mobile/tablet) -->
+        <button type="button" class="hamburger-btn" id="hamburgerBtn" aria-label="Menu">
+            <i class="fa-solid fa-bars"></i>
+        </button>
+
+        <!-- Menu -->
+        <nav class="nav-menu" id="navMenu">
+            <a href="/support">❤️ Ủng hộ</a>
+            <a href="/translator/apply">📝 Đăng truyện</a>
+            <a href="https://discord.gg/dREjzkdGu" target="_blank">
+                💬 Discord
+            </a>
+            <a href="https://www.facebook.com/groups/1813009790145338"target="_blank">👥 Cộng đồng</a>
+        </nav>
+
+        <!-- Nút mở search (thay cho ô search luôn hiện) -->
+        <button type="button" class="search-toggle-btn" id="searchToggleBtn" aria-label="Tìm kiếm">
+            <i class="fa-solid fa-magnifying-glass"></i>
+        </button>
+
+        <!-- User Menu -->
+        <div class="user-menu">
+            <% if(user){ %>
+            <!-- Notification -->
+            <div class="notification-dropdown">
+                <button class="notification-btn">
+                    <i class="fa-regular fa-bell"></i>
+                    <% if(unreadCount > 0){ %>
+                    <span
+                        class="notification-badge"
+                        id="notificationBadge">
+                        <%= unreadCount %>
+                    </span>
+                    <% } %>
+                </button>
+
+                <div class="notification-menu">
+                    <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:12px;">
+                        <h4 style="margin:0;">
+                            🔔 Thông báo
+                        </h4>
+                        <% if(notifications.length > 0){ %>
+                        <button
+                            onclick="markAllRead()"
+                            style="border:none;background:#5865F2;color:#fff;padding:6px 12px;border-radius:6px;cursor:pointer;">
+                            Đọc tất cả
+                        </button>
+                        <% } %>
+                    </div>
+
+                    <div id="notificationList">
+                        <% if(notifications.length > 0){ %>
+                            <% notifications.forEach(notification => { %>
+                                <a href="<%= notification.link %>"
+                                    data-id="<%= notification._id %>"
+                                    class="notification-item <%= notification.isRead ? '' : 'unread' %>"
+                                    onclick="readNotification(event,this)">
+
+                                    <div class="notification-label">
+                                        <%= notification.title %>
+                                    </div>
+
+                                    <div class="notification-body">
+                                        <img
+                                            class="notification-cover"
+                                            src="<%= notification.image ? notification.image : '/images/icon/avatar.png' %>"
+                                            alt="">
+
+                                        <div class="notification-content">
+                                            <p class="notification-message">
+                                                <%= notification.message %>
+                                            </p>
+
+                                            <small>
+                                                <%= notification.createdAt.toLocaleString("vi-VN") %>
+                                            </small>
+                                        </div>
+                                    </div>
+
+                                </a>
+                            <% }) %>
+                        <% } else { %>
+                            <div class="empty-notification">
+                                Chưa có thông báo.
+                            </div>
+                        <% } %>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Avatar & Profile Dropdown -->
+            <div class="user-dropdown">
+                <img
+                    class="avatar"
+                    src="<%= user.avatar ? user.avatar : '/images/icon/avatar.png' %>"
+                    alt="Avatar">
+
+                <span>
+                    <%= user.username %>
+                </span>
+
+                <div class="dropdown-menu">
+                    <a href="/profile">
+                        👤 Hồ sơ
+                    </a>
+
+                    <% if(user && user.role === "translator"){ %>
+                    <a href="/my-manga" class="dropdown-item">
+                        📚 Truyện của tôi
+                    </a>
+                    <% } %>
+
+                    <a href="/translator/application">
+                        📄 Đơn Translator
+                    </a>
+
+                    <a href="/library">
+                        ❤️ Danh sách theo dõi
+                    </a>
+
+                    <a href="/history">
+                        🕒 Lịch sử đọc
+                    </a>
+
+                    <% if(user.role === "admin"){ %>
+                    <a href="/admin">
+                        🛡 Quản trị
+                    </a>
+                    <% } %>
+
+                    <a href="/logout">
+                        🚪 Đăng xuất
+                    </a>
+                </div>
+            </div>
+
+            <% } else { %>
+            <button
+                class="login-btn"
+                onclick="openAuth()">
+                <i class="fa-regular fa-user"></i>
+                Đăng nhập
+            </button>
+            <% } %>
+        </div>
+    </div>
+
+    <!-- Overlay Search (kiểu cuutruyen: bấm kính lúp -> đổ xuống che navbar) -->
+    <div class="search-overlay" id="searchOverlay">
+        <div class="search-overlay-inner">
+            <div class="search-overlay-box">
+                <i class="fa-solid fa-magnifying-glass"></i>
+                <input
+                    type="text"
+                    id="searchInput"
+                    placeholder="Tìm kiếm truyện..."
+                    autocomplete="off"
+                >
+                <button type="button" id="searchClear" class="search-clear" style="display:none;">
+                    <i class="fa-solid fa-xmark"></i>
+                </button>
+                <button type="button" id="searchCloseBtn" class="search-close-btn" aria-label="Đóng tìm kiếm">
+                    <i class="fa-solid fa-xmark"></i>
+                </button>
+            </div>
+            <div
+                id="searchDropdown"
+                class="search-dropdown"
+            ></div>
+        </div>
+    </div>
+
+    <style>
+        .notification-item {
+            display: flex;
+            flex-direction: column;
+            gap: 6px;
+            text-decoration: none;
+            color: inherit;
+        }
+
+        .notification-body {
+            display: flex;
+            align-items: flex-start;
+            gap: 10px;
+        }
+
+        .notification-cover {
+            width: 44px;
+            height: 44px;
+            flex-shrink: 0;
+            object-fit: cover;
+            border-radius: 6px;
+            background: #222;
+        }
+
+        .notification-content {
+            flex: 1;
+            min-width: 0;
+        }
+
+        .notification-message {
+            margin: 0;
+        }
+    </style>
+
+    <script>
+    // ==========================
+    // SEARCH OVERLAY (bấm kính lúp -> đổ thanh search từ trên xuống
+    // che hết navbar, giống cuutruyen. ESC hoặc click ra ngoài để tắt)
+    // ==========================
+    (function(){
+        const toggleBtn = document.getElementById('searchToggleBtn');
+        const overlay = document.getElementById('searchOverlay');
+        const closeBtn = document.getElementById('searchCloseBtn');
+        const overlayInput = document.getElementById('searchInput');
+
+        if (!toggleBtn || !overlay) return;
+
+        function openOverlay(){
+            overlay.classList.add('active');
+            document.body.classList.add('search-overlay-open');
+            // Focus vào ô input sau khi hiệu ứng đổ xuống bắt đầu
+            setTimeout(() => overlayInput && overlayInput.focus(), 150);
+        }
+
+        function closeOverlay(){
+            overlay.classList.remove('active');
+            document.body.classList.remove('search-overlay-open');
+        }
+
+        toggleBtn.addEventListener('click', function(e){
+            e.stopPropagation();
+            if (overlay.classList.contains('active')) {
+                closeOverlay();
+            } else {
+                openOverlay();
+            }
+        });
+
+        if (closeBtn) {
+            closeBtn.addEventListener('click', closeOverlay);
+        }
+
+        // ESC để tắt
+        document.addEventListener('keydown', function(e){
+            if (e.key === 'Escape' && overlay.classList.contains('active')) {
+                closeOverlay();
+            }
+        });
+
+        // Click ra ngoài thanh search (nhưng vẫn trong overlay, hoặc bên ngoài overlay) để tắt
+        document.addEventListener('click', function(e){
+            if (!overlay.classList.contains('active')) return;
+            if (!e.target.closest('.search-overlay') && !e.target.closest('.search-toggle-btn')) {
+                closeOverlay();
+            }
+        });
+
+        // Click vào chính overlay (phần nền, ngoài ô search) cũng tắt
+        overlay.addEventListener('click', function(e){
+            if (e.target === overlay || e.target.classList.contains('search-overlay-inner')) {
+                closeOverlay();
+            }
+        });
+    })();
+
+    // ==========================
+    // HAMBURGER MENU (mobile/tablet)
+    // ==========================
+    (function(){
+        const hamburgerBtn = document.getElementById('hamburgerBtn');
+        const navMenu = document.getElementById('navMenu');
+
+        if (!hamburgerBtn || !navMenu) return;
+
+        hamburgerBtn.addEventListener('click', function(e){
+            e.stopPropagation();
+            navMenu.classList.toggle('active');
+        });
+
+        document.addEventListener('click', function(e){
+            if (!e.target.closest('#navMenu') && !e.target.closest('#hamburgerBtn')) {
+                navMenu.classList.remove('active');
+            }
+        });
+    })();
+
+    (function(){
+        const input = document.getElementById('searchInput');
+        const dropdown = document.getElementById('searchDropdown');
+        const clearBtn = document.getElementById('searchClear');
+
+        let debounceTimer;
+
+        if (input) {
+            input.addEventListener('input', function(){
+                const keyword = input.value.trim();
+
+                clearBtn.style.display = input.value ? 'flex' : 'none';
+
+                clearTimeout(debounceTimer);
+
+                if(!keyword){
+                    dropdown.classList.remove('active');
+                    dropdown.innerHTML = '';
+                    return;
+                }
+
+                renderSkeleton();
+                dropdown.classList.add('active');
+
+                debounceTimer = setTimeout(() => {
+                    fetch('/api/search?q=' + encodeURIComponent(keyword))
+                        .then(res => res.json())
+                        .then(data => renderResults(data))
+                        .catch(err => console.error('Search error:', err));
+                }, 300);
+            });
+        }
+
+        if (clearBtn) {
+            clearBtn.addEventListener('click', function(){
+                input.value = '';
+                clearBtn.style.display = 'none';
+                dropdown.classList.remove('active');
+                dropdown.innerHTML = '';
+                input.focus();
+            });
+        }
+
+        function renderSkeleton(){
+            let html = '';
+            for(let i = 0; i < 3; i++){
+                html += `
+                    <div class="search-skeleton-item">
+                        <div class="skeleton-line title"></div>
+                        <div class="skeleton-line thumb"></div>
+                    </div>
+                `;
+            }
+            dropdown.innerHTML = html;
+        }
+
+        function renderResults(mangas){
+            dropdown.innerHTML = '';
+
+            if(!mangas.length){
+                dropdown.innerHTML = '<div class="search-empty">Không tìm thấy kết quả</div>';
+            } else {
+                mangas.forEach(manga => {
+                    const item = document.createElement('a');
+                    item.href = '/manga/' + manga.slug;
+                    item.className = 'search-item';
+                    item.innerHTML = `
+                        <img src="${manga.cover}" alt="${manga.title}">
+                        <span>${manga.title}</span>
+                    `;
+                    dropdown.appendChild(item);
+                });
+            }
+
+            dropdown.classList.add('active');
+        }
+
+        document.addEventListener('click', function(e){
+            if(!e.target.closest('.search-overlay-box')){
+                dropdown.classList.remove('active');
+            }
+        });
+    })();
+
+    (function(){
+        const notifDropdown = document.querySelector('.notification-dropdown');
+        const notifBtn = document.querySelector('.notification-btn');
+        const userDropdown = document.querySelector('.user-dropdown');
+
+        function closeAll(except){
+            if(notifDropdown && notifDropdown !== except) notifDropdown.classList.remove('active');
+            if(userDropdown && userDropdown !== except) userDropdown.classList.remove('active');
+        }
+
+        if(notifBtn){
+            notifBtn.addEventListener('click', function(e){
+                e.stopPropagation();
+                const isActive = notifDropdown.classList.contains('active');
+                closeAll();
+                if(!isActive) notifDropdown.classList.add('active');
+            });
+        }
+
+        if(userDropdown){
+            userDropdown.addEventListener('click', function(e){
+                e.stopPropagation();
+                const isActive = userDropdown.classList.contains('active');
+                closeAll();
+                if(!isActive) userDropdown.classList.add('active');
+            });
+        }
+
+        document.addEventListener('click', function(e){
+            if(!e.target.closest('.notification-dropdown')){
+                if(notifDropdown) notifDropdown.classList.remove('active');
+            }
+            if(!e.target.closest('.user-dropdown')){
+                if(userDropdown) userDropdown.classList.remove('active');
+            }
+        });
+    })();
+    </script>
+</header>

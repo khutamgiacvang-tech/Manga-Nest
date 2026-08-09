@@ -1,0 +1,192 @@
+<%
+// Helper hiển thị thời gian tương đối kiểu "12 phút trước"
+function timeAgo(date){
+
+    if(!date) return "";
+
+    const diff = Date.now() - new Date(date).getTime();
+
+    const mins = Math.floor(diff / 60000);
+
+    if(mins < 1) return "vừa xong";
+    if(mins < 60) return mins + " phút trước";
+
+    const hours = Math.floor(mins / 60);
+    if(hours < 24) return hours + " giờ trước";
+
+    const days = Math.floor(hours / 24);
+    if(days < 30) return days + " ngày trước";
+
+    const months = Math.floor(days / 30);
+    if(months < 12) return months + " tháng trước";
+
+    return Math.floor(months / 12) + " năm trước";
+}
+
+// Giữ lại điều kiện tìm kiếm khi chuyển trang
+let extraQuery = "";
+
+if (keyword) {
+    extraQuery += "&q=" + encodeURIComponent(keyword);
+}
+
+if (selectedGenres && selectedGenres.length) {
+    extraQuery += "&genre=" + encodeURIComponent(selectedGenres.join(","));
+}
+%>
+
+<div class="search-page">
+
+    <div class="search-header">
+
+        <h1>Tìm kiếm truyện</h1>
+
+    </div>
+
+    <form class="search-form" action="/search" method="GET">
+
+        <input
+            type="text"
+            name="q"
+            class="search-input"
+            placeholder="Tìm kiếm theo tên truyện..."
+            value="<%= keyword %>"
+        >
+
+        <div class="genre-picker">
+
+            <p class="genre-picker-label">Tìm theo thể loại</p>
+
+            <div class="genre-chip-list">
+
+                <% allGenres.forEach(g => { %>
+
+                    <label class="genre-chip">
+
+                        <input
+                            type="checkbox"
+                            name="genre"
+                            value="<%= g %>"
+                            <%= selectedGenres.includes(g) ? "checked" : "" %>
+                        >
+
+                        <span><%= g %></span>
+
+                    </label>
+
+                <% }) %>
+
+                <% if(!allGenres.length){ %>
+
+                    <p class="genre-empty">Chưa có thể loại nào trên hệ thống.</p>
+
+                <% } %>
+
+            </div>
+
+        </div>
+
+        <button type="submit" class="search-submit-btn">Tìm kiếm</button>
+
+    </form>
+
+    <!-- ===================== KẾT QUẢ ===================== -->
+    <div class="search-results">
+
+        <h2 class="search-results-title">
+            <% if(keyword){ %>
+                Kết quả tìm kiếm cho "<%= keyword %>"
+            <% } else if(selectedGenres && selectedGenres.length){ %>
+                Truyện thuộc thể loại: <%= selectedGenres.join(", ") %>
+            <% } else { %>
+                Truyện mới cập nhật
+            <% } %>
+        </h2>
+
+        <% if(mangas.length){ %>
+
+            <div class="list-grid">
+
+                <% mangas.forEach(manga => { %>
+
+                    <a href="/manga/<%= manga.slug %>" class="list-card">
+
+                        <img
+                            src="<%= manga.cover || '/images/no-cover.png' %>"
+                            alt="<%= manga.title %>"
+                        >
+
+                        <div class="list-card-body">
+
+                            <h3><%= manga.title %></h3>
+
+                            <p class="list-card-meta">
+                                C. <%= manga.lastChapter || 0 %> -
+                                <%= timeAgo(manga.lastChapterDate) %>
+                            </p>
+
+                        </div>
+
+                    </a>
+
+                <% }) %>
+
+            </div>
+
+            <div class="pagination">
+
+                <% if(currentPage > 1){ %>
+
+                    <a
+                        href="/search?page=<%= currentPage - 1 %><%= extraQuery %>"
+                        class="page-btn"
+                    >
+                        ‹ Trang trước
+                    </a>
+
+                <% } else { %>
+
+                    <span class="page-btn disabled">
+                        ‹ Trang trước
+                    </span>
+
+                <% } %>
+
+                <span class="page-number">
+                    Trang <%= currentPage %> / <%= totalPages %>
+                </span>
+
+                <% if(currentPage < totalPages){ %>
+
+                    <a
+                        href="/search?page=<%= currentPage + 1 %><%= extraQuery %>"
+                        class="page-btn"
+                    >
+                        Trang sau ›
+                    </a>
+
+                <% } else { %>
+
+                    <span class="page-btn disabled">
+                        Trang sau ›
+                    </span>
+
+                <% } %>
+
+            </div>
+
+        <% } else { %>
+
+            <p class="search-empty">
+                <% if(hasSearched){ %>
+                    Không tìm thấy truyện nào phù hợp. Thử từ khóa hoặc thể loại khác nhé.
+                <% } else { %>
+                    Hiện chưa có truyện nào.
+                <% } %>
+            </p>
+
+        <% } %>
+
+    </div>
+
+</div>

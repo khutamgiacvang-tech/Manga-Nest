@@ -1,0 +1,201 @@
+<div class="translator-page">
+
+    <div class="translator-card">
+
+        <h1>
+
+            📄 Đơn Translator
+
+        </h1>
+
+        <% if(!application){ %>
+
+            <div class="empty-box">
+
+                <h3>
+
+                    Bạn chưa gửi đơn.
+
+                </h3>
+
+                <a
+                    href="/translator/apply"
+                    class="submit-btn">
+
+                    Gửi đơn ngay
+
+                </a>
+
+            </div>
+
+        <% }else{ %>
+
+            <div class="application-info">
+
+                <p>
+
+                    <strong>Trạng thái:</strong>
+
+                    <span class="status <%= application.status %>">
+
+                        <% if(application.status==="pending"){ %>
+
+                            🟡 Đang chờ xét duyệt
+
+                        <% } %>
+
+                        <% if(application.status==="approved"){ %>
+
+                            🟢 Đã được chấp thuận
+
+                        <% } %>
+
+                        <% if(application.status==="rejected"){ %>
+
+                            🔴 Đã bị từ chối
+
+                        <% } %>
+
+                    </span>
+
+                </p>
+
+                <p>
+
+                    <strong>Ngày gửi:</strong>
+
+                    <%= application.createdAt.toLocaleDateString("vi-VN") %>
+
+                </p>
+
+                <p>
+
+                    <strong>Tên nhóm:</strong>
+
+                    <%= application.groupName || "Không có" %>
+
+                </p>
+
+                <p>
+
+                    <strong>Giới thiệu:</strong>
+
+                </p>
+
+                <div class="description">
+
+                    <%= application.introduction %>
+
+                </div>
+
+            </div>
+
+            <% if(application.projects && application.projects.length){ %>
+
+                <hr>
+
+                <h3>
+
+                    📚 Dự án đã dịch
+
+                </h3>
+
+                <% application.projects.forEach(function(project){ %>
+
+                    <div class="item-box">
+
+                        <strong>
+
+                            <%= project.title %>
+
+                        </strong>
+
+                        <br>
+
+                        <%= project.website %>
+
+                        <br>
+
+                        <a
+                            href="<%= project.link %>"
+                            target="_blank">
+
+                            <%= project.link %>
+
+                        </a>
+
+                    </div>
+
+                <% }); %>
+
+            <% } %>
+
+            <% if(application.profiles && application.profiles.length){ %>
+
+                <hr>
+
+                <h3>
+
+                    🌐 Profile
+
+                </h3>
+
+                <% application.profiles.forEach(function(profile){ %>
+
+                    <div class="item-box">
+
+                        <%= profile.website %>
+
+                        <br>
+
+                        <a
+                            href="<%= profile.link %>"
+                            target="_blank">
+
+                            <%= profile.link %>
+
+                        </a>
+
+                    </div>
+
+                <% }); %>
+
+            <% } %>
+
+            <%
+                // Lọc chỉ giữ lại URL hợp lệ (string bắt đầu bằng http)
+                var validImages = (application.sampleImages || []).filter(function(img){
+                    return typeof img === 'string' && img.indexOf('http') === 0;
+                });
+            %>
+
+            <% if(validImages.length){ %>
+
+                <hr>
+
+                <h3>
+
+                    🖼 Chapter mẫu
+
+                </h3>
+
+                <div class="sample-images">
+
+                    <% validImages.forEach(function(image){ %>
+
+                        <img
+                            src="<%= image %>"
+                            class="sample-image"
+                            loading="lazy">
+
+                    <% }); %>
+
+                </div>
+
+            <% } %>
+
+        <% } %>
+
+    </div>
+
+</div>

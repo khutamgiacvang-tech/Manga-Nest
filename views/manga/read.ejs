@@ -1,0 +1,1278 @@
+<div class="reader-container">
+
+    <div class="reader-modebar">
+
+        <div class="mode-toggle">
+
+            <button id="classicBtn" class="mode-btn active">
+                CLASSIC UI
+            </button>
+
+            <button id="zenBtn" class="mode-btn">
+                ZEN UI
+            </button>
+
+        </div>
+
+        <button
+            type="button"
+            id="readerModeHelpBtn"
+            class="reader-mode-help-btn"
+            title="Tìm hiểu về 2 chế độ đọc"
+        >
+            ?
+        </button>
+
+    </div>
+
+    <!-- Popup chọn giao diện đọc, giống cuutruyen.net -->
+
+    <div id="readerModeModalOverlay" class="reader-mode-modal-overlay" style="display:none;">
+
+        <div class="reader-mode-modal">
+
+            <div class="reader-mode-modal-header">
+
+                <h3>Chọn giao diện đọc</h3>
+
+                <button type="button" id="readerModeModalClose" class="reader-mode-modal-close">
+                    &times;
+                </button>
+
+            </div>
+
+            <div class="reader-mode-modal-options">
+
+                <div class="mode-option-card active" id="modeOptionClassic" data-mode="classic">
+
+                    <h4>Classic UI</h4>
+
+                    <p>Chế độ đọc dọc truyền thống.</p>
+                    <p>Cuộn hoặc vuốt từ trên xuống dưới để đọc.</p>
+                    <p>Quen thuộc và tương tự như các trang đọc truyện phổ biến hiện nay.</p>
+
+                </div>
+
+                <div class="mode-option-card" id="modeOptionZen" data-mode="zen">
+
+                    <h4>Zen UI <span class="mode-option-badge">beta</span></h4>
+
+                    <p>Chế độ đọc ngang mới.</p>
+                    <p>Nhấp chuột vào cạnh trái/phải của màn hình để chuyển trang.</p>
+                    <p>Trên máy tính, bạn cũng có thể nhấn phím mũi tên trái/phải trên bàn phím để di chuyển trang.</p>
+
+                </div>
+
+            </div>
+
+            <p class="reader-mode-modal-note">
+                Bạn vẫn có thể dễ dàng chuyển đổi giữa 2 chế độ đọc sau khi đóng hộp thoại này.
+            </p>
+
+            <button type="button" id="readerModeModalConfirm" class="reader-mode-modal-confirm">
+                XÁC NHẬN
+            </button>
+
+        </div>
+
+    </div>
+
+    <div class="reader-header">
+
+        <a
+            href="/manga/<%= manga.slug %>"
+            class="back-btn"
+        >
+            ← <%= manga.title %>
+        </a>
+
+        <h2 class="reader-chapter-title">
+
+            Chương <%= chapter.chapterNumber %><% if(chapter.title){ %>: <%= chapter.title %><% } %>
+
+        </h2>
+
+    </div>
+
+    <div class="chapter-nav chapter-nav-top">
+
+        <% if(nextChapter){ %>
+
+            <a
+                href="/manga/<%= manga.slug %>/chapter/<%= nextChapter.chapterNumber %>"
+                class="nav-btn-block"
+            >
+                CHƯƠNG SAU
+            </a>
+
+        <% } else { %>
+
+            <span class="nav-btn-block disabled">
+                ĐÂY LÀ CHƯƠNG MỚI NHẤT
+            </span>
+
+        <% } %>
+
+        <% if(prevChapter){ %>
+
+            <a
+                href="/manga/<%= manga.slug %>/chapter/<%= prevChapter.chapterNumber %>"
+                class="nav-btn-block outline"
+            >
+                CHƯƠNG TRƯỚC
+            </a>
+
+        <% } else { %>
+
+            <span class="nav-btn-block outline disabled">
+                CHƯƠNG TRƯỚC
+            </span>
+
+        <% } %>
+
+    </div>
+
+    <!-- CLASSIC -->
+
+    <div id="classicReader">
+
+        <% pages.forEach(page=>{ %>
+
+        <img
+            src="<%= page %>"
+            class="reader-page"
+            loading="lazy"
+        >
+
+        <% }) %>
+
+    </div>
+
+    <!-- ZEN -->
+
+    <div id="zenReader" style="display:none;">
+
+        <!-- Màn hình vào chương, giống cuutruyen.net -->
+        <div id="zenIntroPanel" class="zen-cover-panel">
+
+            <div class="zen-cover-inner">
+
+                <h2 class="zen-cover-title">
+                    Chương <%= chapter.chapterNumber %><% if(chapter.title){ %>: <%= chapter.title %><% } %>
+                </h2>
+
+                <div class="zen-cover-nav">
+
+                    <% if(nextChapter){ %>
+                        <a
+                            href="/manga/<%= manga.slug %>/chapter/<%= nextChapter.chapterNumber %>"
+                            class="nav-btn-block"
+                        >
+                            CHƯƠNG SAU
+                        </a>
+                    <% } else { %>
+                        <span class="nav-btn-block disabled">
+                            ĐÂY LÀ CHƯƠNG MỚI NHẤT
+                        </span>
+                    <% } %>
+
+                    <% if(prevChapter){ %>
+                        <a
+                            href="/manga/<%= manga.slug %>/chapter/<%= prevChapter.chapterNumber %>"
+                            class="nav-btn-block outline"
+                        >
+                            CHƯƠNG TRƯỚC
+                        </a>
+                    <% } else { %>
+                        <span class="nav-btn-block outline disabled">
+                            CHƯƠNG TRƯỚC
+                        </span>
+                    <% } %>
+
+                </div>
+
+            </div>
+
+            <div class="zen-edge zen-edge-left" id="zenIntroPrevEdge">
+                <span>TRANG TRƯỚC</span>
+            </div>
+
+            <div class="zen-edge zen-edge-right" id="zenIntroNextEdge">
+                <span>TRANG TIẾP</span>
+            </div>
+
+        </div>
+
+        <div class="zen-stage" id="zenStage" style="display:none;">
+
+            <img id="zenPrev" class="zen-side-image" alt="">
+
+            <img
+                id="zenImage"
+                src="<%= pages[0] %>"
+                class="zen-image"
+            >
+
+            <img id="zenNext" class="zen-side-image" alt="">
+
+        </div>
+
+        <div class="zen-counter" id="zenCounter" style="display:none;">
+
+            Trang
+            <span id="currentPage">1</span>
+            /
+            <span><%= pages.length %></span>
+
+        </div>
+
+        <!-- Màn hình kết thúc chương, dùng chung style với màn hình vào chương -->
+        <div id="zenEndPanel" class="zen-cover-panel" style="display:none;">
+
+            <div class="zen-cover-inner">
+
+                <h2 class="zen-cover-title">Kết thúc chương <%= chapter.chapterNumber %></h2>
+
+                <div class="zen-cover-nav">
+
+                    <% if(nextChapter){ %>
+
+                        <a
+                            href="/manga/<%= manga.slug %>/chapter/<%= nextChapter.chapterNumber %>"
+                            class="nav-btn-block"
+                        >
+                            CHƯƠNG SAU
+                        </a>
+
+                    <% } else { %>
+
+                        <span class="nav-btn-block disabled">
+                            ĐÂY LÀ CHƯƠNG MỚI NHẤT
+                        </span>
+
+                    <% } %>
+
+                    <% if(prevChapter){ %>
+
+                        <a
+                            href="/manga/<%= manga.slug %>/chapter/<%= prevChapter.chapterNumber %>"
+                            class="nav-btn-block outline"
+                        >
+                            CHƯƠNG TRƯỚC
+                        </a>
+
+                    <% } else { %>
+
+                        <span class="nav-btn-block outline disabled">
+                            CHƯƠNG TRƯỚC
+                        </span>
+
+                    <% } %>
+
+                </div>
+
+            </div>
+
+            <div class="zen-edge zen-edge-left" id="zenEndPrevEdge">
+                <span>TRANG TRƯỚC</span>
+            </div>
+
+            <div class="zen-edge zen-edge-right" id="zenEndNextEdge">
+                <span>TRANG TIẾP</span>
+            </div>
+
+        </div>
+
+    </div>
+
+    <div class="chapter-nav end-page-nav">
+
+        <% if(nextChapter){ %>
+
+            <a
+                href="/manga/<%= manga.slug %>/chapter/<%= nextChapter.chapterNumber %>"
+                class="nav-btn-block"
+            >
+                CHƯƠNG SAU
+            </a>
+
+        <% } else { %>
+
+            <span class="nav-btn-block disabled">
+                ĐÂY LÀ CHƯƠNG MỚI NHẤT
+            </span>
+
+        <% } %>
+
+        <div class="end-page-row">
+
+            <% if(prevChapter){ %>
+
+                <a
+                    href="/manga/<%= manga.slug %>/chapter/<%= prevChapter.chapterNumber %>"
+                    class="nav-btn-block outline"
+                >
+                    CHƯƠNG TRƯỚC - <%= prevChapter.chapterNumber %>
+                </a>
+
+            <% } else { %>
+
+                <span class="nav-btn-block outline disabled">
+                    CHƯƠNG TRƯỚC
+                </span>
+
+            <% } %>
+
+            <button
+                type="button"
+                class="nav-btn-block outline"
+                onclick="window.scrollTo({top:0,behavior:'smooth'})"
+            >
+                LÊN ĐẦU
+            </button>
+
+        </div>
+
+    </div>
+
+    <div class="reader-info-text">
+
+        Bạn đang xem và đọc truyện tranh <strong><%= manga.title %></strong> tại MangaNest.
+        Chương hiện tại bạn đang đọc là chương <%= chapter.chapterNumber %><% if(chapter.title){ %> (<%= chapter.title %>)<% } %>.
+
+    </div>
+
+    <!-- Floating Nav -->
+
+    <div id="floatingNav">
+
+        <button
+            type="button"
+            id="commentToggleBtn"
+            class="float-arrow comment-toggle-btn"
+            onclick="toggleCommentPanel()"
+            title="Bình luận"
+        >
+            💬 <span id="commentCount">0</span>
+        </button>
+
+        <% if(prevChapter){ %>
+
+            <a
+                href="/manga/<%= manga.slug %>/chapter/<%= prevChapter.chapterNumber %>"
+                class="float-arrow"
+            >
+                ‹
+            </a>
+
+        <% } else { %>
+
+            <span class="float-arrow disabled">‹</span>
+
+        <% } %>
+
+        <select
+            onchange="location=this.value"
+            class="float-select"
+        >
+
+            <% allChapters.slice().reverse().forEach(ch=>{ %>
+
+            <option
+                value="/manga/<%= manga.slug %>/chapter/<%= ch.chapterNumber %>"
+                <%= ch.chapterNumber===chapter.chapterNumber ? 'selected' : '' %>
+            >
+                Chương <%= ch.chapterNumber %>
+            </option>
+
+            <% }) %>
+
+        </select>
+
+        <% if(nextChapter){ %>
+
+            <a
+                href="/manga/<%= manga.slug %>/chapter/<%= nextChapter.chapterNumber %>"
+                class="float-arrow"
+            >
+                ›
+            </a>
+
+        <% } else { %>
+
+            <span class="float-arrow disabled" title="Đây là chương mới nhất">›</span>
+
+        <% } %>
+
+        <button
+            type="button"
+            class="float-arrow"
+            onclick="window.scrollTo({top:0,behavior:'smooth'})"
+        >
+            ↑
+        </button>
+
+    </div>
+
+    <!-- Comment Panel -->
+
+    <div id="commentOverlay" class="comment-overlay" onclick="toggleCommentPanel()"></div>
+
+    <div id="commentPanel" class="comment-panel">
+
+        <div class="comment-panel-header">
+
+            <h3>Bình luận chương <%= chapter.chapterNumber %> (<span id="commentPanelCount">0</span>)</h3>
+
+            <span class="close-comment" onclick="toggleCommentPanel()">&times;</span>
+
+        </div>
+
+        <div id="commentList" class="comment-list">
+
+            <div class="comment-loading">⏳ Đang tải bình luận...</div>
+
+        </div>
+
+        <div class="comment-input-box">
+
+            <textarea
+                id="commentInput"
+                placeholder="Nhập bình luận..."
+                rows="2"
+            ></textarea>
+
+            <button
+                type="button"
+                id="commentSubmitBtn"
+                onclick="submitComment()"
+            >
+                Gửi
+            </button>
+
+        </div>
+
+    </div>
+
+</div>
+
+<script>
+
+const mangaSlug = "<%= manga.slug %>";
+const chapterNumber = "<%= chapter.chapterNumber %>";
+
+const mangaPages = <%- JSON.stringify(pages || []) %>;
+
+const nextChapterUrl = <%- nextChapter ? `"/manga/${manga.slug}/chapter/${nextChapter.chapterNumber}"` : "null" %>;
+const prevChapterUrl = <%- prevChapter ? `"/manga/${manga.slug}/chapter/${prevChapter.chapterNumber}"` : "null" %>;
+
+let currentPage = 0;
+let zenState = "intro"; // intro | reading | end
+
+const classicBtn = document.getElementById("classicBtn");
+const zenBtn = document.getElementById("zenBtn");
+
+const classicReader = document.getElementById("classicReader");
+const zenReader = document.getElementById("zenReader");
+
+const zenStage = document.getElementById("zenStage");
+const zenImage = document.getElementById("zenImage");
+const zenPrev = document.getElementById("zenPrev");
+const zenNext = document.getElementById("zenNext");
+const zenCounter = document.getElementById("zenCounter");
+
+const zenIntroPanel = document.getElementById("zenIntroPanel");
+const zenEndPanel = document.getElementById("zenEndPanel");
+
+const zenIntroPrevEdge = document.getElementById("zenIntroPrevEdge");
+const zenIntroNextEdge = document.getElementById("zenIntroNextEdge");
+const zenEndPrevEdge = document.getElementById("zenEndPrevEdge");
+const zenEndNextEdge = document.getElementById("zenEndNextEdge");
+
+const currentPageText = document.getElementById("currentPage");
+
+function setImmersive(state){
+
+    document.body.classList.toggle("zen-immersive", state);
+
+}
+
+function updateZenSides(){
+
+    const prevSrc = mangaPages[currentPage - 1];
+    const nextSrc = mangaPages[currentPage + 1];
+
+    if(prevSrc){
+        zenPrev.src = prevSrc;
+        zenPrev.style.visibility = "visible";
+    }else{
+        zenPrev.style.visibility = "hidden";
+    }
+
+    if(nextSrc){
+        zenNext.src = nextSrc;
+        zenNext.style.visibility = "visible";
+    }else{
+        zenNext.style.visibility = "hidden";
+    }
+
+}
+
+function renderPage(index){
+
+    currentPage = index;
+
+    zenImage.src = mangaPages[index];
+
+    currentPageText.innerText = index + 1;
+
+    updateZenSides();
+
+}
+
+// ==========================
+// 3 trạng thái của Zen UI, giống cuutruyen.net:
+// intro   -> màn hình bìa trước khi vào chương (Chương X + nút chuyển chương)
+// reading -> đang xem từng trang (lật trái/phải)
+// end     -> màn hình kết thúc chương (dùng chung giao diện với intro)
+// ==========================
+
+function showIntro(){
+
+    zenState = "intro";
+
+    setImmersive(false);
+
+    zenStage.style.display = "none";
+    zenCounter.style.display = "none";
+    zenEndPanel.style.display = "none";
+
+    zenIntroPanel.style.display = "flex";
+
+}
+
+function showEnd(){
+
+    zenState = "end";
+
+    setImmersive(false);
+
+    zenStage.style.display = "none";
+    zenCounter.style.display = "none";
+    zenIntroPanel.style.display = "none";
+
+    zenEndPanel.style.display = "flex";
+
+}
+
+function showReading(index){
+
+    zenState = "reading";
+
+    zenIntroPanel.style.display = "none";
+    zenEndPanel.style.display = "none";
+
+    zenStage.style.display = "flex";
+    zenCounter.style.display = "block";
+
+    setImmersive(true);
+
+    renderPage(index);
+
+}
+
+function resetZen(){
+
+    showIntro();
+
+}
+
+function goNext(){
+
+    if(zenReader.style.display === "none") return;
+
+    if(zenState === "intro"){
+        showReading(0);
+        return;
+    }
+
+    if(zenState === "end") return;
+
+    if(currentPage + 1 >= mangaPages.length){
+        showEnd();
+        return;
+    }
+
+    showReading(currentPage + 1);
+
+}
+
+function goPrev(){
+
+    if(zenReader.style.display === "none") return;
+
+    if(zenState === "end"){
+        showReading(mangaPages.length - 1);
+        return;
+    }
+
+    if(zenState === "intro") return;
+
+    if(currentPage - 1 < 0){
+        showIntro();
+        return;
+    }
+
+    showReading(currentPage - 1);
+
+}
+
+classicBtn.onclick = () => {
+
+    document.body.classList.remove("reader-zen");
+    document.body.classList.remove("zen-immersive");
+
+    classicReader.style.display = "block";
+
+    zenReader.style.display = "none";
+
+    classicBtn.classList.add("active");
+
+    zenBtn.classList.remove("active");
+
+};
+
+zenBtn.onclick = () => {
+
+    document.body.classList.add("reader-zen");
+
+    classicReader.style.display = "none";
+
+    zenReader.style.display = "flex";
+
+    zenBtn.classList.add("active");
+
+    classicBtn.classList.remove("active");
+
+    resetZen();
+
+};
+
+// Click 2 mép trái/phải ở màn hình bìa đầu chương
+zenIntroNextEdge.onclick = () => goNext();
+
+zenIntroPrevEdge.onclick = () => {
+    if(prevChapterUrl) window.location.href = prevChapterUrl;
+};
+
+// Click 2 mép trái/phải ở màn hình kết thúc chương
+zenEndPrevEdge.onclick = () => goPrev();
+
+zenEndNextEdge.onclick = () => {
+    if(nextChapterUrl) window.location.href = nextChapterUrl;
+};
+
+if(!prevChapterUrl) zenIntroPrevEdge.classList.add("disabled");
+if(!nextChapterUrl) zenEndNextEdge.classList.add("disabled");
+
+document.addEventListener("keydown",(e)=>{
+
+    if(zenReader.style.display === "none")
+        return;
+
+    if(e.key === "ArrowRight"){
+
+        goNext();
+
+    }
+
+    if(e.key === "ArrowLeft"){
+
+        goPrev();
+
+    }
+
+});
+
+zenImage.addEventListener("click",(e)=>{
+
+    const half = window.innerWidth / 2;
+
+    if(e.clientX > half){
+
+        goNext();
+
+    }else{
+
+        goPrev();
+
+    }
+
+});
+
+document.body.classList.add("reader-page");
+
+/* =========================
+   POPUP CHỌN GIAO DIỆN ĐỌC (giống cuutruyen.net)
+========================= */
+
+const readerModeHelpBtn = document.getElementById("readerModeHelpBtn");
+const readerModeModalOverlay = document.getElementById("readerModeModalOverlay");
+const readerModeModalClose = document.getElementById("readerModeModalClose");
+const readerModeModalConfirm = document.getElementById("readerModeModalConfirm");
+
+const modeOptionClassic = document.getElementById("modeOptionClassic");
+const modeOptionZen = document.getElementById("modeOptionZen");
+
+const READER_MODE_INTRO_KEY = "mn_reader_mode_intro_seen";
+
+// Thẻ đang được chọn tạm trong popup (chưa nhấn Xác nhận thì chưa áp dụng)
+let selectedModeInModal = "classic";
+
+function selectModeCard(mode){
+
+    selectedModeInModal = mode;
+
+    modeOptionClassic.classList.toggle("active", mode === "classic");
+    modeOptionZen.classList.toggle("active", mode === "zen");
+
+}
+
+function openReaderModeModal(){
+
+    // Mở popup với thẻ tương ứng chế độ đang đọc hiện tại được chọn sẵn
+    const currentMode = zenBtn.classList.contains("active") ? "zen" : "classic";
+
+    selectModeCard(currentMode);
+
+    readerModeModalOverlay.style.display = "flex";
+
+}
+
+function closeReaderModeModal(){
+
+    readerModeModalOverlay.style.display = "none";
+
+}
+
+readerModeHelpBtn.onclick = openReaderModeModal;
+
+readerModeModalClose.onclick = closeReaderModeModal;
+
+readerModeModalOverlay.addEventListener("click", (e) => {
+
+    if(e.target === readerModeModalOverlay){
+        closeReaderModeModal();
+    }
+
+});
+
+modeOptionClassic.onclick = () => selectModeCard("classic");
+modeOptionZen.onclick = () => selectModeCard("zen");
+
+readerModeModalConfirm.onclick = () => {
+
+    if(selectedModeInModal === "zen"){
+        zenBtn.click();
+    }else{
+        classicBtn.click();
+    }
+
+    closeReaderModeModal();
+
+};
+
+// Tự động hiện popup 1 lần duy nhất cho người dùng lần đầu vào đọc truyện
+if(!localStorage.getItem(READER_MODE_INTRO_KEY)){
+
+    localStorage.setItem(READER_MODE_INTRO_KEY, "1");
+
+    openReaderModeModal();
+
+}
+
+/* =========================
+   LƯU TIẾN ĐỘ ĐỌC
+========================= */
+
+let saveTimer;
+
+function saveReadingProgress(){
+
+    const totalHeight =
+        document.documentElement.scrollHeight -
+        window.innerHeight;
+
+    if(totalHeight <= 0) return;
+
+    const currentScroll = window.scrollY;
+
+    const percent = Math.min(
+        100,
+        Math.round((currentScroll / totalHeight) * 100)
+    );
+
+    fetch("/history/save", {
+
+        method: "POST",
+
+        headers: {
+            "Content-Type": "application/json"
+        },
+
+        body: JSON.stringify({
+
+            mangaId: "<%= manga._id %>",
+
+            mangaTitle: "<%= manga.title %>",
+
+            mangaSlug: "<%= manga.slug %>",
+
+            cover: "<%= manga.cover %>",
+
+            chapterNumber: <%= chapter.chapterNumber %>,
+
+            progress: percent,
+
+            scrollPosition: currentScroll
+
+        })
+
+    }).catch(err => console.error(err));
+
+}
+
+window.addEventListener("scroll", () => {
+
+    clearTimeout(saveTimer);
+
+    saveTimer = setTimeout(() => {
+
+        saveReadingProgress();
+
+    }, 1000);
+
+});
+
+
+/* =========================
+   KHÔI PHỤC VỊ TRÍ ĐỌC
+========================= */
+
+window.addEventListener("load", () => {
+
+    const savedPosition =
+        <%= savedScroll || 0 %>;
+
+    if(savedPosition > 0){
+
+        setTimeout(() => {
+
+            window.scrollTo({
+                top: savedPosition,
+                behavior: "smooth"
+            });
+
+        }, 800);
+
+    }
+
+});
+
+/* =========================
+   BÌNH LUẬN
+========================= */
+
+const commentPanel = document.getElementById("commentPanel");
+const commentOverlay = document.getElementById("commentOverlay");
+const commentList = document.getElementById("commentList");
+const commentInput = document.getElementById("commentInput");
+const commentCountBadge = document.getElementById("commentCount");
+const commentPanelCount = document.getElementById("commentPanelCount");
+
+let commentsLoaded = false;
+
+function escapeHtml(text){
+
+    const div = document.createElement("div");
+    div.innerText = text;
+    return div.innerHTML;
+
+}
+
+let commentsCache = [];
+
+function renderComments(comments){
+
+    commentsCache = comments;
+
+    if(comments.length === 0){
+
+        commentList.innerHTML =
+            '<div class="comment-empty">Chưa có bình luận nào. Hãy là người đầu tiên!</div>';
+
+        return;
+
+    }
+
+    commentList.innerHTML = comments.map(c => renderCommentItem(c)).join("");
+
+}
+
+function renderCommentItem(c){
+
+    const hasActions = c.canEdit || c.canDelete;
+
+    return `
+        <div class="comment-item" data-id="${c._id}">
+
+            <img
+                src="${c.avatar}"
+                class="comment-avatar"
+                onerror="this.src='/images/icon/avatar.png'"
+            >
+
+            <div class="comment-body">
+
+                <div class="comment-meta">
+
+                    <div class="comment-meta-left">
+                        <span class="comment-username">${escapeHtml(c.username)}</span>
+                        <span class="comment-time">${c.timeAgo}${c.isEdited ? ' <em class="comment-edited-tag">(đã chỉnh sửa)</em>' : ''}</span>
+                    </div>
+
+                    ${hasActions ? `
+                    <div class="comment-actions">
+                        ${c.canEdit ? `<button type="button" class="comment-edit-btn" onclick="startEditComment('${c._id}')" title="Sửa bình luận">✏️</button>` : ''}
+                        ${c.canDelete ? `<button type="button" class="comment-delete-btn" onclick="deleteComment('${c._id}')" title="Xóa bình luận">🗑️</button>` : ''}
+                    </div>` : ''}
+
+                </div>
+
+                <div class="comment-content" id="comment-content-${c._id}">${escapeHtml(c.content)}</div>
+
+            </div>
+
+        </div>
+    `;
+
+}
+
+function startEditComment(id){
+
+    const comment = commentsCache.find(c => c._id === id);
+
+    if(!comment){
+        return;
+    }
+
+    const contentEl = document.getElementById(`comment-content-${id}`);
+
+    if(!contentEl){
+        return;
+    }
+
+    contentEl.innerHTML = `
+        <textarea class="comment-edit-input" id="comment-edit-input-${id}" rows="2">${escapeHtml(comment.content)}</textarea>
+        <div class="comment-edit-actions">
+            <button type="button" class="comment-save-btn" onclick="saveEditComment('${id}')">Lưu</button>
+            <button type="button" class="comment-cancel-btn" onclick="cancelEditComment('${id}')">Hủy</button>
+        </div>
+    `;
+
+    const input = document.getElementById(`comment-edit-input-${id}`);
+
+    input.focus();
+
+    input.setSelectionRange(input.value.length, input.value.length);
+
+}
+
+function cancelEditComment(id){
+
+    const comment = commentsCache.find(c => c._id === id);
+
+    if(!comment){
+        return;
+    }
+
+    const contentEl = document.getElementById(`comment-content-${id}`);
+
+    if(!contentEl){
+        return;
+    }
+
+    contentEl.innerHTML = escapeHtml(comment.content);
+
+}
+
+async function saveEditComment(id){
+
+    const input = document.getElementById(`comment-edit-input-${id}`);
+
+    if(!input){
+        return;
+    }
+
+    const content = input.value.trim();
+
+    if(!content){
+
+        Swal.fire({
+            title: "Nội dung trống",
+            text: "Nội dung bình luận không được để trống.",
+            icon: "warning",
+            background: "#1f2432",
+            color: "#fff",
+            confirmButtonColor: "#5865F2"
+        });
+
+        return;
+
+    }
+
+    const saveBtn = input.parentElement.querySelector(".comment-save-btn");
+    const cancelBtn = input.parentElement.querySelector(".comment-cancel-btn");
+
+    if(saveBtn) saveBtn.disabled = true;
+    if(cancelBtn) cancelBtn.disabled = true;
+
+    try{
+
+        const res = await fetch(`/comments/${id}`, {
+
+            method: "PUT",
+
+            headers: {
+                "Content-Type": "application/json",
+                "X-Requested-With": "fetch"
+            },
+
+            body: JSON.stringify({ content })
+
+        });
+
+        const data = await res.json();
+
+        if(data.success){
+
+            commentsLoaded = false;
+
+            await loadComments();
+
+        }else{
+
+            Swal.fire({
+                title: "Không thể lưu",
+                text: data.message || "Có lỗi xảy ra.",
+                icon: "error",
+                background: "#1f2432",
+                color: "#fff",
+                confirmButtonColor: "#5865F2"
+            });
+
+            if(saveBtn) saveBtn.disabled = false;
+            if(cancelBtn) cancelBtn.disabled = false;
+
+        }
+
+    }catch(err){
+
+        console.error(err);
+
+        if(saveBtn) saveBtn.disabled = false;
+        if(cancelBtn) cancelBtn.disabled = false;
+
+    }
+
+}
+
+async function deleteComment(id){
+
+    const result = await Swal.fire({
+        title: "Xóa bình luận?",
+        text: "Bạn có chắc chắn muốn xóa bình luận này không?",
+        icon: "warning",
+        showCancelButton: true,
+        confirmButtonText: "Xóa",
+        cancelButtonText: "Hủy",
+        background: "#1f2432",
+        color: "#fff",
+        confirmButtonColor: "#e74c3c",
+        cancelButtonColor: "#5865F2"
+    });
+
+    if(!result.isConfirmed){
+        return;
+    }
+
+    try{
+
+        const res = await fetch(`/comments/${id}`, {
+            method: "DELETE",
+            headers: { "X-Requested-With": "fetch" }
+        });
+
+        const data = await res.json();
+
+        if(data.success){
+
+            commentsLoaded = false;
+
+            await loadComments();
+
+        }else{
+
+            Swal.fire({
+                title: "Không thể xóa",
+                text: data.message || "Có lỗi xảy ra.",
+                icon: "error",
+                background: "#1f2432",
+                color: "#fff",
+                confirmButtonColor: "#5865F2"
+            });
+
+        }
+
+    }catch(err){
+
+        console.error(err);
+
+    }
+
+}
+
+async function loadComments(){
+
+    try{
+
+        const res = await fetch(`/manga/${mangaSlug}/chapter/${chapterNumber}/comments`, {
+            headers: { "X-Requested-With": "fetch" }
+        });
+
+        const data = await res.json();
+
+        if(data.success){
+
+            renderComments(data.comments);
+
+            commentCountBadge.innerText = data.total;
+            commentPanelCount.innerText = data.total;
+
+        }else{
+
+            commentList.innerHTML =
+                '<div class="comment-empty">Không thể tải bình luận.</div>';
+
+        }
+
+    }catch(err){
+
+        console.error(err);
+
+        commentList.innerHTML =
+            '<div class="comment-empty">Không thể tải bình luận.</div>';
+
+    }
+
+}
+
+function toggleCommentPanel(){
+
+    const isOpen = commentPanel.classList.toggle("open");
+
+    commentOverlay.classList.toggle("open", isOpen);
+
+    if(isOpen && !commentsLoaded){
+
+        commentsLoaded = true;
+
+        loadComments();
+
+    }
+
+}
+
+async function submitComment(){
+
+    const content = commentInput.value.trim();
+
+    if(!content){
+        return;
+    }
+
+    const submitBtn = document.getElementById("commentSubmitBtn");
+    submitBtn.disabled = true;
+
+    try{
+
+        const res = await fetch(`/manga/${mangaSlug}/chapter/${chapterNumber}/comments`, {
+
+            method: "POST",
+
+            headers: {
+                "Content-Type": "application/json",
+                "X-Requested-With": "fetch"
+            },
+
+            body: JSON.stringify({ content })
+
+        });
+
+        if(res.status === 401){
+
+            Swal.fire({
+                title: "Vui lòng đăng nhập",
+                text: "Bạn cần đăng nhập để bình luận.",
+                icon: "info",
+                background: "#1f2432",
+                color: "#fff",
+                confirmButtonColor: "#5865F2"
+            });
+
+            submitBtn.disabled = false;
+
+            return;
+
+        }
+
+        const data = await res.json();
+
+        if(data.success){
+
+            commentInput.value = "";
+
+            commentsLoaded = false;
+
+            await loadComments();
+
+        }else{
+
+            Swal.fire({
+                title: "Không thể gửi",
+                text: data.message || "Có lỗi xảy ra.",
+                icon: "error",
+                background: "#1f2432",
+                color: "#fff",
+                confirmButtonColor: "#5865F2"
+            });
+
+        }
+
+    }catch(err){
+
+        console.error(err);
+
+    }finally{
+
+        submitBtn.disabled = false;
+
+    }
+
+}
+
+// Cập nhật số lượng bình luận ngay khi vào trang (chưa cần mở panel)
+loadComments();
+commentsLoaded = true;
+
+</script>

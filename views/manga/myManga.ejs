@@ -1,0 +1,246 @@
+<div class="translator-page my-manga-page">
+
+    <h1>📚 Truyện của tôi</h1>
+
+    <div class="dashboard">
+
+        <div class="dashboard-card">
+            <h3>📚</h3>
+            <span>Tổng truyện</span>
+            <strong><%= totalManga %></strong>
+        </div>
+
+        <div class="dashboard-card">
+            <h3>📖</h3>
+            <span>Tổng Chapter</span>
+            <strong><%= totalChapter %></strong>
+        </div>
+
+        <div class="dashboard-card">
+            <h3>👀</h3>
+            <span>Lượt xem</span>
+            <strong><%= totalViews %></strong>
+        </div>
+
+        <div class="dashboard-card">
+            <h3>❤️</h3>
+            <span>Follow</span>
+            <strong><%= totalFollowers %></strong>
+        </div>
+
+    </div>
+
+
+    <!-- ===================== -->
+    <!-- 3 cột: Chờ duyệt / Đã duyệt / Đã từ chối -->
+    <!-- ===================== -->
+
+    <div class="my-manga-status-columns">
+
+        <!-- Chờ duyệt -->
+
+        <div class="my-manga-status-column">
+
+            <div class="my-manga-section-title">
+                <h2 style="color:#ffc107;">🟡 Chờ duyệt</h2>
+                <span><%= pending.length %> mục</span>
+            </div>
+
+            <div class="my-manga-column-body">
+
+                <% if(pending.length===0){ %>
+
+                    <div class="my-manga-empty-card">
+                        Không có truyện nào đang chờ duyệt.
+                    </div>
+
+                <% } %>
+
+                <% pending.forEach(manga=>{ %>
+
+                    <div class="my-manga-list-card">
+
+                        <div class="my-manga-list-left">
+
+                            <img
+                                src="<%= manga.cover || '/images/no-cover.png' %>"
+                                class="my-manga-thumb"
+                                onerror="this.src='/images/no-cover.png'">
+
+                            <div>
+
+                                <h3><%= manga.title %></h3>
+
+                                <p>Chapter: <%= manga.totalChapters %></p>
+
+                                <p><%= manga.author %></p>
+
+                                <small><%= manga.createdAt.toLocaleDateString("vi-VN") %></small>
+
+                            </div>
+
+                        </div>
+
+                        <div class="my-manga-list-right">
+
+                            <span class="my-manga-status pending">
+                                Chờ duyệt
+                            </span>
+
+                            <a
+                                href="/my-manga/<%= manga.slug %>"
+                                class="my-manga-manage-btn">
+
+                                👁 Quản lý
+
+                            </a>
+
+                        </div>
+
+                    </div>
+
+                <% }) %>
+
+            </div>
+
+        </div>
+
+        <!-- Đã duyệt -->
+
+        <div class="my-manga-status-column">
+
+            <div class="my-manga-section-title">
+                <h2 style="color:#28c76f;">🟢 Đã duyệt</h2>
+                <span><%= approved.length %> mục</span>
+            </div>
+
+            <div class="my-manga-column-body">
+
+                <% if(approved.length===0){ %>
+
+                    <div class="my-manga-empty-card">
+                        Chưa có truyện nào được duyệt.
+                    </div>
+
+                <% } %>
+
+                <% approved.forEach(manga=>{ %>
+
+                    <div class="my-manga-list-card">
+
+                        <div class="my-manga-list-left">
+
+                            <img
+                                src="<%= manga.cover || '/images/no-cover.png' %>"
+                                class="my-manga-thumb"
+                                onerror="this.src='/images/no-cover.png'">
+
+                            <div>
+
+                                <h3><%= manga.title %></h3>
+
+                                <p>Chapter: <%= manga.totalChapters %></p>
+
+                                <p><%= manga.author %></p>
+
+                                <small><%= manga.createdAt.toLocaleDateString("vi-VN") %></small>
+
+                            </div>
+
+                        </div>
+
+                        <div class="my-manga-list-right">
+
+                            <span class="my-manga-status approved">
+                                Đã duyệt
+                            </span>
+
+                            <a
+                                href="/my-manga/<%= manga.slug %>"
+                                class="my-manga-manage-btn">
+
+                                👁 Quản lý
+
+                            </a>
+
+                        </div>
+
+                    </div>
+
+                <% }) %>
+
+            </div>
+
+        </div>
+
+        <!-- Đã từ chối -->
+
+        <div class="my-manga-status-column">
+
+            <div class="my-manga-section-title">
+                <h2 style="color:#ff5b5b;">🔴 Đã từ chối</h2>
+                <span><%= rejected.length %> mục</span>
+            </div>
+
+            <div class="my-manga-column-body">
+
+                <% if(rejected.length===0){ %>
+
+                    <div class="my-manga-empty-card">
+                        Không có truyện bị từ chối.
+                    </div>
+
+                <% } %>
+
+                <% rejected.forEach(manga=>{ %>
+
+                    <div class="my-manga-list-card">
+
+                        <div class="my-manga-list-left">
+
+                            <img
+                                src="<%= manga.cover || '/images/no-cover.png' %>"
+                                class="my-manga-thumb"
+                                onerror="this.src='/images/no-cover.png'">
+
+                            <div>
+
+                                <h3><%= manga.title %></h3>
+
+                                <p>Chapter: <%= manga.totalChapters %></p>
+
+                                <p><%= manga.author %></p>
+
+                                <small><%= manga.createdAt.toLocaleDateString("vi-VN") %></small>
+
+                            </div>
+
+                        </div>
+
+                        <div class="my-manga-list-right">
+
+                            <span class="my-manga-status rejected">
+                                Từ chối
+                            </span>
+
+                            <a
+                                href="/my-manga/<%= manga.slug %>"
+                                class="my-manga-manage-btn">
+
+                                👁 Quản lý
+
+                            </a>
+
+                        </div>
+
+                    </div>
+
+                <% }) %>
+
+            </div>
+
+        </div>
+
+    </div>
+
+</div>

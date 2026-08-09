@@ -1,0 +1,663 @@
+<!-- =========================
+        HERO CAROUSEL
+========================= -->
+
+<section class="hero">
+
+    <div class="hero-track" id="heroTrack">
+
+        <% mangas.slice(0,5).forEach(manga => { %>
+
+        <a href="/manga/<%= manga.slug %>" class="hero-slide">
+
+            <img
+                src="<%= manga.banner || manga.cover %>"
+                alt="<%= manga.title %>"
+                class="hero-banner"
+            >
+
+            <div class="hero-overlay"></div>
+
+            <div class="hero-content">
+
+                <div class="hero-info">
+
+                    <h1><%= manga.title %></h1>
+
+                    <p class="hero-desc">
+                        <%= manga.description || "Chưa có mô tả." %>
+                    </p>
+
+                </div>
+
+            </div>
+
+            <span class="hero-cta">XEM THÔNG TIN</span>
+
+        </a>
+
+        <% }) %>
+
+    </div>
+
+    <div class="hero-dots" id="heroDots">
+
+        <% mangas.slice(0,5).forEach((manga, i) => { %>
+
+            <button
+                type="button"
+                class="hero-dot <%= i===0 ? 'active' : '' %>"
+                data-index="<%= i %>"
+            ></button>
+
+        <% }) %>
+
+    </div>
+
+</section>
+
+<!-- =========================
+        TRUYỆN MỚI (cuộn ngang)
+========================= -->
+
+<section class="section">
+
+    <div class="section-title">
+        <h2>TRUYỆN MỚI</h2>
+    </div>
+
+    <div class="row-wrapper">
+
+        <!-- Nút lùi -->
+
+        <button
+            type="button"
+            class="row-arrow row-arrow-left"
+            onclick="document.getElementById('rowNew').scrollBy({left:-600,behavior:'smooth'})"
+        >
+            ‹
+        </button>
+
+        <div class="home-row home-row-new" id="rowNew">
+
+            <% mangas.slice(0,24).forEach(manga => { %>
+
+            <a href="/manga/<%= manga.slug %>" class="home-card">
+
+                <img
+                    src="<%= manga.cover || '/images/no-cover.png' %>"
+                    alt="<%= manga.title %>"
+                >
+
+                <div class="home-card-body">
+
+                    <h3><%= manga.title %></h3>
+
+                    <p>
+                        C. <%= manga.lastChapter || 0 %> -
+                        <%= timeAgo(manga.lastChapterDate) %>
+                    </p>
+
+                </div>
+
+            </a>
+
+            <% }) %>
+
+        </div>
+
+        <!-- Nút tiến -->
+
+        <button
+            type="button"
+            class="row-arrow row-arrow-right"
+            onclick="document.getElementById('rowNew').scrollBy({left:600,behavior:'smooth'})"
+        >
+            ›
+        </button>
+
+    </div>
+
+    <div class="section-footer">
+        <a href="/manga?sort=new">› Xem danh sách truyện mới</a>
+    </div>
+
+</section>
+
+<!-- =========================
+        TRUYỆN NỔI BẬT (xếp hạng)
+========================= -->
+
+<section class="section">
+
+    <div class="section-title">
+
+        <h2>TRUYỆN NỔI BẬT</h2>
+
+        <div class="rank-tabs">
+
+            <button type="button" class="rank-tab active" data-range="week">TUẦN</button>
+            <button type="button" class="rank-tab" data-range="month">THÁNG</button>
+            <button type="button" class="rank-tab" data-range="all">MỌI LÚC</button>
+
+        </div>
+
+    </div>
+
+    <div class="row-wrapper">
+
+        <!-- Nút trái -->
+
+        <button
+            type="button"
+            class="row-arrow row-arrow-left"
+            onclick="scrollRank(-600)"
+        >
+            ‹
+        </button>
+
+        <!-- TUẦN -->
+
+        <div class="rank-row" id="weekRank">
+
+            <% topWeek.forEach((manga, i) => { %>
+
+            <a href="/manga/<%= manga.slug %>" class="rank-card">
+
+                <img
+                    src="<%= manga.cover || '/images/no-cover.png' %>"
+                    alt="<%= manga.title %>"
+                >
+
+                <div class="rank-body">
+
+                    <h4><%= manga.title %></h4>
+
+                    <p>
+                        CHƯƠNG <%= manga.lastChapter || 0 %> -
+                        <%= timeAgo(manga.lastChapterDate) %>
+                    </p>
+
+                    <small>
+                        <%= (manga.weeklyViews || 0).toLocaleString("vi-VN") %>
+                        LƯỢT XEM
+                    </small>
+
+                </div>
+
+                <span class="rank-number">
+                    <%= String(i + 1).padStart(2,"0") %>
+                </span>
+
+            </a>
+
+            <% }) %>
+
+        </div>
+
+        <!-- THÁNG -->
+
+        <div
+            class="rank-row"
+            id="monthRank"
+            style="display:none"
+        >
+
+            <% topMonth.slice(0,24).forEach((manga, i) => { %>
+
+            <a href="/manga/<%= manga.slug %>" class="rank-card">
+
+                <img
+                    src="<%= manga.cover || '/images/no-cover.png' %>"
+                    alt="<%= manga.title %>"
+                >
+
+                <div class="rank-body">
+
+                    <h4><%= manga.title %></h4>
+
+                    <p>
+                        CHƯƠNG <%= manga.lastChapter || 0 %> -
+                        <%= timeAgo(manga.lastChapterDate) %>
+                    </p>
+
+                    <small>
+                        <%= (manga.monthlyViews || 0).toLocaleString("vi-VN") %>
+                        LƯỢT XEM
+                    </small>
+
+                </div>
+
+                <span class="rank-number">
+                    <%= String(i + 1).padStart(2,"0") %>
+                </span>
+
+            </a>
+
+            <% }) %>
+
+        </div>
+
+        <!-- MỌI LÚC -->
+
+        <div
+            class="rank-row"
+            id="allRank"
+            style="display:none"
+        >
+
+            <% topAll.slice(0,24).forEach((manga, i) => { %>
+
+            <a href="/manga/<%= manga.slug %>" class="rank-card">
+
+                <img
+                    src="<%= manga.cover || '/images/no-cover.png' %>"
+                    alt="<%= manga.title %>"
+                >
+
+                <div class="rank-body">
+
+                    <h4><%= manga.title %></h4>
+
+                    <p>
+                        CHƯƠNG <%= manga.lastChapter || 0 %> -
+                        <%= timeAgo(manga.lastChapterDate) %>
+                    </p>
+
+                    <small>
+                        <%= (manga.views || 0).toLocaleString("vi-VN") %>
+                        LƯỢT XEM
+                    </small>
+
+                </div>
+
+                <span class="rank-number">
+                    <%= String(i + 1).padStart(2,"0") %>
+                </span>
+
+            </a>
+
+            <% }) %>
+
+        </div>
+
+        <!-- Nút phải -->
+
+        <button
+            type="button"
+            class="row-arrow row-arrow-right"
+            onclick="scrollRank(600)"
+        >
+            ›
+        </button>
+
+    </div>
+
+</section>
+
+<!-- =========================
+        ĐỀ XUẤT CHO BẠN
+========================= -->
+
+<section class="section">
+
+    <div class="section-title">
+        <h2>ĐỀ XUẤT CHO BẠN</h2>
+    </div>
+
+    <div class="row-wrapper">
+
+        <!-- Nút trái -->
+
+        <button
+            type="button"
+            class="row-arrow row-arrow-left"
+            onclick="document.getElementById('rowSuggest').scrollBy({left:-600,behavior:'smooth'})"
+        >
+            ‹
+        </button>
+
+        <div class="home-row" id="rowSuggest">
+
+            <% mangas.slice().reverse().slice(0,24).forEach(manga => { %>
+
+            <a href="/manga/<%= manga.slug %>" class="home-card">
+
+                <img
+                    src="<%= manga.cover || '/images/no-cover.png' %>"
+                    alt="<%= manga.title %>"
+                >
+
+                <div class="home-card-body">
+
+                    <h3><%= manga.title %></h3>
+
+                    <p>
+                        C. <%= manga.lastChapter || 0 %> -
+                        <%= timeAgo(manga.lastChapterDate) %>
+                    </p>
+
+                </div>
+
+            </a>
+
+            <% }) %>
+
+        </div>
+
+        <!-- Nút phải -->
+
+        <button
+            type="button"
+            class="row-arrow row-arrow-right"
+            onclick="document.getElementById('rowSuggest').scrollBy({left:600,behavior:'smooth'})"
+        >
+            ›
+        </button>
+
+    </div>
+
+    <div class="section-footer">
+        <a href="/manga">› Đề xuất cho bạn</a>
+    </div>
+
+</section>
+
+<!-- =========================
+        BOX TRUYỆN ROMCOM (2 hàng cuộn ngang)
+========================= -->
+
+<%
+const romcomMangas = mangas.filter(manga => {
+    if (!manga.genres) return false;
+
+    const genresLower = manga.genres.map(g => g.toLowerCase());
+
+    return genresLower.includes("romance")
+        && genresLower.includes("comedy");
+});
+%>
+
+<% if (romcomMangas.length > 0) { %>
+
+<section class="section">
+
+    <div class="section-title">
+        <h2>ROMCOM</h2>
+    </div>
+
+    <div class="row-wrapper">
+
+        <!-- Nút trái -->
+
+        <button
+            type="button"
+            class="row-arrow row-arrow-left"
+            onclick="document.getElementById('rowRomcom').scrollBy({left:-600,behavior:'smooth'})"
+        >
+            ‹
+        </button>
+
+        <!-- Danh sách truyện -->
+
+        <div
+            class="home-row home-row-new"
+            id="rowRomcom"
+        >
+
+            <% romcomMangas.slice(0,24).forEach(manga => { %>
+
+            <a
+                href="/manga/<%= manga.slug %>"
+                class="home-card"
+            >
+
+                <img
+                    src="<%= manga.cover || '/images/no-cover.png' %>"
+                    alt="<%= manga.title %>"
+                >
+
+                <div class="home-card-body">
+
+                    <h3><%= manga.title %></h3>
+
+                    <p>
+                        C. <%= manga.lastChapter || 0 %> -
+                        <%= timeAgo(manga.lastChapterDate) %>
+                    </p>
+
+                </div>
+
+            </a>
+
+            <% }) %>
+
+        </div>
+
+        <!-- Nút phải -->
+
+        <button
+            type="button"
+            class="row-arrow row-arrow-right"
+            onclick="document.getElementById('rowRomcom').scrollBy({left:600,behavior:'smooth'})"
+        >
+            ›
+        </button>
+
+    </div>
+
+    <div class="section-footer">
+        <a href="/manga?genre=romance,comedy">› Xem danh sách romcom</a>
+    </div>
+
+</section>
+
+<% } %>
+
+
+<!-- =========================
+        BOX TRUYỆN ĐỜI THƯỜNG (2 hàng cuộn ngang)
+========================= -->
+
+<%
+const sliceOfLifeMangas = mangas.filter(manga => {
+
+    if (!manga.genres) return false;
+
+    const genresLower = manga.genres.map(g => g.toLowerCase());
+
+    return genresLower.includes("slice of life")
+        || genresLower.includes("đời thường");
+
+});
+%>
+
+<% if (sliceOfLifeMangas.length > 0) { %>
+
+<section class="section">
+
+    <div class="section-title">
+        <h2>ĐỜI THƯỜNG</h2>
+    </div>
+
+    <div class="row-wrapper">
+
+        <!-- Nút trái -->
+
+        <button
+            type="button"
+            class="row-arrow row-arrow-left"
+            onclick="document.getElementById('rowSliceOfLife').scrollBy({left:-600,behavior:'smooth'})"
+        >
+            ‹
+        </button>
+
+        <!-- Danh sách truyện -->
+
+        <div
+            class="home-row home-row-new"
+            id="rowSliceOfLife"
+        >
+
+            <% sliceOfLifeMangas.slice(0,24).forEach(manga => { %>
+
+            <a
+                href="/manga/<%= manga.slug %>"
+                class="home-card"
+            >
+
+                <img
+                    src="<%= manga.cover || '/images/no-cover.png' %>"
+                    alt="<%= manga.title %>"
+                >
+
+                <div class="home-card-body">
+
+                    <h3><%= manga.title %></h3>
+
+                    <p>
+                        C. <%= manga.lastChapter || 0 %> -
+                        <%= timeAgo(manga.lastChapterDate) %>
+                    </p>
+
+                </div>
+
+            </a>
+
+            <% }) %>
+
+        </div>
+
+        <!-- Nút phải -->
+
+        <button
+            type="button"
+            class="row-arrow row-arrow-right"
+            onclick="document.getElementById('rowSliceOfLife').scrollBy({left:600,behavior:'smooth'})"
+        >
+            ›
+        </button>
+
+    </div>
+
+    <div class="section-footer">
+        <a href="/manga?genre=slice of life">› Xem danh sách đời thường</a>
+    </div>
+
+</section>
+
+<% } %>
+
+<script>
+
+/* ===== HERO CAROUSEL (infinite loop, luôn chạy 1 chiều) ===== */
+
+const heroTrack = document.getElementById("heroTrack");
+const heroDots = document.querySelectorAll(".hero-dot");
+const realSlideCount = heroTrack.children.length;
+
+// Clone slide đầu tiên, gắn vào cuối track để tạo cảm giác vô hạn
+const firstClone = heroTrack.children[0].cloneNode(true);
+heroTrack.appendChild(firstClone);
+
+function goToSlide(index, smooth = true) {
+    heroTrack.scrollTo({
+        left: heroTrack.children[index].offsetLeft,
+        behavior: smooth ? "smooth" : "auto"
+    });
+}
+
+heroDots.forEach(dot => {
+    dot.addEventListener("click", () => {
+        goToSlide(Number(dot.dataset.index));
+    });
+});
+
+function updateActiveDot(){
+    const scrollLeft = heroTrack.scrollLeft;
+    let closest = 0;
+    let closestDist = Infinity;
+
+    [...heroTrack.children].slice(0, realSlideCount).forEach((slide, i) => {
+        const dist = Math.abs(slide.offsetLeft - scrollLeft);
+        if(dist < closestDist){
+            closestDist = dist;
+            closest = i;
+        }
+    });
+
+    heroDots.forEach((dot, i) => {
+        dot.classList.toggle("active", i === closest);
+    });
+}
+
+heroTrack.addEventListener("scroll", () => {
+    window.requestAnimationFrame(updateActiveDot);
+});
+
+let heroAutoIndex = 0;
+
+setInterval(() => {
+    heroAutoIndex++;
+    goToSlide(heroAutoIndex, true);
+
+    // Nếu vừa cuộn tới slide clone (vị trí cuối cùng)
+    if (heroAutoIndex === realSlideCount) {
+        setTimeout(() => {
+            heroAutoIndex = 0;
+            goToSlide(0, false); // nhảy tức thời, không animation, về slide thật
+        }, 500); // chỉnh theo thời gian animation cuộn của bạn
+    }
+}, 6000);
+
+/* ===== RANK TABS ===== */
+
+document.querySelectorAll(".rank-tab").forEach(tab => {
+
+    tab.addEventListener("click", () => {
+
+        document.querySelectorAll(".rank-tab")
+            .forEach(t => t.classList.remove("active"));
+
+        tab.classList.add("active");
+
+        document.getElementById("weekRank").style.display = "none";
+        document.getElementById("monthRank").style.display = "none";
+        document.getElementById("allRank").style.display = "none";
+
+        if(tab.dataset.range === "week"){
+            document.getElementById("weekRank").style.display = "";
+        }
+
+        if(tab.dataset.range === "month"){
+            document.getElementById("monthRank").style.display = "";
+        }
+
+        if(tab.dataset.range === "all"){
+            document.getElementById("allRank").style.display = "";
+        }
+
+    });
+
+});
+
+function scrollRank(amount){
+
+    let activeRow = document.getElementById("weekRank");
+
+    if(document.getElementById("monthRank").style.display !== "none"){
+        activeRow = document.getElementById("monthRank");
+    }
+
+    if(document.getElementById("allRank").style.display !== "none"){
+        activeRow = document.getElementById("allRank");
+    }
+
+    activeRow.scrollBy({
+        left: amount,
+        behavior: "smooth"
+    });
+
+}
+
+</script>

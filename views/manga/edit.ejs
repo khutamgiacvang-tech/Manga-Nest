@@ -1,0 +1,177 @@
+<div class="upload-page">
+
+    <div class="upload-card">
+
+        <h1>
+            ✏️ Sửa thông tin truyện
+        </h1>
+
+        <p class="sub-title">
+            Chỉnh sửa thông tin của bộ truyện.
+        </p>
+
+        <form
+            action="/my-manga/<%= manga.slug %>/edit"
+            method="POST">
+
+            <div class="form-grid">
+
+                <div class="form-group full">
+
+                    <label>Tên truyện *</label>
+
+                    <input
+                        type="text"
+                        name="title"
+                        value="<%= manga.title %>"
+                        required>
+
+                </div>
+
+                <div class="form-group">
+
+                    <label>Tác giả</label>
+
+                    <input
+                        type="text"
+                        name="author"
+                        value="<%= manga.author %>">
+
+                </div>
+
+                <div class="form-group">
+
+                    <label>Họa sĩ</label>
+
+                    <input
+                        type="text"
+                        name="artist"
+                        value="<%= manga.artist %>">
+
+                </div>
+
+                <div class="form-group">
+
+                    <label>Trạng thái</label>
+
+                    <select name="publishStatus">
+
+                        <option value="ongoing"
+                        <%= manga.publishStatus==="ongoing" ? "selected":"" %>>
+                            Đang tiến hành
+                        </option>
+
+                        <option value="completed"
+                        <%= manga.publishStatus==="completed" ? "selected":"" %>>
+                            Hoàn thành
+                        </option>
+
+                        <option value="hiatus"
+                        <%= manga.publishStatus==="hiatus" ? "selected":"" %>>
+                            Tạm ngưng
+                        </option>
+
+                    </select>
+
+                </div>
+
+                <div class="form-group">
+
+                    <label>Độ tuổi</label>
+
+                    <select name="ageRating">
+
+                        <option value="all"
+                        <%= manga.ageRating==="all" ? "selected":"" %>>
+                            Mọi lứa tuổi
+                        </option>
+
+                        <option value="16+"
+                        <%= manga.ageRating==="16+" ? "selected":"" %>>
+                            16+
+                        </option>
+
+                        <option value="18+"
+                        <%= manga.ageRating==="18+" ? "selected":"" %>>
+                            18+
+                        </option>
+
+                    </select>
+
+                </div>
+
+            </div>
+
+            <div class="form-group">
+
+                <label>Thể loại</label>
+
+                <div class="genre-box">
+
+                <% const genres = allGenres.map(c => c.name); %>
+
+                <% if(genres.length === 0){ %>
+                    <p class="genre-empty-hint">
+                        Chưa có thể loại nào, vui lòng liên hệ admin để thêm thể loại.
+                    </p>
+                <% } %>
+
+                <% genres.forEach(g=>{ %>
+
+                    <label class="genre-item">
+
+                        <input
+                            type="checkbox"
+                            name="genres"
+                            value="<%= g %>"
+                            <%= manga.genres.includes(g) ? "checked":"" %>>
+
+                        <span>
+
+                            <%= g %>
+
+                        </span>
+
+                    </label>
+
+                <% }) %>
+
+                </div>
+
+            </div>
+
+            <div class="form-group">
+
+                <label>Mô tả</label>
+
+                <textarea
+                    name="description"
+                    rows="8"><%= manga.description %></textarea>
+
+            </div>
+
+            <div class="manage-buttons">
+
+                <button
+                    type="submit"
+                    class="upload-btn">
+
+                    💾 Lưu thay đổi
+
+                </button>
+
+                <a
+                    href="/my-manga/<%= manga.slug %>"
+                    class="edit-btn">
+
+                    ← Quay lại
+
+                </a>
+
+            </div>
+
+        </form>
+
+    </div>
+
+</div>

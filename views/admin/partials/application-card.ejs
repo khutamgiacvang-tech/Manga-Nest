@@ -1,0 +1,179 @@
+<div class="application-card">
+
+<h3><%= application.user.username %></h3>
+
+<p>
+
+<strong>Email:</strong>
+
+<%= application.user.email %>
+
+</p>
+
+<p>
+
+<strong>Role:</strong>
+
+<%= application.user.role %>
+
+</p>
+
+<p>
+
+<strong>Ngày gửi:</strong>
+
+<%= application.createdAt.toLocaleDateString("vi-VN") %>
+
+</p>
+
+<p>
+
+<strong>Nhóm dịch:</strong>
+
+<%= application.groupName || "Không có" %>
+
+</p>
+
+<p>
+
+<strong>Giới thiệu</strong>
+
+</p>
+
+<p>
+
+<%= application.introduction %>
+
+</p>
+
+<% if(application.projects.length){ %>
+
+<hr>
+
+<h4>📚 Dự án</h4>
+
+<% application.projects.forEach(project=>{ %>
+
+<div class="info-box">
+
+<b><%= project.title %></b>
+
+<br>
+
+<%= project.website %>
+
+<br>
+
+<a href="<%= project.link %>" target="_blank">
+
+<%= project.link %>
+
+</a>
+
+</div>
+
+<% }) %>
+
+<% } %>
+
+<% if(application.profiles.length){ %>
+
+<hr>
+
+<h4>🌐 Profile</h4>
+
+<% application.profiles.forEach(profile=>{ %>
+
+<div class="info-box">
+
+<%= profile.website %>
+
+<br>
+
+<a href="<%= profile.link %>" target="_blank">
+
+<%= profile.link %>
+
+</a>
+
+</div>
+
+<% }) %>
+
+<% } %>
+
+<% if(application.sampleImages.length){ %>
+
+<hr>
+
+<h4>🖼 Chap mẫu</h4>
+
+<div class="sample-images">
+
+<% application.sampleImages.forEach(image=>{ %>
+
+<img
+
+src="<%= image %>"
+
+class="sample-image"
+
+>
+
+<% }) %>
+
+</div>
+
+<% } %>
+
+<hr>
+
+<p>
+
+<strong>Trạng thái:</strong>
+
+<span class="status <%= application.status %>">
+
+<%= application.status %>
+
+</span>
+
+</p>
+
+<% if(application.status==="pending"){ %>
+
+<div class="action-buttons">
+
+<form
+
+action="/admin/application/<%= application._id %>/approve"
+
+method="POST">
+
+<button class="btn-success">
+
+✔ Duyệt
+
+</button>
+
+</form>
+
+<form
+
+action="/admin/application/<%= application._id %>/reject"
+
+method="POST">
+
+<button class="btn-danger">
+
+✖ Từ chối
+
+</button>
+
+</form>
+
+</div>
+
+<% } %>
+
+</div>

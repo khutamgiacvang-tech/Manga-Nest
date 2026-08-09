@@ -1,0 +1,503 @@
+<div class="manga-page">
+    <div class="manga-card">
+        <!-- Banner -->
+        <div class="manga-banner">
+            <img src="<%= manga.banner || manga.cover %>" alt="<%= manga.title %>" class="manga-banner-img">
+        </div>
+
+        <!-- Header -->
+        <div class="manga-header">
+            <div class="cover-wrapper">
+                <img src="<%= manga.cover %>" class="manga-cover" alt="<%= manga.title %>">
+            </div>
+
+            <div class="manga-info">
+                <h1><%= manga.title %></h1>
+                <div class="author-line">
+                    <span><strong>Tác giả:</strong> <%= manga.author || "Đang cập nhật" %></span>
+                    <span><strong>Họa sĩ:</strong> <%= manga.artist || "Đang cập nhật" %></span>
+                </div>
+
+                <div class="genre-list">
+                    <% if(manga.genres && manga.genres.length){ %>
+                        <% manga.genres.forEach(g=>{ %>
+                            <a href="/manga?genre=<%= encodeURIComponent(g) %>" class="genre-tag"><%= g %></a>
+                        <% }) %>
+                    <% } %>
+                </div>
+
+                <div class="status-line">
+                    <% if(manga.publishStatus==="ongoing"){ %>
+                        <span class="status ongoing">ĐANG TIẾN HÀNH</span>
+                    <% } else if(manga.publishStatus==="completed"){ %>
+                        <span class="status completed">HOÀN THÀNH</span>
+                    <% } else { %>
+                        <span class="status hiatus">TẠM NGƯNG</span>
+                    <% } %>
+                </div>
+
+                <div class="action-buttons">
+                    <% if(chapters.length){ %>
+                        <a href="/manga/<%= manga.slug %>/chapter/<%= chapters[chapters.length-1].chapterNumber %>" class="btn-follow">
+                            📚 Đọc từ đầu
+                        </a>
+                        <a href="/manga/<%= manga.slug %>/chapter/<%= chapters[0].chapterNumber %>" class="btn-read">
+                            ⚡ Chương mới nhất
+                        </a>
+                    <% } %>
+
+                    <% if(!isOwner){ %>
+                        <form id="followForm" action="/manga/<%= manga.slug %>/follow" method="POST" class="follow-form">
+                            <button id="followBtn" type="submit" class="btn-follow-toggle <%= isFollowing ? 'active' : '' %>">
+                                <%= isFollowing ? "✅ Đã theo dõi" : "🤍 Theo dõi" %>
+                            </button>
+                        </form>
+                    <% } %>
+                </div>
+            </div>
+        </div>
+
+       <!-- BODY -->
+<div class="detail-layout">
+
+    <!-- LEFT -->
+    <div class="main-content">
+
+        <div class="info-box">
+
+            <div class="detail-translator-card">
+
+                <div class="translator-top">
+
+                    <a href="/translator/<%= manga.translator?.username %>" class="translator-identity">
+
+                        <img src="<%= manga.translator?.avatar || '/images/icon/avatar.png' %>" class="translator-avatar" alt="translator">
+
+                        <div class="translator-meta">
+
+                            <div class="translator-name">
+                                <%= manga.translator?.displayName || manga.translator?.username || "Translator" %>
+                            </div>
+
+                            <div class="translator-count">
+                                <%= manga.translator?.mangaCount || 1 %> TRUYỆN
+                            </div>
+
+                        </div>
+
+                    </a>
+
+                    <% if(manga.translator?.facebook){ %>
+
+                        <div class="translator-social">
+
+                            <a href="<%= manga.translator.facebook %>" target="_blank" class="fb-chip">
+
+                                <span class="fb-icon">f</span>
+
+                                <%= manga.translator.facebookHandle || "Facebook" %>
+
+                            </a>
+
+                            <% if(manga.translator?.messenger){ %>
+
+                                <a href="<%= manga.translator.messenger %>" target="_blank" class="msg-icon">
+                                    💬
+                                </a>
+
+                            <% } %>
+
+                        </div>
+
+                    <% } %>
+
+                </div>
+
+                <a href="/translator/<%= manga.translator?.username %>" class="btn-view-group">
+                    👥 Xem trang nhóm
+                </a>
+
+            </div>
+
+            <hr>
+
+            <div class="description-content">
+                <%= manga.description || "Chưa có mô tả." %>
+            </div>
+
+        </div>
+
+        <!-- CHAPTER -->
+
+        <div class="chapter-box">
+
+            <h3>DANH SÁCH CHƯƠNG</h3>
+
+            <div class="chapter-list" id="chapterList">
+
+                <% chapters.forEach(chapter=>{ %>
+
+                    <a href="/manga/<%= manga.slug %>/chapter/<%= chapter.chapterNumber %>" class="chapter-item chapter-status-<%= chapter.readStatus %>">
+
+                        <div class="chapter-item-main">
+
+                            <strong>Chương <%= chapter.chapterNumber %></strong>
+
+                            <div class="chapter-sub">
+                                <%= chapter.title || "Không có tiêu đề" %>
+                            </div>
+
+                            <div class="chapter-meta">
+                                <%= timeAgo(chapter.createdAt) %>
+                                &nbsp;-&nbsp;<%= chapter.views || 0 %> lượt xem
+                                &nbsp;-&nbsp;<%= chapter.commentCount || 0 %> bình luận
+                            </div>
+
+                        </div>
+
+                    </a>
+
+                <% }) %>
+
+            </div>
+
+            <% if(chapters.length > 13){ %>
+
+                <button type="button" class="btn-show-more" id="showMoreBtn">
+
+                    Xem thêm
+
+                    <span class="arrow-icon">▾</span>
+
+                </button>
+
+            <% } %>
+
+        </div>
+
+    </div>
+
+    <!-- RIGHT -->
+
+    <div class="sidebar">
+
+        <div class="side-box">
+
+            <h4>THỐNG KÊ</h4>
+
+            <div class="stat-row">📚 Số chương: <strong><%= chapters.length %></strong></div>
+
+            <div class="stat-row">👁️ Lượt xem: <strong><%= manga.views || 0 %></strong></div>
+
+            <div class="stat-row">❤️ Theo dõi: <strong id="followCount"><%= manga.follows || 0 %></strong></div>
+
+            <div class="stat-row">💬 Bình luận: <strong><%= manga.comments || 0 %></strong></div>
+
+            <div class="stat-row">⭐ Đánh giá: <strong><%= manga.rating || 0 %></strong></div>
+
+        </div>
+
+        <div class="side-box">
+
+            <h4>CHIA SẺ</h4>
+
+            <div class="share-link-row">
+
+                <input
+                    type="text"
+                    class="share-link-input"
+                    id="shareLink"
+                    value="https://manganest.net/manga/<%= manga.slug %>"
+                    readonly
+                >
+
+                <button
+                    type="button"
+                    class="copy-btn"
+                    onclick="navigator.clipboard.writeText(document.getElementById('shareLink').value)">
+                    📋
+                </button>
+
+            </div>
+
+            <div class="share-buttons">
+
+                <button
+                    type="button"
+                    class="btn-share"
+                    onclick="if(navigator.share){navigator.share({title:'<%= manga.title %>',url:document.getElementById('shareLink').value})}">
+                    ⤴ Chia sẻ
+                </button>
+
+                <a
+                    href="https://www.facebook.com/sharer/sharer.php?u=https://manganest.net/manga/<%= manga.slug %>"
+                    target="_blank"
+                    class="btn-facebook">
+
+                    📘 Facebook
+
+                </a>
+
+            </div>
+
+        </div>
+
+    </div>
+
+</div>
+<!-- END detail-layout -->
+
+
+<% if(similarManga.length){ %>
+
+<div class="similar-box">
+
+    <div class="similar-header">
+
+        <h3>TRUYỆN TƯƠNG TỰ</h3>
+
+    </div>
+
+    <div class="similar-row-wrapper">
+
+        <div class="swiper-button-prev similar-prev"></div>
+
+        <div class="swiper similarSwiper">
+
+            <div class="swiper-wrapper">
+
+                <% similarManga.forEach(item=>{ %>
+
+                    <div class="swiper-slide">
+
+                        <a href="/manga/<%= item.slug %>" class="similar-card">
+
+                            <img src="<%= item.cover %>" alt="<%= item.title %>">
+
+                            <div class="similar-title">
+
+                                <%= item.title %>
+
+                            </div>
+
+                            <div class="similar-chapter">
+
+        Ch.<%= item.lastChapter || 0 %>
+
+        <% if(item.lastChapterTime){ %>
+
+            · <%= timeAgo(item.lastChapterTime) %>
+
+        <% } %>
+
+    </div>
+
+                        </a>
+
+                    </div>
+
+                <% }) %>
+
+            </div>
+
+        </div>
+
+        <div class="swiper-button-next similar-next"></div>
+
+    </div>
+
+</div>
+
+<% } %>
+
+</div>
+</div>
+
+<!-- Popup gợi ý bật thông báo đẩy, hiện khi user bấm "Theo dõi" lần đầu tiên -->
+<div id="notifPromptModal" class="notif-prompt-modal">
+    <div class="notif-prompt-backdrop"></div>
+    <div class="notif-prompt-container">
+        <button type="button" id="notifPromptClose" class="notif-prompt-close">&times;</button>
+
+        <h3 class="notif-prompt-title">Cài đặt thông báo</h3>
+
+        <p class="notif-prompt-desc">
+            Bạn vừa theo dõi một truyện. Bạn có muốn vào <strong>hồ sơ</strong> để bật
+            <strong>thông báo đẩy</strong> không?
+        </p>
+
+        <p class="notif-prompt-desc">
+            Nhờ thông báo đẩy, MangaNest sẽ gửi <strong>thông báo tức thời</strong> cho bạn ngay khi
+            truyện mà bạn đang theo dõi có chương mới đăng.
+        </p>
+
+        <div class="notif-prompt-buttons">
+            <button type="button" id="notifPromptLater" class="notif-prompt-btn notif-prompt-btn-later">
+                LÚC KHÁC
+            </button>
+            <button type="button" id="notifPromptSetup" class="notif-prompt-btn notif-prompt-btn-setup">
+                THIẾT LẬP
+            </button>
+        </div>
+    </div>
+</div>
+
+    <script>
+document.addEventListener("DOMContentLoaded", () => {
+
+    // ==========================
+    // FOLLOW
+    // ==========================
+
+    const form = document.getElementById("followForm");
+    const button = document.getElementById("followBtn");
+
+    if (form && button) {
+
+        form.addEventListener("submit", async (e) => {
+
+            e.preventDefault();
+
+            try {
+
+                const response = await fetch(form.action, {
+                    method: "POST",
+                    headers: {
+                        "X-Requested-With": "XMLHttpRequest"
+                    }
+                });
+
+                const data = await response.json();
+
+                if (!data.success) return;
+
+                if (data.following) {
+                    button.classList.add("active");
+                    button.innerHTML = "✅ Đã theo dõi";
+                } else {
+                    button.classList.remove("active");
+                    button.innerHTML = "🤍 Theo dõi";
+                }
+
+                const followCount = document.getElementById("followCount");
+
+                if (followCount) {
+                    followCount.textContent = data.follows;
+                }
+
+                if (data.showNotifPrompt) {
+                    openNotifPrompt();
+                }
+
+            } catch (err) {
+                console.error(err);
+            }
+
+        });
+
+    }
+
+    // ==========================
+    // POPUP GỢI Ý BẬT THÔNG BÁO ĐẨY
+    // ==========================
+
+    const notifModal = document.getElementById("notifPromptModal");
+    const notifClose = document.getElementById("notifPromptClose");
+    const notifLater = document.getElementById("notifPromptLater");
+    const notifSetup = document.getElementById("notifPromptSetup");
+
+    function openNotifPrompt() {
+        if (notifModal) {
+            notifModal.classList.add("show");
+        }
+    }
+
+    function closeNotifPrompt() {
+        if (notifModal) {
+            notifModal.classList.remove("show");
+        }
+    }
+
+    if (notifModal) {
+        notifClose?.addEventListener("click", closeNotifPrompt);
+        notifLater?.addEventListener("click", closeNotifPrompt);
+
+        notifSetup?.addEventListener("click", () => {
+            window.location.href = "/profile#push-settings-box";
+        });
+    }
+
+    // ==========================
+    // XEM THÊM CHAPTER
+    // ==========================
+
+    const chapterList = document.getElementById("chapterList");
+    const showMoreBtn = document.getElementById("showMoreBtn");
+
+    if (chapterList && showMoreBtn) {
+
+        chapterList.classList.add("collapsed");
+
+        showMoreBtn.addEventListener("click", () => {
+
+            chapterList.classList.remove("collapsed");
+            chapterList.classList.add("expanded");
+
+            showMoreBtn.remove();
+
+        });
+
+    }
+
+    // ==========================
+    // SWIPER TRUYỆN TƯƠNG TỰ
+    // ==========================
+
+    if (document.querySelector(".similarSwiper")) {
+
+        new Swiper(".similarSwiper", {
+
+            slidesPerView: 7,
+            spaceBetween: 16,
+            speed: 500,
+
+            navigation: {
+                nextEl: ".similar-next",
+                prevEl: ".similar-prev"
+            },
+
+            breakpoints: {
+
+                0: {
+                    slidesPerView: 2
+                },
+
+                576: {
+                    slidesPerView: 3
+                },
+
+                768: {
+                    slidesPerView: 4
+                },
+
+                992: {
+                    slidesPerView: 5
+                },
+
+                1200: {
+                    slidesPerView: 6
+                },
+
+                1500: {
+                    slidesPerView: 7
+                }
+
+            }
+
+        });
+
+    }
+
+});
+</script>
+</div>

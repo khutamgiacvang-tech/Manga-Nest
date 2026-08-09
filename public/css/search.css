@@ -1,0 +1,167 @@
+.search-page {
+
+    width: 92%;
+    max-width: 1400px;
+    margin: 40px auto 80px;
+
+}
+
+.search-header {
+
+    text-align: center;
+    margin-bottom: 24px;
+
+}
+
+.search-header h1 {
+
+    font-size: 32px;
+    font-weight: 800;
+    color: #ffffff;
+
+}
+
+.search-form {
+
+    max-width: 900px;
+    margin: 0 auto 50px;
+    display: flex;
+    flex-direction: column;
+    gap: 20px;
+
+}
+
+.search-input {
+
+    width: 100%;
+    background: #14161c;
+    border: 1px solid #2a2d35;
+    border-radius: 8px;
+    padding: 14px 16px;
+    color: #ffffff;
+    font-size: 15px;
+    outline: none;
+    transition: border-color 0.2s ease;
+
+}
+
+.search-input:focus {
+
+    border-color: #3b82f6;
+
+}
+
+.genre-picker {
+
+    background: #14161c;
+    border: 1px solid #2a2d35;
+    border-radius: 8px;
+    padding: 18px;
+
+}
+
+.genre-picker-label {
+
+    color: #9aa0ac;
+    font-size: 13px;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: .04em;
+    margin-bottom: 14px;
+
+}
+
+.genre-chip-list {
+
+    display: flex;
+    flex-wrap: wrap;
+    gap: 10px;
+
+}
+
+.genre-chip {
+
+    position: relative;
+    cursor: pointer;
+
+}
+
+.genre-chip input {
+
+    position: absolute;
+    opacity: 0;
+    width: 0;
+    height: 0;
+
+}
+
+.genre-chip span {
+
+    display: inline-block;
+    padding: 8px 16px;
+    border-radius: 20px;
+    background: #242833;
+    color: #c7cad1;
+    font-size: 13.5px;
+    font-weight: 600;
+    transition: 0.2s ease;
+
+}
+
+.genre-chip:hover span {
+
+    background: #2f333f;
+    color: #ffffff;
+
+}
+
+.genre-chip input:checked + span {
+
+    background: #3b82f6;
+    color: #ffffff;
+
+}
+
+.genre-empty {
+
+    color: #9aa0ac;
+
+}
+
+.search-submit-btn {
+
+    align-self: flex-start;
+    background: #2f6fed;
+    color: #ffffff;
+    border: none;
+    border-radius: 8px;
+    padding: 12px 28px;
+    font-weight: 700;
+    font-size: 15px;
+    cursor: pointer;
+    transition: background 0.2s ease;
+
+}
+
+.search-submit-btn:hover {
+
+    background: #3b7bff;
+
+}
+
+.search-results-title {
+
+    color: #ffffff;
+    font-size: 22px;
+    font-weight: 700;
+    margin-bottom: 24px;
+
+}
+
+.search-empty {
+
+    color: #9aa0ac;
+    font-size: 15px;
+    padding: 30px 0;
+
+}

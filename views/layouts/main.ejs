@@ -1,0 +1,243 @@
+<!DOCTYPE html>
+<html lang="vi">
+
+<head>
+
+    <meta charset="UTF-8">
+
+    <meta name="viewport"
+          content="width=device-width, initial-scale=1.0">
+
+    <title>
+        <%= title || "MangaNest" %>
+    </title>
+
+    <!-- Google Font -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+
+    <link rel="preconnect"
+          href="https://fonts.gstatic.com"
+          crossorigin>
+
+    <link rel="icon" type="image/png" href="/images/icon/favicon.png">
+
+    <link href="https://fonts.googleapis.com/css2?family=Be+Vietnam+Pro:wght@300;400;500;600;700;800&display=swap"
+          rel="stylesheet">
+
+    <!-- Font Awesome -->
+    <link rel="stylesheet"
+          href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.6.0/css/all.min.css">
+
+    <!-- CSS -->
+    <link rel="stylesheet"
+          href="/css/style.css">
+
+    <link rel="stylesheet"
+          href="/css/navbar.css">
+
+    <link rel="stylesheet"
+          href="/css/home.css">
+
+    <link rel="stylesheet"
+          href="/css/footer.css">
+
+    <link rel="stylesheet" href="/css/auth-modal.css">
+
+    <link rel="stylesheet" href="/css/notif-prompt.css">
+
+    <link rel="stylesheet" href="/css/profile.css">
+
+    <link rel="stylesheet" href="/css/translator.css">
+    
+    <link rel="stylesheet" href="/css/admin.css">
+
+    <link rel="stylesheet" href="/css/list.css">
+
+    <link rel="stylesheet" href="/css/library.css">
+
+    <link rel="stylesheet" href="/css/history.css">
+
+    <link rel="stylesheet" href="/css/banned.css">
+
+    <link rel="stylesheet" href="/css/policy.css">
+
+    <link rel="stylesheet" href="/css/search.css">
+
+    <link rel="stylesheet" href="/css/responsive.css">
+
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/swiper@11/swiper-bundle.min.css"/>
+
+</head>
+
+<body>
+
+    <%- include("../partials/navbar") %>
+
+    <main>
+
+        <%- body %>
+
+    </main>
+
+    <%- include("../partials/footer") %>
+
+    <%- include("../partials/authModal") %>
+
+<script src="/js/auth-modal.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+<script src="https://cdn.jsdelivr.net/npm/swiper@11/swiper-bundle.min.js"></script>
+
+
+<script>
+
+async function readNotification(e, element){
+
+    e.preventDefault();
+
+    const id = element.dataset.id;
+
+    try{
+
+        await fetch("/notification/read/" + id,{
+            method:"POST"
+        });
+
+        element.classList.remove("unread");
+
+        const badge=document.getElementById("notificationBadge");
+
+        if(badge){
+
+            let count=parseInt(badge.innerText)-1;
+
+            if(count<=0){
+
+                badge.remove();
+
+            }else{
+
+                badge.innerText=count;
+
+            }
+
+        }
+
+        window.location.href=element.href;
+
+    }catch(err){
+
+        console.log(err);
+
+        window.location.href=element.href;
+
+    }
+
+}
+
+async function markAllRead(){
+
+    try{
+
+        await fetch("/notification/read-all",{
+            method:"POST"
+        });
+
+        document.querySelectorAll(".notification-item").forEach(item=>{
+
+            item.classList.remove("unread");
+
+        });
+
+        const badge=document.getElementById("notificationBadge");
+
+        if(badge){
+
+            badge.remove();
+
+        }
+
+    }catch(err){
+
+        console.log(err);
+
+    }
+
+}
+
+</script>
+
+<% if(success_msg && success_msg.length > 0){ %>
+
+<script>
+
+Swal.fire({
+
+    toast:true,
+
+    position:"top-end",
+
+    icon:"success",
+
+    title:"<%= success_msg[0] %>",
+
+    showConfirmButton:false,
+
+    timer:2500
+
+});
+
+</script>
+
+<% } %>
+
+<% if(error_msg && error_msg.length > 0){ %>
+
+<script>
+
+Swal.fire({
+
+    toast:true,
+
+    position:"top-end",
+
+    icon:"error",
+
+    title:"<%= error_msg[0] %>",
+
+    showConfirmButton:false,
+
+    timer:3000
+
+});
+
+</script>
+
+<% } %>
+
+<!-- Web Push Notification Script -->
+<script>
+if ('serviceWorker' in navigator && 'PushManager' in window) {
+    navigator.serviceWorker.register('/js/sw.js').then(async function(registration) {
+        const permission = await Notification.requestPermission();
+        if (permission === 'granted') {
+            const subscription = await registration.pushManager.subscribe({
+                userVisibleOnly: true,
+                applicationServerKey: 'BOWE5y5tFWXnWuqzO378ZohD0azmPJlrLyEuT6ATnDi1MrTwWQQYpCf0zg4fDkJAdKQ70faAt6KHL0_IzBBdoI4'
+            });
+            
+            // Gửi lên server lưu
+            fetch('/api/save-subscription', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify(subscription)
+            });
+        }
+    }).catch(err => {
+        console.log('Service Worker registration failed: ', err);
+    });
+}
+</script>
+
+</body>
+
+</html>

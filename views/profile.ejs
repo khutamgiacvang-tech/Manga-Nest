@@ -1,0 +1,757 @@
+<div class="profile-page">
+
+    <div class="settings-layout">
+
+        <!-- SIDEBAR -->
+        <div class="settings-sidebar">
+
+            <div class="settings-user-mini">
+                <img
+                    src="<%= user.avatar || '/images/icon/avatar.png' %>"
+                    class="settings-avatar-mini"
+                >
+                <div class="settings-user-name"><%= user.username %></div>
+                <div class="settings-user-role"><%= user.role.toUpperCase() %></div>
+            </div>
+
+            <nav class="settings-nav">
+                <button type="button" class="settings-nav-item js-settings-nav active" data-target="account">
+                    👤 Thông tin cá nhân
+                </button>
+                <button type="button" class="settings-nav-item js-settings-nav" data-target="password">
+                    🔒 Đổi mật khẩu
+                </button>
+                <button type="button" class="settings-nav-item js-settings-nav" data-target="notification">
+                    🔔 Thiết lập thông báo
+                </button>
+            </nav>
+
+        </div>
+
+        <!-- CONTENT -->
+        <div class="settings-content">
+
+            <!-- ================= THÔNG TIN CÁ NHÂN ================= -->
+            <section id="settings-section-account" class="settings-section active">
+
+                <h2>Thông tin cá nhân</h2>
+
+                <form
+                    action="/profile/update"
+                    method="POST"
+                    enctype="multipart/form-data">
+
+                    <label>Email</label>
+                    <input
+                        type="email"
+                        value="<%= user.email %>"
+                        disabled>
+
+                    <label>Tên người dùng</label>
+                    <input
+                        type="text"
+                        name="username"
+                        value="<%= user.username %>">
+
+                    <label>Giới thiệu</label>
+                    <textarea
+                        name="bio"><%= user.bio %></textarea>
+
+                    <% if(user.role === "translator" || user.role === "admin"){ %>
+
+                        <hr class="settings-divider">
+
+                        <p class="settings-subtitle">Thông tin nhóm dịch (hiển thị công khai)</p>
+
+                        <label>Tên nhóm dịch hiển thị</label>
+                        <input
+                            type="text"
+                            name="displayName"
+                            value="<%= user.displayName %>"
+                            placeholder="Để trống sẽ hiển thị bằng tên người dùng ở trên">
+
+                        <label>Mô tả nhóm dịch</label>
+                        <textarea
+                            name="description"
+                            placeholder="Giới thiệu ngắn về nhóm dịch của bạn..."><%= user.description %></textarea>
+
+                        <label>Link Facebook nhóm dịch</label>
+                        <input
+                            type="text"
+                            name="facebook"
+                            value="<%= user.facebook %>"
+                            placeholder="https://fb.com/ten-nhom-cua-ban">
+
+                        <p class="settings-hint">
+                            Link Facebook này sẽ hiển thị công khai ở trang hồ sơ nhóm dịch và trang chi tiết truyện của bạn.
+                        </p>
+
+                    <% } %>
+
+                    <label>Ảnh đại diện</label>
+                    <input
+                        type="file"
+                        name="avatar"
+                        accept="image/*">
+
+                    <button type="submit" class="settings-submit-btn">
+                        💾 Lưu thay đổi
+                    </button>
+
+                </form>
+
+            </section>
+
+            <!-- ================= ĐỔI MẬT KHẨU ================= -->
+            <section id="settings-section-password" class="settings-section">
+
+                <h2>Đổi mật khẩu</h2>
+
+                <% if(user.provider !== "local"){ %>
+
+                    <p class="settings-hint">
+                        Tài khoản của bạn đang đăng nhập bằng
+                        <strong><%= user.provider === "google" ? "Google" : "Discord" %></strong>,
+                        nên không có mật khẩu MangaNest để đổi ở đây.
+                    </p>
+
+                <% } else { %>
+
+                    <form action="/profile/change-password" method="POST">
+
+                        <label>Mật khẩu hiện tại</label>
+                        <div class="password-group">
+                            <input
+                                id="pwCurrent"
+                                type="password"
+                                name="currentPassword"
+                                placeholder="Nhập mật khẩu hiện tại"
+                                required>
+                            <span class="toggle-password" onclick="togglePassword('pwCurrent', this)">👁</span>
+                        </div>
+
+                        <label>Mật khẩu mới</label>
+                        <div class="password-group">
+                            <input
+                                id="pwNew"
+                                type="password"
+                                name="newPassword"
+                                placeholder="Ít nhất 6 ký tự"
+                                required
+                                minlength="6">
+                            <span class="toggle-password" onclick="togglePassword('pwNew', this)">👁</span>
+                        </div>
+
+                        <label>Xác nhận mật khẩu mới</label>
+                        <div class="password-group">
+                            <input
+                                id="pwConfirm"
+                                type="password"
+                                name="confirmPassword"
+                                placeholder="Nhập lại mật khẩu mới"
+                                required
+                                minlength="6">
+                            <span class="toggle-password" onclick="togglePassword('pwConfirm', this)">👁</span>
+                        </div>
+
+                        <button type="submit" class="settings-submit-btn">
+                            🔒 Đổi mật khẩu
+                        </button>
+
+                    </form>
+
+                <% } %>
+
+            </section>
+
+            <!-- ================= THIẾT LẬP THÔNG BÁO ================= -->
+            <section id="settings-section-notification" class="settings-section">
+
+                <!-- Box cài đặt thông báo đẩy, tương tự cuutruyen.net -->
+                <div class="push-settings-box" id="push-settings-box">
+
+                    <div class="push-settings-section">
+                        <h3 class="push-settings-title">THÔNG BÁO ĐẨY</h3>
+                        <p class="push-settings-desc">
+                            Sử dụng công nghệ <strong>Web Push API</strong> để đẩy thông báo đến trình duyệt của bạn
+                            theo <strong>thời gian thực</strong>, kể cả khi bạn không truy cập MangaNest.
+                        </p>
+
+                        <div class="push-settings-buttons">
+                            <button type="button" id="grant-permission-btn" class="push-btn push-btn-grant">
+                                CẤP QUYỀN NHẬN THÔNG BÁO
+                            </button>
+                            <button type="button" id="test-push-btn" class="push-btn push-btn-test" disabled>
+                                NHẬN THỬ THÔNG BÁO
+                            </button>
+                        </div>
+
+                        <div id="push-status-lines" class="push-status-lines"></div>
+
+                        <p class="push-settings-note">
+                            Ở <strong>Android</strong>, thông báo gửi đến sẽ được đặt mặc định chế độ <strong>im lặng</strong>.
+                            Nếu muốn thông báo khi gửi đến có rung và chuông, hãy nhấn và giữ vào một thông báo bất kỳ
+                            gửi đến từ MangaNest và sửa lại thiết lập.
+                        </p>
+                    </div>
+
+                    <div class="push-settings-section">
+                        <h3 class="push-settings-title">BẬT VÀ TẮT NHẬN THÔNG BÁO</h3>
+                        <p class="push-settings-desc">
+                            Thiết đặt <strong>nhận hoặc ngừng nhận</strong> các thông báo đẩy từ MangaNest.
+                            Nếu bạn ngừng nhận thông báo đẩy, bạn vẫn có thể đọc thông báo ở mục thông báo của MangaNest.
+                        </p>
+
+                        <label class="push-toggle">
+                            <input type="checkbox" id="push-toggle-checkbox">
+                            <span class="push-toggle-slider"></span>
+                            <span class="push-toggle-label">Nhận thông báo trên trình duyệt này</span>
+                        </label>
+                    </div>
+
+                    <!-- Toast thông báo nội bộ, thay thế cho alert() mặc định của trình duyệt -->
+                    <div id="push-toast" class="push-toast"></div>
+
+                </div>
+
+            </section>
+
+        </div>
+
+    </div>
+
+</div>
+
+<script>
+    // ======================
+    // Chuyển tab trong trang Hồ sơ / Thiết lập (giống cuutruyen.net)
+    // ======================
+    (function () {
+        const navItems = document.querySelectorAll(".js-settings-nav");
+        const sections = document.querySelectorAll(".settings-section");
+
+        function activateTab(target, updateHash = true) {
+            navItems.forEach((btn) => {
+                btn.classList.toggle("active", btn.dataset.target === target);
+            });
+
+            sections.forEach((sec) => {
+                sec.classList.toggle("active", sec.id === "settings-section-" + target);
+            });
+
+            if (updateHash) {
+                history.replaceState(null, "", "#" + target);
+            }
+        }
+
+        navItems.forEach((btn) => {
+            btn.addEventListener("click", () => activateTab(btn.dataset.target));
+        });
+
+        // Hỗ trợ điều hướng bằng hash trên URL, ví dụ /profile#password
+        // Đồng thời giữ tương thích với link cũ /profile#push-settings-box
+        // (nút "Bật thông báo" ở trang chi tiết truyện trỏ tới hash này)
+        function applyHash() {
+            const hash = window.location.hash.replace("#", "");
+
+            if (hash === "password") {
+                activateTab("password", false);
+            } else if (hash === "notification" || hash === "push-settings-box") {
+                activateTab("notification", false);
+            } else if (hash === "account") {
+                activateTab("account", false);
+            }
+        }
+
+        applyHash();
+    })();
+</script>
+
+<style>
+    .push-settings-box {
+        margin-top: 24px;
+        display: flex;
+        flex-direction: column;
+        gap: 16px;
+        border-radius: 10px;
+        transition: box-shadow .3s ease;
+    }
+
+    .push-settings-box.push-settings-highlight {
+        box-shadow: 0 0 0 2px #ff4d4f, 0 0 24px rgba(255, 77, 79, .35);
+    }
+
+    .push-settings-section {
+        background: #1e1e24;
+        border: 1px solid #2c2c34;
+        border-radius: 10px;
+        padding: 20px 24px;
+    }
+
+    .push-settings-title {
+        font-size: 14px;
+        letter-spacing: 0.5px;
+        color: #e6e6e6;
+        margin: 0 0 10px;
+    }
+
+    .push-settings-desc {
+        font-size: 14px;
+        color: #a9a9b3;
+        line-height: 1.6;
+        margin: 0 0 14px;
+    }
+
+    .push-settings-desc strong {
+        color: #d1d1d8;
+    }
+
+    .push-settings-buttons {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 10px;
+        margin-bottom: 12px;
+    }
+
+    .push-btn {
+        border: none;
+        border-radius: 6px;
+        padding: 10px 16px;
+        font-size: 13px;
+        font-weight: 600;
+        letter-spacing: 0.3px;
+        cursor: pointer;
+        transition: background 0.2s ease, opacity 0.2s ease;
+    }
+
+    .push-btn-grant {
+        background: #7a2e33;
+        color: #fff;
+    }
+
+    .push-btn-grant:hover:not(:disabled) {
+        background: #8f363c;
+    }
+
+    .push-btn-test {
+        background: #33333c;
+        color: #d1d1d8;
+    }
+
+    .push-btn-test:hover:not(:disabled) {
+        background: #45454f;
+    }
+
+    .push-btn:disabled {
+        opacity: 0.55;
+        cursor: not-allowed;
+    }
+
+    .push-btn-grant.push-btn-granted {
+        background: #2c2c34;
+        color: #7a7a85;
+    }
+
+    .push-status-lines {
+        display: flex;
+        flex-direction: column;
+        gap: 4px;
+        margin-bottom: 10px;
+    }
+
+    .push-status-line {
+        font-size: 13px;
+        color: #4caf7d;
+    }
+
+    .push-status-line.error {
+        color: #e0665f;
+    }
+
+    .push-settings-note {
+        font-size: 12.5px;
+        color: #7a7a85;
+        line-height: 1.6;
+        margin: 0;
+    }
+
+    .settings-section label.push-toggle {
+        display: flex;
+        align-items: center;
+        gap: 10px;
+        cursor: pointer;
+        width: fit-content;
+        margin: 0;
+        font-weight: 400;
+    }
+
+    .push-toggle input[type="checkbox"] {
+        position: absolute;
+        opacity: 0;
+        width: 1px;
+        height: 1px;
+        margin: 0;
+        padding: 0;
+        pointer-events: none;
+    }
+
+    .push-toggle-slider {
+        position: relative;
+        display: block;
+        width: 40px;
+        height: 22px;
+        min-width: 40px;
+        background: #45454f;
+        border-radius: 999px;
+        transition: background 0.2s ease;
+        flex-shrink: 0;
+    }
+
+    .push-toggle-slider::before {
+        content: "";
+        position: absolute;
+        top: 2px;
+        left: 2px;
+        width: 18px;
+        height: 18px;
+        background: #fff;
+        border-radius: 50%;
+        transition: transform 0.2s ease;
+    }
+
+    .push-toggle input[type="checkbox"]:checked + .push-toggle-slider {
+        background: #4caf7d;
+    }
+
+    .push-toggle input[type="checkbox"]:checked + .push-toggle-slider::before {
+        transform: translateX(18px);
+    }
+
+    .push-toggle-label {
+        font-size: 14px;
+        color: #d1d1d8;
+    }
+
+    .push-toast {
+        position: fixed;
+        bottom: 24px;
+        right: 24px;
+        max-width: 320px;
+        background: #26262e;
+        border: 1px solid #3a3a44;
+        color: #e6e6e6;
+        padding: 12px 16px;
+        border-radius: 8px;
+        font-size: 13px;
+        box-shadow: 0 6px 18px rgba(0, 0, 0, 0.35);
+        opacity: 0;
+        transform: translateY(10px);
+        pointer-events: none;
+        transition: opacity 0.25s ease, transform 0.25s ease;
+        z-index: 999;
+    }
+
+    .push-toast.show {
+        opacity: 1;
+        transform: translateY(0);
+    }
+
+    .push-toast.error {
+        border-color: #7a3a37;
+    }
+</style>
+
+<!-- Script xử lý cấp quyền, bật/tắt và test thông báo đẩy, không dùng alert() mặc định -->
+<script>
+    (function () {
+        const grantBtn = document.getElementById('grant-permission-btn');
+        const testBtn = document.getElementById('test-push-btn');
+        const toggle = document.getElementById('push-toggle-checkbox');
+        const statusBox = document.getElementById('push-status-lines');
+        const toast = document.getElementById('push-toast');
+
+        const TOGGLE_KEY = 'manganest-push-enabled';
+
+        function showToast(message, isError = false) {
+            toast.textContent = message;
+            toast.classList.toggle('error', isError);
+            toast.classList.add('show');
+            clearTimeout(showToast._timer);
+            showToast._timer = setTimeout(() => toast.classList.remove('show'), 3500);
+        }
+
+        function addStatusLine(text, isError = false) {
+            const line = document.createElement('div');
+            line.className = 'push-status-line' + (isError ? ' error' : '');
+            line.textContent = text;
+            statusBox.appendChild(line);
+        }
+
+        function clearStatusLines() {
+            statusBox.innerHTML = '';
+        }
+
+        function isSupported() {
+            return 'Notification' in window && 'serviceWorker' in navigator && 'PushManager' in window;
+        }
+
+        function urlBase64ToUint8Array(base64String) {
+            const padding = '='.repeat((4 - (base64String.length % 4)) % 4);
+            const base64 = (base64String + padding).replace(/-/g, '+').replace(/_/g, '/');
+            const rawData = window.atob(base64);
+            return Uint8Array.from([...rawData].map(char => char.charCodeAt(0)));
+        }
+
+        let cachedVapidKey = null;
+        async function getVapidPublicKey() {
+            if (cachedVapidKey) return cachedVapidKey;
+            const res = await fetch('/api/vapid-public-key');
+            const data = await res.json();
+            cachedVapidKey = data.publicKey;
+            return cachedVapidKey;
+        }
+
+        function updateTestButtonState() {
+            testBtn.disabled = !(Notification.permission === 'granted' && toggle.checked);
+        }
+
+        // ĐĂNG KÝ SERVICE WORKER TRƯỚC KHI DÙNG
+        async function registerServiceWorker() {
+            if ('serviceWorker' in navigator) {
+                try {
+                    await navigator.serviceWorker.register('/sw.js');
+                    console.log('Service Worker registered successfully');
+                } catch (err) {
+                    console.error('Service Worker registration failed:', err);
+                }
+            }
+        }
+
+        async function ensureSubscription() {
+            await registerServiceWorker(); // Đảm bảo đã đăng ký
+            const registration = await navigator.serviceWorker.ready;
+
+            let subscription = await registration.pushManager.getSubscription();
+
+            if (!subscription) {
+                const vapidPublicKey = await getVapidPublicKey();
+                subscription = await registration.pushManager.subscribe({
+                    userVisibleOnly: true,
+                    applicationServerKey: urlBase64ToUint8Array(vapidPublicKey)
+                });
+            }
+
+            const response = await fetch('/api/save-subscription', {
+                method: 'POST',
+                credentials: 'same-origin',
+                headers: {
+                    'Content-Type': 'application/json'
+                },
+                body: JSON.stringify(subscription)
+            });
+
+            if (!response.ok) {
+                throw new Error('Không thể lưu subscription lên server.');
+            }
+
+            return subscription;
+        }
+
+        function renderStatusLines(permissionGranted, subscribed) {
+            clearStatusLines();
+            if (permissionGranted) {
+                addStatusLine('Bạn đã cấp quyền nhận thông báo thành công');
+            }
+            if (subscribed) {
+                addStatusLine('Trình duyệt đã tạo thành công điểm nhận đầu cuối');
+                addStatusLine('MangaNest đã nhận được và lưu lại điểm nhận đầu cuối của thiết bị này');
+            } else {
+                addStatusLine('Trình duyệt chưa tạo điểm nhận đầu cuối', true);
+                addStatusLine('MangaNest chưa có điểm nhận đầu cuối của thiết bị này', true);
+            }
+        }
+
+        function renderGrantedState() {
+            grantBtn.textContent = 'ĐÃ CẤP QUYỀN THÀNH CÔNG';
+            grantBtn.classList.add('push-btn-granted');
+            grantBtn.disabled = true;
+            updateTestButtonState();
+        }
+
+        function renderUngrantedState() {
+            grantBtn.textContent = 'CẤP QUYỀN NHẬN THÔNG BÁO';
+            grantBtn.classList.remove('push-btn-granted');
+            grantBtn.disabled = false;
+            testBtn.disabled = true;
+        }
+
+        async function checkExistingPermission() {
+            if (!isSupported()) {
+                addStatusLine('Trình duyệt của bạn không hỗ trợ thông báo đẩy.', true);
+                grantBtn.disabled = true;
+                testBtn.disabled = true;
+                toggle.disabled = true;
+                return;
+            }
+
+            await registerServiceWorker();
+
+            if (Notification.permission !== 'granted') {
+                renderUngrantedState();
+                toggle.checked = false;
+                return;
+            }
+
+            renderGrantedState();
+            const userExplicitlyDisabled = localStorage.getItem(TOGGLE_KEY) === 'false';
+
+            if (userExplicitlyDisabled) {
+                toggle.checked = false;
+                updateTestButtonState();
+                renderStatusLines(true, false);
+                return;
+            }
+
+            try {
+                const reg = await navigator.serviceWorker.ready;
+                const existingSub = await reg.pushManager.getSubscription();
+                
+                if (existingSub) {
+                    await ensureSubscription(); // Đồng bộ lại với server
+                    localStorage.setItem(TOGGLE_KEY, 'true');
+                    toggle.checked = true;
+                    updateTestButtonState();
+                    renderStatusLines(true, true);
+                } else {
+                    // Đã cấp quyền trình duyệt nhưng chưa subscribe phía pushManager
+                    toggle.checked = false;
+                    updateTestButtonState();
+                    renderStatusLines(true, false);
+                }
+            } catch (err) {
+                console.error(err);
+                toggle.checked = false;
+                updateTestButtonState();
+                renderStatusLines(true, false);
+                addStatusLine('Lỗi: ' + err.message, true);
+            }
+        }
+
+        async function requestPermissionAndSubscribe() {
+            if (!isSupported()) return;
+
+            try {
+                const permission = await Notification.requestPermission();
+                if (permission !== 'granted') {
+                    addStatusLine('Bạn đã từ chối cấp quyền nhận thông báo.', true);
+                    showToast('Không thể bật thông báo vì quyền bị từ chối.', true);
+                    return;
+                }
+
+                renderGrantedState();
+                await ensureSubscription();
+
+                localStorage.setItem(TOGGLE_KEY, 'true');
+                toggle.checked = true;
+                updateTestButtonState();
+                renderStatusLines(true, true);
+                showToast('Đã bật thông báo đẩy thành công!');
+            } catch (err) {
+                console.error(err);
+                addStatusLine('Lỗi: ' + err.message, true);
+                showToast('Lỗi thiết lập thông báo đẩy: ' + err.message, true);
+            }
+        }
+
+        async function handleToggleChange() {
+            if (toggle.checked && Notification.permission !== 'granted') {
+                toggle.checked = false;
+                await requestPermissionAndSubscribe();
+                return;
+            }
+
+            if (toggle.checked) {
+                try {
+                    await ensureSubscription();
+                    localStorage.setItem(TOGGLE_KEY, 'true');
+                    updateTestButtonState();
+                    renderStatusLines(true, true);
+                    showToast('Đã bật nhận thông báo đẩy trên trình duyệt này.');
+                } catch (err) {
+                    console.error(err);
+                    toggle.checked = false;
+                    updateTestButtonState();
+                    renderStatusLines(true, false);
+                    showToast('Lỗi khi bật thông báo: ' + err.message, true);
+                }
+                return;
+            }
+
+            localStorage.setItem(TOGGLE_KEY, 'false');
+            updateTestButtonState();
+
+            try {
+                const registration = await navigator.serviceWorker.ready;
+                const subscription = await registration.pushManager.getSubscription();
+                if (subscription) {
+                    await subscription.unsubscribe();
+                    await fetch('/api/remove-subscription', {
+                        method: 'POST',
+                        credentials: 'same-origin',
+                        headers: { 'Content-Type': 'application/json' }
+                    });
+                }
+                renderStatusLines(true, false);
+                showToast('Đã tắt nhận thông báo đẩy trên trình duyệt này.');
+            } catch (err) {
+                console.error(err);
+            }
+        }
+
+        async function handleTestPush() {
+            if (!toggle.checked) {
+                showToast('Bạn đang tắt nhận thông báo. Hãy bật lại để thử nghiệm.', true);
+                return;
+            }
+
+            try {
+                const res = await fetch('/api/test-push', {
+                    method: 'POST',
+                    credentials: 'same-origin',
+                    headers: { 'Content-Type': 'application/json' }
+                });
+                const data = await res.json();
+
+                if (res.ok) {
+                    showToast('Đã gửi lệnh kích hoạt thông báo thành công từ server!');
+                } else {
+                    showToast('Lỗi: ' + (data.message || 'Không thể gửi thông báo'), true);
+                }
+            } catch (err) {
+                console.error(err);
+                showToast('Có lỗi xảy ra khi kết nối tới server.', true);
+            }
+        }
+
+        grantBtn.addEventListener('click', requestPermissionAndSubscribe);
+        testBtn.addEventListener('click', handleTestPush);
+        toggle.addEventListener('change', handleToggleChange);
+
+        checkExistingPermission();
+    })();
+
+    // Nếu người dùng được điều hướng từ popup gợi ý (detail.ejs) sang đây,
+    // scroll mượt tới box và highlight tạm thời để họ dễ nhận ra
+    if (window.location.hash === '#push-settings-box') {
+        const box = document.getElementById('push-settings-box');
+
+        if (box) {
+            box.scrollIntoView({ behavior: 'smooth', block: 'center' });
+            box.classList.add('push-settings-highlight');
+
+            setTimeout(() => {
+                box.classList.remove('push-settings-highlight');
+            }, 2200);
+        }
+    }
+</script>

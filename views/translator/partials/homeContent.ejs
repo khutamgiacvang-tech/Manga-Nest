@@ -1,0 +1,59 @@
+<!-- TRUYỆN MỚI -->
+<section class="tp-section">
+    <h2 class="tp-section-title">Truyện mới</h2>
+
+    <% if(newMangas.length === 0){ %>
+        <p class="tp-empty">Chưa có truyện nào.</p>
+    <% } else { %>
+        <div class="tp-grid">
+            <% newMangas.forEach(manga => { %>
+                <a href="/manga/<%= manga.slug %>" class="tp-card">
+                    <img src="<%= manga.cover %>" loading="lazy" alt="<%= manga.title %>">
+                    <h3><%= manga.title %></h3>
+                    <p class="tp-card-meta">
+                        C.<%= manga.lastChapter || manga.totalChapters || 0 %>
+                        <% if(manga.lastUpdated){ %>
+                            - <%= timeAgo(manga.lastUpdated) %>
+                        <% } %>
+                    </p>
+                </a>
+            <% }) %>
+        </div>
+
+        <% if(totalCount > newMangas.length){ %>
+            <a href="/translator/<%= translator.username %>/new-mangas" class="tp-see-all js-tab" data-tab="new">
+                Xem danh sách truyện <span>&rsaquo;</span>
+            </a>
+        <% } %>
+    <% } %>
+</section>
+
+<!-- TRUYỆN NỔI BẬT -->
+<section class="tp-section">
+    <h2 class="tp-section-title">Truyện nổi bật</h2>
+
+    <% if(featuredMangas.length === 0){ %>
+        <p class="tp-empty">Chưa có truyện nào.</p>
+    <% } else { %>
+        <div class="tp-grid">
+            <% featuredMangas.forEach(manga => { %>
+                <a href="/manga/<%= manga.slug %>" class="tp-card">
+                    <img src="<%= manga.cover %>" loading="lazy" alt="<%= manga.title %>">
+                    <h3><%= manga.title %></h3>
+                    <p class="tp-card-meta">
+                        C.<%= manga.lastChapter || manga.totalChapters || 0 %>
+                        <% if(manga.lastUpdated){ %>
+                            - <%= timeAgo(manga.lastUpdated) %>
+                        <% } %>
+                    </p>
+                </a>
+            <% }) %>
+        </div>
+
+        <% if(totalCount > featuredMangas.length){ %>
+            <a href="/translator/<%= translator.username %>/top-mangas" class="tp-see-all js-tab" data-tab="top">
+                Xem danh sách truyện <span>&rsaquo;</span>
+            </a>
+        <% } %>
+    <% } %>
+</section>

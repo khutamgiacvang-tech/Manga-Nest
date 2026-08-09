@@ -1,0 +1,206 @@
+<div class="translator-page">
+
+    <h1 class="manage-title">
+        <%= manga.title %> - Chapter <%= chapter.chapterNumber %>
+    </h1>
+
+    <p class="subtitle">
+        Trạng thái kiểm duyệt
+    </p>
+
+    <div class="chapter-status-page">
+
+        <% if(chapter.isDeleted){ %>
+
+            <div class="status-box status-box-deleted">
+
+                <div class="status-box-icon">🗑</div>
+
+                <div class="status-box-content">
+
+                    <h2>Chapter này đã bị Admin xóa</h2>
+
+                    <p>
+                        Toàn bộ ảnh của chapter đã bị gỡ khỏi hệ thống và không thể khôi phục.
+                        <% if(chapter.deletedAt){ %>
+                            Thời gian xóa: <%= new Date(chapter.deletedAt).toLocaleString('vi-VN') %>.
+                        <% } %>
+                    </p>
+
+                    <div class="status-reason-block">
+                        <strong>Lý do:</strong>
+                        <p><%= chapter.hiddenReason || "Không có lý do cụ thể." %></p>
+                    </div>
+
+                </div>
+
+            </div>
+
+        <% } else if(chapter.isHidden){ %>
+
+            <div class="status-box status-box-hidden">
+
+                <div class="status-box-icon">🚫</div>
+
+                <div class="status-box-content">
+
+                    <h2>Chapter này đang bị Admin ẩn</h2>
+
+                    <p>
+                        Chapter tạm thời không hiển thị với người đọc cho tới khi được duyệt lại.
+                    </p>
+
+                    <div class="status-reason-block">
+                        <strong>Lý do:</strong>
+                        <p><%= chapter.hiddenReason || "Không có lý do cụ thể." %></p>
+                    </div>
+
+                    <a
+                        href="/my-manga/<%= manga.slug %>/chapter/<%= chapter._id %>/edit"
+                        class="edit-btn status-edit-btn">
+                        ✏️ Chỉnh sửa Chapter
+                    </a>
+
+                </div>
+
+            </div>
+
+        <% } else { %>
+
+            <div class="status-box status-box-ok">
+
+                <div class="status-box-icon">✅</div>
+
+                <div class="status-box-content">
+
+                    <h2>Chapter này đang hiển thị bình thường</h2>
+
+                    <p>Không có vấn đề gì với chapter này.</p>
+
+                </div>
+
+            </div>
+
+        <% } %>
+
+        <div class="status-reopen-block">
+
+            <h3>Muốn mở lại chapter?</h3>
+
+            <p>
+                Sau khi đã chỉnh sửa nội dung cho đúng quy định, hãy liên hệ Fanpage của
+                <strong>MangaNest</strong> để yêu cầu Admin xem xét mở lại chapter.
+            </p>
+
+            <a
+                href="<%= fanpageUrl %>"
+                target="_blank"
+                rel="noopener noreferrer"
+                class="upload-btn">
+                💬 Liên hệ Fanpage
+            </a>
+
+        </div>
+
+        <a href="/my-manga/<%= manga.slug %>" class="back-link">
+            ← Quay lại quản lý truyện
+        </a>
+
+    </div>
+
+</div>
+
+<style>
+
+.chapter-status-page {
+    max-width: 700px;
+    margin-top: 20px;
+}
+
+.status-box {
+    display: flex;
+    gap: 18px;
+    padding: 24px;
+    border-radius: 14px;
+    background: #232838;
+    margin-bottom: 25px;
+}
+
+.status-box-icon {
+    font-size: 36px;
+    line-height: 1;
+}
+
+.status-box-content h2 {
+    margin: 0 0 10px 0;
+    font-size: 20px;
+}
+
+.status-box-content p {
+    color: #b5b9c6;
+    margin: 0 0 10px 0;
+    line-height: 1.6;
+}
+
+.status-box-hidden {
+    border: 1px solid #5c3d0f;
+}
+
+.status-box-deleted {
+    border: 1px solid #5c1f1f;
+}
+
+.status-box-ok {
+    border: 1px solid #1f5c33;
+}
+
+.status-reason-block {
+    background: rgba(255, 184, 77, 0.08);
+    border-left: 3px solid #ffb84d;
+    padding: 10px 14px;
+    border-radius: 8px;
+    margin-top: 10px;
+}
+
+.status-reason-block strong {
+    color: #ffb84d;
+}
+
+.status-reason-block p {
+    margin: 5px 0 0 0;
+    color: #fff;
+}
+
+.status-edit-btn {
+    display: inline-block;
+    margin-top: 15px;
+}
+
+.status-reopen-block {
+    background: #232838;
+    border-radius: 14px;
+    padding: 22px;
+    margin-bottom: 20px;
+}
+
+.status-reopen-block h3 {
+    margin: 0 0 8px 0;
+}
+
+.status-reopen-block p {
+    color: #b5b9c6;
+    line-height: 1.6;
+    margin-bottom: 15px;
+}
+
+.back-link {
+    color: #5865F2;
+    font-weight: 600;
+    text-decoration: none;
+}
+
+.back-link:hover {
+    text-decoration: underline;
+}
+
+</style>

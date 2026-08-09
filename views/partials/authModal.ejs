@@ -1,0 +1,249 @@
+<div id="authModal" class="auth-modal">
+
+    <div class="auth-backdrop" onclick="closeAuth()"></div>
+
+    <div class="auth-container">
+
+        <button class="close-auth" onclick="closeAuth()">
+            ✕
+        </button>
+
+        <!-- TAB -->
+
+        <div class="auth-tabs">
+
+            <button
+                id="loginTab"
+                class="active"
+                onclick="showLogin()">
+
+                Đăng nhập
+
+            </button>
+
+            <button
+                id="registerTab"
+                onclick="showRegister()">
+
+                Đăng ký
+
+            </button>
+
+        </div>
+
+        <!-- Flash Message -->
+
+       <% if(success_msg && success_msg.length){ %>
+
+            <div class="alert success">
+
+                <%= success_msg[0] %>
+
+            </div>
+
+        <% } %>
+
+        <% if(error_msg && error_msg.length){ %>
+
+            <div class="alert error">
+
+                <%= error_msg[0] %>
+
+            </div>
+
+        <% } %>
+
+        <!-- LOGIN -->
+
+        <div id="loginContent">
+
+            <h2>Chào mừng trở lại 👋</h2>
+
+            <p>
+
+                Đăng nhập để bình luận, theo dõi và lưu lịch sử đọc truyện.
+
+            </p>
+
+            <form action="/login" method="POST">
+
+                <input
+                    type="email"
+                    name="email"
+                    placeholder="Nhập Email"
+                    required>
+
+                <div class="password-group">
+
+                    <input
+                        id="loginPassword"
+                        type="password"
+                        name="password"
+                        placeholder="Nhập mật khẩu"
+                        required>
+
+                    <span
+                        class="toggle-password"
+                        onclick="togglePassword('loginPassword', this)">
+
+                        👁
+
+                    </span>
+
+                </div>
+
+                <div class="forgot-password">
+
+                    <a href="/forgot-password">
+
+                        Quên mật khẩu?
+
+                    </a>
+
+                </div>
+
+                <button
+                    type="submit"
+                    class="submit-btn">
+
+                    Đăng nhập
+
+                </button>
+
+            </form>
+
+            <div class="divider">
+
+                hoặc
+
+            </div>
+
+            <a href="/auth/google" class="google-btn">
+
+                <img
+                    src="/images/icon/google.png"
+                    alt="Google">
+
+                Đăng nhập bằng Google
+
+            </a>
+
+            <a href="/auth/discord" class="discord-btn">
+
+                <img
+                    src="/images/icon/discord.png"
+                    alt="Discord">
+
+                Đăng nhập bằng Discord
+
+            </a>
+
+            <div class="auth-switch">
+
+                Chưa có tài khoản?
+
+                <span onclick="showRegister()">
+
+                    Đăng ký ngay
+
+                </span>
+
+            </div>
+
+        </div>
+
+        <!-- REGISTER -->
+
+        <div
+            id="registerContent"
+            style="display:none;">
+
+            <h2>Tạo tài khoản</h2>
+
+            <p>
+
+                Tham gia cộng đồng MangaNest ngay hôm nay.
+
+            </p>
+
+            <form
+                action="/register"
+                method="POST">
+
+                <input
+                    type="text"
+                    name="username"
+                    placeholder="Tên người dùng"
+                    required>
+
+                <input
+                    type="email"
+                    name="email"
+                    placeholder="Email"
+                    required>
+
+                <div class="password-group">
+
+                    <input
+                        id="registerPassword"
+                        type="password"
+                        name="password"
+                        placeholder="Mật khẩu"
+                        required>
+
+                    <span
+                        class="toggle-password"
+                        onclick="togglePassword('registerPassword', this)">
+
+                        👁
+
+                    </span>
+
+                </div>
+
+                <div class="password-group">
+
+                    <input
+                        id="confirmPassword"
+                        type="password"
+                        name="confirmPassword"
+                        placeholder="Nhập lại mật khẩu"
+                        required>
+
+                    <span
+                        class="toggle-password"
+                        onclick="togglePassword('confirmPassword', this)">
+
+                        👁
+
+                    </span>
+
+                </div>
+
+                <button
+                    type="submit"
+                    class="submit-btn">
+
+                    Đăng ký
+
+                </button>
+
+            </form>
+
+            <div class="auth-switch">
+
+                Đã có tài khoản?
+
+                <span onclick="showLogin()">
+
+                    Đăng nhập
+
+                </span>
+
+            </div>
+
+        </div>
+
+    </div>
+
+</div>

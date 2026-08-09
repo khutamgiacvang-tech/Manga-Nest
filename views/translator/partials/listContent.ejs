@@ -1,0 +1,37 @@
+<div class="tp-section-top">
+    <h2 class="tp-section-title"><%= pageTitle %></h2>
+
+    <div class="tp-period-tabs" style="<%= activeTab === 'top' ? '' : 'display:none' %>">
+        <span class="tp-period-indicator"></span>
+        <a href="#" class="tp-period-btn js-period <%= period === 'week' ? 'active' : '' %>" data-period="week">TUẦN</a>
+        <a href="#" class="tp-period-btn js-period <%= period === 'month' ? 'active' : '' %>" data-period="month">THÁNG</a>
+        <a href="#" class="tp-period-btn js-period <%= period === 'all' ? 'active' : '' %>" data-period="all">MỌI LÚC</a>
+    </div>
+</div>
+
+<% if(mangas.length === 0){ %>
+    <p class="tp-empty">Chưa có truyện nào.</p>
+<% } else { %>
+    <div class="tp-grid tp-grid-full">
+        <% mangas.forEach(manga => { %>
+            <a href="/manga/<%= manga.slug %>" class="tp-card">
+                <img src="<%= manga.cover %>" loading="lazy" alt="<%= manga.title %>">
+                <h3><%= manga.title %></h3>
+                <p class="tp-card-meta">
+                    C.<%= manga.lastChapter || manga.totalChapters || 0 %>
+                    <% if(manga.lastUpdated){ %>
+                        - <%= timeAgo(manga.lastUpdated) %>
+                    <% } %>
+                </p>
+            </a>
+        <% }) %>
+    </div>
+<% } %>
+
+<% if(mangas.length > 0){ %>
+    <div class="tp-pagination">
+        <a href="#" class="tp-page-nav js-page <%= currentPage <= 1 ? 'disabled' : '' %>" data-dir="prev">&lsaquo; Trang trước</a>
+        <span class="tp-page-info">Trang <%= currentPage %> / <%= totalPages %></span>
+        <a href="#" class="tp-page-nav js-page <%= currentPage >= totalPages ? 'disabled' : '' %>" data-dir="next">Trang sau &rsaquo;</a>
+    </div>
+<% } %>

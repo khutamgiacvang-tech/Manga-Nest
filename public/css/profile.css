@@ -1,0 +1,413 @@
+.profile-page {
+
+    width: 1200px;
+
+    margin: 40px auto;
+
+}
+
+.profile-card {
+
+    display: flex;
+
+    gap: 50px;
+
+    background: #1d2029;
+
+    border-radius: 18px;
+
+    padding: 40px;
+
+    box-shadow: 0 15px 35px rgba(0, 0, 0, .3);
+
+}
+
+.profile-left {
+
+    width: 260px;
+
+    text-align: center;
+
+}
+
+.profile-avatar {
+
+    width: 180px;
+
+    height: 180px;
+
+    border-radius: 50%;
+
+    object-fit: cover;
+
+    border: 5px solid #E63946;
+
+}
+
+.profile-left h2 {
+
+    margin-top: 20px;
+
+    font-size: 28px;
+
+}
+
+.profile-left p {
+
+    color: #999;
+
+    margin-top: 8px;
+
+}
+
+.profile-right {
+
+    flex: 1;
+
+}
+
+.profile-right h2 {
+
+    margin-bottom: 25px;
+
+}
+
+.profile-right label {
+
+    display: block;
+
+    margin-top: 18px;
+
+    margin-bottom: 8px;
+
+    font-weight: 600;
+
+}
+
+.profile-right input,
+
+.profile-right textarea {
+
+    width: 100%;
+
+    padding: 12px 15px;
+
+    border: none;
+
+    border-radius: 10px;
+
+    background: #2a2f3c;
+
+    color: white;
+
+}
+
+.profile-right textarea {
+
+    resize: none;
+
+    height: 120px;
+
+}
+
+.profile-right button {
+
+    margin-top: 30px;
+
+    padding: 13px 35px;
+
+    border: none;
+
+    border-radius: 10px;
+
+    background: #E63946;
+
+    color: white;
+
+    cursor: pointer;
+
+    font-size: 16px;
+
+}
+
+.profile-right button:hover {
+
+    background: #ff5a66;
+
+}
+
+/* ===========================
+   Settings Layout (Sidebar giống cuutruyen.net)
+   Thêm cho trang /profile: chuyển tab Thông tin cá nhân / Đổi mật khẩu / Thiết lập thông báo
+=========================== */
+
+.settings-layout {
+
+    display: flex;
+
+    align-items: flex-start;
+
+    gap: 24px;
+
+}
+
+.settings-sidebar {
+
+    width: 260px;
+
+    flex-shrink: 0;
+
+    background: #1d2029;
+
+    border-radius: 18px;
+
+    padding: 28px 22px;
+
+    box-shadow: 0 15px 35px rgba(0, 0, 0, .3);
+
+    position: sticky;
+
+    top: 20px;
+
+}
+
+.settings-user-mini {
+
+    text-align: center;
+
+    padding-bottom: 20px;
+
+    margin-bottom: 16px;
+
+    border-bottom: 1px solid rgba(255, 255, 255, .08);
+
+}
+
+.settings-avatar-mini {
+
+    width: 88px;
+
+    height: 88px;
+
+    border-radius: 50%;
+
+    object-fit: cover;
+
+    border: 3px solid #E63946;
+
+    margin-bottom: 10px;
+
+}
+
+.settings-user-name {
+
+    font-size: 18px;
+
+    font-weight: 700;
+
+    color: #fff;
+
+}
+
+.settings-user-role {
+
+    color: #999;
+
+    font-size: 12.5px;
+
+    letter-spacing: .5px;
+
+    margin-top: 4px;
+
+}
+
+.settings-nav {
+
+    display: flex;
+
+    flex-direction: column;
+
+    gap: 6px;
+
+}
+
+.settings-nav-item {
+
+    display: block;
+
+    width: 100%;
+
+    text-align: left;
+
+    background: transparent;
+
+    border: none;
+
+    color: #bdbdc4;
+
+    padding: 12px 14px;
+
+    border-radius: 10px;
+
+    font-size: 14.5px;
+
+    cursor: pointer;
+
+    transition: .2s;
+
+}
+
+.settings-nav-item:hover {
+
+    background: #252836;
+
+    color: #fff;
+
+}
+
+.settings-nav-item.active {
+
+    background: #E63946;
+
+    color: #fff;
+
+    font-weight: 600;
+
+}
+
+.settings-content {
+
+    flex: 1;
+
+    min-width: 0;
+
+}
+
+.settings-section {
+
+    display: none;
+
+    background: #1d2029;
+
+    border-radius: 18px;
+
+    padding: 36px 40px;
+
+    box-shadow: 0 15px 35px rgba(0, 0, 0, .3);
+}
+
+.settings-section.active {
+
+    display: block;
+
+}
+
+.settings-section h2 {
+
+    margin-bottom: 25px;
+
+}
+
+.settings-section label {
+
+    display: block;
+
+    margin-top: 18px;
+
+    margin-bottom: 8px;
+
+    font-weight: 600;
+
+}
+
+.settings-section input,
+
+.settings-section textarea {
+
+    width: 100%;
+
+    padding: 12px 15px;
+
+    border: none;
+
+    border-radius: 10px;
+
+    background: #2a2f3c;
+
+    color: white;
+
+}
+
+.settings-section textarea {
+
+    resize: none;
+
+    height: 110px;
+
+}
+
+.settings-section .password-group input {
+
+    padding-right: 50px;
+
+}
+
+.settings-divider {
+
+    border: none;
+
+    border-top: 1px solid rgba(255, 255, 255, .08);
+
+    margin: 28px 0 8px;
+
+}
+
+.settings-subtitle {
+
+    color: #9aa0ac;
+
+    font-size: 13px;
+
+    letter-spacing: .4px;
+
+    text-transform: uppercase;
+
+}
+
+.settings-hint {
+
+    color: #9aa0ac;
+
+    font-size: 13px;
+
+    margin-top: 8px;
+
+    line-height: 1.6;
+
+}
+
+.settings-submit-btn {
+
+    margin-top: 30px;
+
+    padding: 13px 35px;
+
+    border: none;
+
+    border-radius: 10px;
+
+    background: #E63946;
+
+    color: white;
+
+    cursor: pointer;
+
+    font-size: 16px;
+
+}
+
+.settings-submit-btn:hover {
+
+    background: #ff5a66;
+
+}

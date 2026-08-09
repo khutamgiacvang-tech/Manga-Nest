@@ -1,0 +1,1401 @@
+.translator-page {
+
+    max-width: 1000px;
+
+    margin: 50px auto;
+
+}
+
+.translator-card {
+
+    background: #1b1f2a;
+
+    padding: 40px;
+
+    border-radius: 18px;
+
+    box-shadow: 0 10px 30px rgba(0, 0, 0, .25);
+
+}
+
+.subtitle {
+
+    color: #9fa6b2;
+
+    margin: 15px 0 35px;
+
+    line-height: 1.7;
+
+}
+
+/*==========================
+        Form
+==========================*/
+
+.form-group {
+
+    margin-bottom: 28px;
+
+}
+
+.form-group label {
+
+    display: block;
+
+    margin-bottom: 10px;
+
+    font-weight: 600;
+
+    font-size: 15px;
+
+}
+
+input,
+textarea {
+
+    width: 100%;
+
+    padding: 14px;
+
+    border: none;
+
+    border-radius: 10px;
+
+    background: #2b3140;
+
+    color: white;
+
+    font-size: 15px;
+
+    outline: none;
+
+}
+
+textarea {
+
+    resize: vertical;
+
+}
+
+/*==========================
+      Section
+==========================*/
+
+hr {
+
+    border: none;
+
+    border-top: 1px solid #363c4d;
+
+    margin: 35px 0;
+
+}
+
+h3 {
+
+    margin-bottom: 18px;
+
+    font-size: 23px;
+
+}
+
+/*==========================
+ Project & Profile
+==========================*/
+
+.project-item,
+.profile-item {
+
+    display: grid;
+
+    grid-template-columns: 1fr 1fr 2fr;
+
+    gap: 15px;
+
+    margin-bottom: 18px;
+
+}
+
+.add-btn {
+
+    margin-top: 5px;
+
+    margin-bottom: 30px;
+
+    background: #3d8bfd;
+
+    color: #fff;
+
+    border: none;
+
+    padding: 11px 22px;
+
+    border-radius: 9px;
+
+    cursor: pointer;
+
+    transition: .25s;
+
+}
+
+.add-btn:hover {
+
+    background: #2d74da;
+
+}
+
+/*==========================
+     Upload ảnh
+==========================*/
+
+input[type=file] {
+
+    padding: 14px;
+
+    background: #2b3140;
+
+    border-radius: 10px;
+
+}
+
+/*==========================
+      Checkbox
+==========================*/
+
+.checkbox {
+
+    display: flex;
+
+    align-items: center;
+
+    gap: 10px;
+
+    margin-top: 35px;
+
+    margin-bottom: 30px;
+
+    font-size: 15px;
+
+}
+
+.checkbox input {
+
+    width: 18px;
+
+    height: 18px;
+
+}
+
+/*==========================
+      Submit
+==========================*/
+
+.submit-btn {
+
+    width: 100%;
+
+    margin-top: 10px;
+
+    padding: 16px;
+
+    border: none;
+
+    border-radius: 12px;
+
+    background: #e63946;
+
+    color: white;
+
+    font-size: 18px;
+
+    font-weight: 700;
+
+    cursor: pointer;
+
+    transition: .25s;
+
+}
+
+.submit-btn:hover {
+
+    background: #ff4f5e;
+
+}
+
+.application-info {
+
+    margin-top: 25px;
+
+}
+
+.item-box {
+
+    background: #2b3140;
+
+    padding: 15px;
+
+    border-radius: 10px;
+
+    margin: 15px 0;
+
+}
+
+.sample-images {
+
+    display: flex;
+
+    flex-wrap: wrap;
+
+    gap: 15px;
+
+    margin-top: 20px;
+
+}
+
+.sample-image {
+
+    width: 180px;
+
+    border-radius: 10px;
+
+}
+
+.empty-box {
+
+    text-align: center;
+
+    margin-top: 50px;
+
+}
+
+.description {
+
+    background: #2b3140;
+
+    padding: 15px;
+
+    border-radius: 10px;
+
+    margin-top: 10px;
+
+    white-space: pre-wrap;
+
+}
+
+/*==================================================
+                MANGA CREATE
+==================================================*/
+
+.upload-page {
+
+    max-width: 1100px;
+
+    margin: 45px auto;
+
+    padding: 0 20px;
+
+}
+
+.upload-card {
+
+    background: #1b1f2a;
+
+    border-radius: 18px;
+
+    padding: 40px;
+
+    box-shadow: 0 15px 40px rgba(0, 0, 0, .35);
+
+}
+
+.upload-card h1 {
+
+    font-size: 32px;
+
+    margin-bottom: 8px;
+
+}
+
+.sub-title {
+
+    color: #9ca3af;
+
+    margin-bottom: 35px;
+
+}
+
+/*==========================
+        GRID
+==========================*/
+
+.form-grid {
+
+    display: grid;
+
+    grid-template-columns: 1fr 1fr;
+
+    gap: 22px;
+
+}
+
+.form-group {
+
+    display: flex;
+
+    flex-direction: column;
+
+    margin-bottom: 25px;
+
+}
+
+.form-group.full {
+
+    grid-column: 1/3;
+
+}
+
+.form-group label {
+
+    font-weight: 600;
+
+    margin-bottom: 10px;
+
+    color: #f3f4f6;
+
+}
+
+/*==========================
+      INPUT
+==========================*/
+
+.form-group input,
+
+.form-group textarea,
+
+.form-group select {
+
+    width: 100%;
+
+    padding: 14px 16px;
+
+    border: 1px solid #3a4257;
+
+    border-radius: 12px;
+
+    background: #2b3140;
+
+    color: #fff;
+
+    font-size: 15px;
+
+    transition: .25s;
+
+    box-sizing: border-box;
+
+}
+
+.form-group textarea {
+
+    resize: vertical;
+
+    min-height: 170px;
+
+}
+
+.form-group input:focus,
+
+.form-group textarea:focus,
+
+.form-group select:focus {
+
+    outline: none;
+
+    border-color: #5865F2;
+
+    box-shadow: 0 0 0 3px rgba(88, 101, 242, .25);
+
+}
+
+/*==========================
+        GENRE
+==========================*/
+
+.genre-box {
+
+    display: flex;
+
+    flex-wrap: wrap;
+
+    gap: 12px;
+
+    margin-top: 5px;
+
+}
+
+.genre-item {
+
+    cursor: pointer;
+
+}
+
+.genre-item input {
+
+    display: none;
+
+}
+
+.genre-item span {
+
+    display: block;
+
+    padding: 10px 18px;
+
+    background: #2b3140;
+
+    border: 1px solid #3d465b;
+
+    border-radius: 999px;
+
+    color: #d1d5db;
+
+    transition: .25s;
+
+    user-select: none;
+
+}
+
+.genre-item:hover span {
+
+    background: #394155;
+
+}
+
+.genre-item input:checked+span {
+
+    background: #5865F2;
+
+    color: white;
+
+    border-color: #5865F2;
+
+}
+
+/*==========================
+      FILE
+==========================*/
+
+.image-grid {
+
+    display: grid;
+
+    grid-template-columns: 1fr 1fr;
+
+    gap: 25px;
+
+    margin: 30px 0;
+
+}
+
+.image-grid label {
+
+    display: block;
+
+    margin-bottom: 10px;
+
+    font-weight: 600;
+
+    color: #f3f4f6;
+
+}
+
+.image-grid input[type=file] {
+
+    width: 100%;
+
+    padding: 12px;
+
+    border-radius: 12px;
+
+    background: #2b3140;
+
+    color: #d1d5db;
+
+    border: 1px solid #3a4257;
+
+}
+
+/*==========================
+      BUTTON
+==========================*/
+
+.upload-btn {
+
+    width: 100%;
+
+    padding: 16px;
+
+    border: none;
+
+    border-radius: 12px;
+
+    background: #5865F2;
+
+    color: #fff;
+
+    font-size: 17px;
+
+    font-weight: 700;
+
+    cursor: pointer;
+
+    transition: .25s;
+
+}
+
+.upload-btn:hover {
+
+    background: #4452df;
+
+    transform: translateY(-2px);
+
+}
+
+/*==========================
+      PLACEHOLDER
+==========================*/
+
+::placeholder {
+
+    color: #8d97ab;
+
+}
+
+/*==========================
+        MOBILE
+==========================*/
+
+.my-manga-card {
+    display: flex;
+    align-items: center;
+    gap: 20px;
+
+    background: #25293c;
+    padding: 20px;
+    border-radius: 15px;
+    margin-bottom: 20px;
+}
+
+.my-manga-cover {
+    width: 110px;
+    height: 150px;
+    object-fit: cover;
+    flex-shrink: 0;
+}
+
+.my-manga-info {
+    flex: 1;
+}
+
+.my-manga-card>div:last-child {
+    flex-shrink: 0;
+}
+
+.my-manga-card .upload-btn {
+    width: auto;
+    min-width: 120px;
+    padding: 12px 22px;
+    text-decoration: none;
+}
+
+/* =========================================
+   My Manga - 3 cột dạng dashboard admin
+========================================= */
+
+.my-manga-status-columns {
+    display: flex;
+    gap: 28px;
+    align-items: flex-start;
+    flex-wrap: wrap;
+    margin-top: 30px;
+}
+
+.my-manga-status-column {
+    flex: 1;
+    min-width: 340px;
+    background: #1b1f2a;
+    border-radius: 15px;
+    padding: 24px;
+}
+
+.my-manga-section-title {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 18px;
+}
+
+.my-manga-section-title h2 {
+    margin: 0;
+    font-size: 18px;
+}
+
+.my-manga-section-title span {
+    color: #aaa;
+    font-size: 13px;
+}
+
+.my-manga-column-body {
+    max-height: 750px;
+    overflow-y: auto;
+    padding-right: 6px;
+}
+
+.my-manga-column-body::-webkit-scrollbar {
+    width: 6px;
+}
+
+.my-manga-column-body::-webkit-scrollbar-thumb {
+    background: #4a5266;
+    border-radius: 999px;
+}
+
+.my-manga-empty-card {
+    background: #1d2230;
+    padding: 25px;
+    border-radius: 12px;
+    color: #aaa;
+    text-align: center;
+}
+
+.my-manga-list-card {
+    display: flex;
+    flex-direction: column;
+    gap: 14px;
+    background: #25293c;
+    border: 1px solid #31374a;
+    border-radius: 14px;
+    padding: 18px 20px;
+    margin-bottom: 16px;
+    transition: .25s;
+}
+
+.my-manga-list-card:hover {
+    transform: translateY(-3px);
+    border-color: #5865F2;
+}
+
+.my-manga-list-left {
+    display: flex;
+    gap: 16px;
+    align-items: flex-start;
+}
+
+.my-manga-thumb {
+    width: 72px;
+    height: 98px;
+    object-fit: cover;
+    border-radius: 8px;
+    flex-shrink: 0;
+}
+
+.my-manga-list-left h3 {
+    margin: 0;
+    color: #fff;
+    font-size: 16px;
+    line-height: 1.35;
+
+    display: -webkit-box;
+    -webkit-line-clamp: 2;
+    -webkit-box-orient: vertical;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+
+.my-manga-list-left p {
+    margin: 6px 0 0;
+    color: #bfc4d4;
+    font-size: 13.5px;
+}
+
+.my-manga-list-left small {
+    color: #8b91a3;
+    font-size: 12.5px;
+}
+
+.my-manga-list-right {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+}
+
+.my-manga-status {
+    padding: 5px 12px;
+    border-radius: 30px;
+    font-size: 12px;
+    font-weight: bold;
+    text-transform: uppercase;
+}
+
+.my-manga-status.pending {
+    background: #facc15;
+    color: #111;
+}
+
+.my-manga-status.approved {
+    background: #22c55e;
+    color: #fff;
+}
+
+.my-manga-status.rejected {
+    background: #ef4444;
+    color: #fff;
+}
+
+.my-manga-manage-btn {
+    background: #5865F2;
+    color: #fff;
+    border: none;
+    padding: 8px 16px;
+    border-radius: 8px;
+    cursor: pointer;
+    font-weight: 600;
+    text-decoration: none;
+    font-size: 13px;
+}
+
+.my-manga-manage-btn:hover {
+    background: #6c78ff;
+}
+
+.manga-manage-top {
+
+    display: flex;
+
+    gap: 30px;
+
+    margin: 30px 0;
+
+}
+
+.manage-cover {
+
+    width: 180px;
+
+    border-radius: 12px;
+
+}
+
+.chapter-row {
+
+    display: flex;
+
+    justify-content: space-between;
+
+    padding: 15px 20px;
+
+    background: #2b3140;
+
+    margin-bottom: 10px;
+
+    border-radius: 10px;
+
+}
+
+.manage-layout {
+
+    display: grid;
+
+    grid-template-columns: 260px 1fr;
+
+    gap: 35px;
+
+    margin-bottom: 40px;
+
+}
+
+.left-panel {
+
+    display: flex;
+
+    flex-direction: column;
+
+    gap: 20px;
+
+}
+
+.manage-cover {
+
+    width: 100%;
+
+    border-radius: 15px;
+
+    box-shadow: 0 10px 30px rgba(0, 0, 0, .35);
+
+}
+
+.right-panel {
+
+    display: flex;
+
+    flex-direction: column;
+
+    gap: 20px;
+
+}
+
+.info-table {
+
+    width: 100%;
+
+    border-collapse: collapse;
+
+}
+
+.info-table td {
+
+    padding: 15px;
+
+    border-bottom: 1px solid #333;
+
+}
+
+.info-table td:first-child {
+
+    width: 220px;
+
+    font-weight: 700;
+
+    color: #aaa;
+
+}
+
+.manage-buttons {
+
+    display: flex;
+
+    flex-wrap: wrap;
+
+    gap: 15px;
+
+}
+
+.edit-btn {
+
+    padding: 12px 18px;
+
+    background: #5865F2;
+
+    color: #fff;
+
+    border: none;
+
+    border-radius: 10px;
+
+    text-decoration: none;
+
+    cursor: pointer;
+
+}
+
+.edit-btn:hover {
+
+    background: #4250dc;
+
+}
+
+.delete-btn {
+
+    padding: 12px 18px;
+
+    background: #e53935;
+
+    color: white;
+
+    border: none;
+
+    border-radius: 10px;
+
+    cursor: pointer;
+
+    text-decoration: none;
+
+}
+
+.delete-btn:hover {
+
+    background: #d32f2f;
+
+}
+
+.badge {
+
+    padding: 6px 12px;
+
+    border-radius: 8px;
+
+    font-size: 14px;
+
+    font-weight: 600;
+
+}
+
+.pending {
+
+    background: #5b4a00;
+
+    color: #ffd54f;
+
+}
+
+.approved {
+
+    background: #0c5b33;
+
+    color: #7CFC98;
+
+}
+
+.rejected {
+
+    background: #5c1f1f;
+
+    color: #ff9090;
+
+}
+
+.chapter-card {
+
+    display: flex;
+
+    justify-content: space-between;
+
+    align-items: center;
+
+    padding: 20px;
+
+    background: #232838;
+
+    border-radius: 12px;
+
+    margin-bottom: 15px;
+
+}
+
+.chapter-action {
+
+    display: flex;
+
+    gap: 10px;
+
+}
+
+.manage-title {
+
+    margin-bottom: 10px;
+
+}
+
+.manage-layout {
+
+    margin-bottom: 70px;
+}
+
+.chapter-section {
+
+    margin-top: 60px;
+
+}
+
+.chapter-title {
+
+    margin-bottom: 25px;
+
+    font-size: 32px;
+
+}
+
+.chapter-card {
+
+    display: flex;
+
+    justify-content: space-between;
+
+    align-items: center;
+
+    background: #25293c;
+
+    border-radius: 14px;
+
+    padding: 22px 24px;
+
+    margin-bottom: 20px;
+
+}
+
+.chapter-info h3 {
+
+    margin: 0;
+
+    font-size: 26px;
+
+}
+
+.chapter-info p {
+
+    margin-top: 10px;
+
+    margin-bottom: 8px;
+
+}
+
+.chapter-info small {
+
+    color: #aaa;
+
+}
+
+.chapter-action {
+
+    display: flex;
+
+    gap: 12px;
+
+}
+
+.left-buttons {
+
+    margin-top: 20px;
+
+}
+
+.manage-buttons {
+
+    margin-top: 30px;
+
+    display: flex;
+
+    gap: 15px;
+
+    flex-wrap: wrap;
+
+}
+
+.manage-buttons {
+
+    display: flex;
+
+    gap: 15px;
+
+    margin-top: 35px;
+
+    align-items: center;
+
+}
+
+.manage-buttons .upload-btn {
+
+    width: auto;
+
+    min-width: 220px;
+
+}
+
+.manage-buttons .edit-btn {
+
+    text-decoration: none;
+
+}
+
+/*=========================================
+            EDIT CHAPTER
+=========================================*/
+
+.edit-chapter-page {
+
+    max-width: 900px;
+
+    margin: 50px auto;
+
+}
+
+.edit-chapter-card {
+
+    background: #1b1f2a;
+
+    padding: 40px;
+
+    border-radius: 18px;
+
+    box-shadow: 0 15px 35px rgba(0, 0, 0, .35);
+
+}
+
+.edit-chapter-card h1 {
+
+    margin-bottom: 8px;
+
+}
+
+.edit-chapter-card .subtitle {
+
+    margin-bottom: 35px;
+
+}
+
+.edit-actions {
+
+    display: flex;
+
+    gap: 15px;
+
+    margin-top: 30px;
+
+}
+
+.edit-actions .submit-btn {
+
+    flex: 1;
+
+    margin: 0;
+
+}
+
+.cancel-btn {
+
+    width: 180px;
+
+    display: flex;
+
+    justify-content: center;
+
+    align-items: center;
+
+    text-decoration: none;
+
+    border-radius: 12px;
+
+    background: #e53935;
+
+    color: #fff;
+
+    font-weight: 700;
+
+    transition: .25s;
+
+}
+
+.cancel-btn:hover {
+
+    background: #c62828;
+
+}
+
+.dashboard {
+
+    display: grid;
+
+    grid-template-columns: repeat(4, 1fr);
+
+    gap: 20px;
+
+    margin: 35px 0;
+
+}
+
+.dashboard-card {
+
+    background: #25293c;
+
+    border-radius: 18px;
+
+    padding: 25px;
+
+    text-align: center;
+
+    transition: .25s;
+
+}
+
+.dashboard-card:hover {
+
+    transform: translateY(-5px);
+
+}
+
+.dashboard-card h3 {
+
+    font-size: 38px;
+
+    margin-bottom: 15px;
+
+}
+
+.dashboard-card span {
+
+    display: block;
+
+    color: #aaa;
+
+    margin-bottom: 10px;
+
+}
+
+.dashboard-card strong {
+
+    font-size: 30px;
+
+    color: #ffc107;
+
+}
+
+.translator-page {
+
+    width: 92%;
+    max-width: 1400px;
+
+    margin: 40px auto;
+
+}
+
+.translator-header {
+
+    display: flex;
+
+    gap: 25px;
+
+    margin-bottom: 40px;
+
+}
+
+.translator-avatar-large {
+
+    width: 120px;
+    height: 120px;
+
+    border-radius: 50%;
+
+    object-fit: cover;
+
+}
+
+.translator-manga-grid {
+
+    display: grid;
+
+    grid-template-columns:
+        repeat(auto-fill, minmax(180px, 1fr));
+
+    gap: 25px;
+
+}
+
+.translator-manga-card {
+
+    text-decoration: none;
+
+    color: #fff;
+
+}
+
+.translator-manga-card img {
+
+    width: 100%;
+    height: 260px;
+
+    object-fit: cover;
+
+    border-radius: 10px;
+
+}
+
+.social-btn {
+
+    display: inline-block;
+
+    margin-top: 10px;
+
+    background: #1877f2;
+
+    color: white;
+
+    padding: 8px 14px;
+
+    border-radius: 8px;
+
+    text-decoration: none;
+
+}
+
+/*==========================
+   CHAPTER LIST SCROLL
+==========================*/
+
+.chapter-list-scroll {
+
+    max-height: 700px;
+
+    overflow-y: auto;
+
+    padding-right: 8px;
+
+}
+
+.chapter-list-scroll::-webkit-scrollbar {
+
+    width: 6px;
+
+}
+
+.chapter-list-scroll::-webkit-scrollbar-thumb {
+
+    background: #4a5266;
+
+    border-radius: 999px;
+
+}
+
+.chapter-list-scroll::-webkit-scrollbar-track {
+
+    background: transparent;
+
+}
+
+/* =========================
+   Trạng thái Chapter (bị ẩn / bị xóa)
+   ========================= */
+
+.chapter-status-badge {
+    display: inline-block;
+    font-size: 12px;
+    font-weight: 600;
+    padding: 3px 10px;
+    border-radius: 20px;
+    margin-left: 10px;
+    vertical-align: middle;
+}
+
+.chapter-status-hidden {
+    background: #5c3d0f;
+    color: #ffb84d;
+}
+
+.chapter-status-deleted {
+    background: #5c1f1f;
+    color: #ff9090;
+}
+
+.chapter-status-reason {
+    margin-top: 8px;
+    font-size: 13px;
+    color: #ffb84d;
+    background: rgba(255, 184, 77, 0.08);
+    border-left: 3px solid #ffb84d;
+    padding: 6px 10px;
+    border-radius: 6px;
+}
+
+.chapter-status-reason a {
+    color: #5865F2;
+    font-weight: 600;
+    text-decoration: underline;
+}

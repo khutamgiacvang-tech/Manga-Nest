@@ -1,0 +1,327 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Ủng hộ MangaNest</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link href="https://fonts.googleapis.com/css2?family=Be+Vietnam+Pro:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+  <style>
+    :root{
+      --bg-0:#0f1115;
+      --bg-1:#161a22;
+      --bg-2:#1b2030;
+      --ink:#e8e6e1;
+      --ink-dim:#a8a6a0;
+      --accent:#e0333f;
+      --accent-dim:#8a2129;
+      --gold:#d4af6a;
+      --border:rgba(232,230,225,0.08);
+    }
+    *{margin:0;padding:0;box-sizing:border-box;}
+    body{
+      font-family:'Be Vietnam Pro', -apple-system, sans-serif;
+      background:var(--bg-0);
+      color:var(--ink);
+      min-height:100vh;
+    }
+
+    .support-wrap{
+      max-width:920px;
+      margin:0 auto;
+      padding:64px 20px 100px;
+    }
+
+    /* ---- Header ---- */
+    .support-header{
+      text-align:center;
+      margin-bottom:48px;
+      position:relative;
+    }
+    .brush-mark{
+      display:inline-block;
+      font-size:13px;
+      letter-spacing:4px;
+      text-transform:uppercase;
+      color:var(--accent);
+      font-weight:700;
+      padding-bottom:14px;
+      position:relative;
+    }
+    .brush-mark::after{
+      content:"";
+      position:absolute;
+      bottom:0;
+      left:50%;
+      transform:translateX(-50%);
+      width:46px;
+      height:3px;
+      background:linear-gradient(90deg, transparent, var(--accent), transparent);
+      border-radius:3px;
+    }
+    .support-header h1{
+      font-size:clamp(28px, 4vw, 42px);
+      font-weight:800;
+      margin-top:18px;
+      letter-spacing:-0.5px;
+    }
+    .support-header p{
+      color:var(--ink-dim);
+      max-width:560px;
+      margin:16px auto 0;
+      line-height:1.7;
+      font-size:15.5px;
+    }
+
+    /* ---- Layout: card grid ---- */
+    .support-grid{
+      display:grid;
+      grid-template-columns:1fr 1fr;
+      gap:28px;
+      align-items:stretch;
+    }
+    @media (max-width:760px){
+      .support-grid{grid-template-columns:1fr;}
+    }
+
+    .panel{
+      background:linear-gradient(180deg, var(--bg-1), var(--bg-2));
+      border:1px solid var(--border);
+      border-radius:20px;
+      padding:32px;
+      position:relative;
+      overflow:hidden;
+    }
+    .panel::before{
+      content:"";
+      position:absolute;
+      top:0; left:0; right:0;
+      height:3px;
+      background:linear-gradient(90deg, var(--accent), var(--gold));
+    }
+
+    /* ---- QR panel ---- */
+    .qr-panel{
+      display:flex;
+      flex-direction:column;
+      align-items:center;
+      text-align:center;
+    }
+    .qr-bank-badge{
+      display:flex;
+      align-items:center;
+      gap:8px;
+      font-weight:800;
+      font-size:16px;
+      margin-bottom:20px;
+    }
+    .qr-bank-badge .tc-red{color:var(--accent);}
+    .qr-frame{
+      background:#fff;
+      border-radius:16px;
+      padding:16px;
+      box-shadow:0 20px 50px rgba(0,0,0,0.45);
+    }
+    .qr-frame img{
+      display:block;
+      width:220px;
+      height:220px;
+      object-fit:contain;
+    }
+    .qr-caption{
+      margin-top:18px;
+      font-size:13px;
+      color:var(--ink-dim);
+    }
+    .qr-badges{
+      display:flex;
+      gap:14px;
+      margin-top:14px;
+      opacity:0.8;
+      font-size:12px;
+      color:var(--ink-dim);
+    }
+
+    /* ---- Info panel ---- */
+    .info-panel h3{
+      font-size:14px;
+      text-transform:uppercase;
+      letter-spacing:2px;
+      color:var(--gold);
+      margin-bottom:20px;
+    }
+    .info-row{
+      display:flex;
+      justify-content:space-between;
+      align-items:center;
+      padding:14px 0;
+      border-bottom:1px solid var(--border);
+      gap:12px;
+    }
+    .info-row:last-of-type{border-bottom:none;}
+    .info-label{
+      font-size:12.5px;
+      color:var(--ink-dim);
+      text-transform:uppercase;
+      letter-spacing:1px;
+    }
+    .info-value{
+      font-weight:700;
+      font-size:15.5px;
+      letter-spacing:0.5px;
+    }
+    .copy-btn{
+      background:var(--bg-0);
+      border:1px solid var(--border);
+      color:var(--ink);
+      font-size:12px;
+      padding:6px 12px;
+      border-radius:8px;
+      cursor:pointer;
+      transition:all .2s ease;
+      white-space:nowrap;
+    }
+    .copy-btn:hover{
+      border-color:var(--accent);
+      color:var(--accent);
+    }
+    .copy-btn.copied{
+      background:var(--accent);
+      border-color:var(--accent);
+      color:#fff;
+    }
+
+    .info-note{
+      margin-top:24px;
+      padding:16px 18px;
+      background:rgba(224,51,63,0.06);
+      border:1px solid rgba(224,51,63,0.18);
+      border-radius:12px;
+      font-size:13.5px;
+      color:var(--ink-dim);
+      line-height:1.6;
+    }
+    .info-note b{color:var(--ink);}
+
+    /* ---- Thank you strip ---- */
+    .thanks-strip{
+      margin-top:40px;
+      text-align:center;
+      padding:32px 20px;
+      border-top:1px solid var(--border);
+    }
+    .thanks-strip h2{
+      font-size:20px;
+      font-weight:700;
+      margin-bottom:10px;
+    }
+    .thanks-strip p{
+      color:var(--ink-dim);
+      font-size:14px;
+      max-width:480px;
+      margin:0 auto;
+      line-height:1.7;
+    }
+    .back-link{
+      display:inline-block;
+      margin-top:22px;
+      color:var(--accent);
+      text-decoration:none;
+      font-weight:600;
+      font-size:14px;
+      border-bottom:1px solid transparent;
+      transition:border-color .2s ease;
+    }
+    .back-link:hover{border-color:var(--accent);}
+  </style>
+</head>
+<body>
+
+  <div class="support-wrap">
+
+    <div class="support-header">
+      <span class="brush-mark">MangaNest</span>
+      <h1>Ủng hộ MangaNest 💛</h1>
+      <p>
+        MangaNest được xây dựng và vận hành hoàn toàn phi lợi nhuận bởi một cá nhân.
+        Nếu bạn thấy trang web hữu ích và muốn góp một phần nhỏ cho chi phí server,
+        domain và công sức phát triển, mọi sự ủng hộ đều được trân trọng.
+      </p>
+    </div>
+
+    <div class="support-grid">
+
+      <!-- QR Panel -->
+      <div class="panel qr-panel">
+        <div class="qr-bank-badge">
+          <span class="tc-red">TECHCOMBANK</span>
+        </div>
+        <div class="qr-frame">
+          <!-- Thay src bằng đường dẫn ảnh QR thật của bạn, ví dụ /images/donate-qr.jpg -->
+          <img src="/images/donate-qr.jpg" alt="QR chuyển khoản ủng hộ MangaNest">
+        </div>
+        <div class="qr-caption">Quét mã bằng app ngân hàng bất kỳ hỗ trợ VietQR / Napas 247</div>
+        <div class="qr-badges">
+          <span>VietQR</span>
+          <span>•</span>
+          <span>Napas 247</span>
+        </div>
+      </div>
+
+      <!-- Info Panel -->
+      <div class="panel info-panel">
+        <h3>Thông tin chuyển khoản</h3>
+
+        <div class="info-row">
+          <span class="info-label">Ngân hàng</span>
+          <span class="info-value">Techcombank</span>
+        </div>
+
+        <div class="info-row">
+          <span class="info-label">Chủ tài khoản</span>
+          <span class="info-value">DAO TRONG HIEU</span>
+        </div>
+
+        <div class="info-row">
+          <span class="info-label">Số tài khoản</span>
+          <span class="info-value" id="accNumber">1907 4388 2770 11</span>
+          <button class="copy-btn" onclick="copyAccount(this)">Sao chép</button>
+        </div>
+
+        <div class="info-note">
+          <b>Lưu ý:</b> Bạn có thể ghi nội dung chuyển khoản là <b>"Ung ho MangaNest"</b>
+          để mình biết và cảm ơn bạn nhé. Mọi khoản ủng hộ đều được dùng cho chi phí
+          duy trì server, lưu trữ Cloudinary và phát triển tính năng mới.
+        </div>
+      </div>
+
+    </div>
+
+    <div class="thanks-strip">
+      <h2>Cảm ơn bạn đã đồng hành cùng MangaNest 🙏</h2>
+      <p>
+        Dù bạn ủng hộ hay chỉ đơn giản là đọc truyện mỗi ngày, đó cũng là động lực lớn
+        để MangaNest tiếp tục phát triển tốt hơn.
+      </p>
+      <a href="/" class="back-link">← Quay lại trang chủ</a>
+    </div>
+
+  </div>
+
+  <script>
+    function copyAccount(btn){
+      const raw = document.getElementById('accNumber').innerText.replace(/\s/g, '');
+      navigator.clipboard.writeText(raw).then(() => {
+        const original = btn.innerText;
+        btn.innerText = 'Đã chép ✓';
+        btn.classList.add('copied');
+        setTimeout(() => {
+          btn.innerText = original;
+          btn.classList.remove('copied');
+        }, 1800);
+      });
+    }
+  </script>
+
+</body>
+</html>

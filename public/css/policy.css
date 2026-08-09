@@ -1,0 +1,187 @@
+.policy-page {
+
+    max-width: 1000px;
+    margin: 0 auto;
+    padding: 30px 20px 60px;
+
+}
+
+.policy-header {
+
+    text-align: center;
+    margin-bottom: 24px;
+
+}
+
+.policy-header h1 {
+
+    font-size: 28px;
+    font-weight: 700;
+    color: #ffffff;
+
+}
+
+.policy-tabs {
+
+    display: flex;
+    justify-content: center;
+    gap: 32px;
+    border-bottom: 1px solid #2a2d35;
+    margin-bottom: 28px;
+
+}
+
+.policy-tab-btn {
+
+    background: none;
+    border: none;
+    color: #9aa0ac;
+    font-size: 16px;
+    font-weight: 600;
+    padding: 10px 4px 14px;
+    cursor: pointer;
+    border-bottom: 2px solid transparent;
+    transition: color 0.2s ease, border-color 0.2s ease;
+
+}
+
+.policy-tab-btn:hover {
+
+    color: #ffffff;
+
+}
+
+.policy-tab-btn.active {
+
+    color: #3b82f6;
+    border-bottom-color: #3b82f6;
+
+}
+
+.policy-tab-panel {
+
+    display: none;
+
+}
+
+.policy-tab-panel.active {
+
+    display: block;
+
+}
+
+.policy-tab-panel h2 {
+
+    font-size: 22px;
+    margin-bottom: 14px;
+
+}
+
+.policy-tab-panel > p {
+
+    color: #c7cad1;
+    line-height: 1.7;
+    margin-bottom: 12px;
+
+}
+
+.policy-accordion {
+
+    background: #14161c;
+    border: 1px solid #23262e;
+    border-radius: 8px;
+    margin-bottom: 14px;
+    overflow: hidden;
+
+}
+
+.policy-accordion-btn {
+
+    width: 100%;
+    text-align: left;
+    background: #2f6fed;
+    color: #ffffff;
+    font-weight: 600;
+    font-size: 15px;
+    border: none;
+    padding: 14px 18px;
+    cursor: pointer;
+    position: relative;
+    transition: background 0.2s ease;
+
+}
+
+.policy-accordion-btn:hover {
+
+    background: #3b7bff;
+
+}
+
+.policy-accordion-btn::after {
+
+    content: "+";
+    position: absolute;
+    right: 18px;
+    top: 50%;
+    transform: translateY(-50%);
+    font-size: 18px;
+    font-weight: 400;
+
+}
+
+.policy-accordion.open .policy-accordion-btn::after {
+
+    content: "\2212";
+
+}
+
+.policy-accordion-panel {
+
+    max-height: 0;
+    overflow: hidden;
+    padding: 0 18px;
+    transition: max-height 0.25s ease, padding 0.25s ease;
+
+}
+
+.policy-accordion.open .policy-accordion-panel {
+
+    max-height: 2000px;
+    padding: 16px 18px;
+
+}
+
+.policy-accordion-panel p,
+.policy-accordion-panel ul {
+
+    color: #c7cad1;
+    line-height: 1.7;
+    font-size: 14.5px;
+
+}
+
+.policy-accordion-panel ul {
+
+    padding-left: 20px;
+    margin: 8px 0;
+
+}
+
+.policy-accordion-panel li {
+
+    margin-bottom: 6px;
+
+}
+
+.policy-accordion-panel a {
+
+    color: #3b82f6;
+    text-decoration: underline;
+
+}
+
+.policy-accordion-panel a:hover {
+
+    color: #60a5fa;
+
+}

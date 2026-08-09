@@ -1,0 +1,190 @@
+.history-page {
+    max-width: 900px;
+    margin: 40px auto;
+    padding: 0 20px;
+    font-family: inherit;
+    color: #e2e8f0;
+}
+
+.history-page h1 {
+    font-size: 24px;
+    font-weight: 700;
+    margin-bottom: 40px;
+    color: #ffffff; /* Đổi chữ tiêu đề thành màu trắng */
+    text-transform: uppercase;
+}
+
+.empty-box {
+    background: #1e222f;
+    padding: 30px;
+    border-radius: 12px;
+    text-align: center;
+    box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.2);
+    color: #94a3b8;
+    border: 1px solid #2a2f40;
+}
+
+/* Timeline Container */
+.history-timeline {
+    position: relative;
+    padding-left: 130px;
+}
+
+/* Trục dọc timeline */
+.history-timeline::before {
+    content: '';
+    position: absolute;
+    top: 10px;
+    bottom: 10px;
+    left: 110px;
+    width: 2px;
+    background: #334155; /* Đồng bộ màu line tối hơn */
+}
+
+/* Mỗi mốc thời gian / mục trong lịch sử */
+.history-timeline-item {
+    position: relative;
+    margin-bottom: 35px;
+}
+
+/* Nhãn thời gian bên trái */
+.history-time-label {
+    position: absolute;
+    left: -130px;
+    width: 100px;
+    text-align: right;
+    font-size: 13px;
+    color: #94a3b8;
+    top: 12px;
+    font-weight: 500;
+}
+
+/* Chấm tròn trên trục */
+.history-time-label::after {
+    content: '';
+    position: absolute;
+    right: -31px;
+    top: 3px;
+    width: 10px;
+    height: 10px;
+    background: #12151c;
+    border: 3px solid #0284c7;
+    border-radius: 50%;
+    box-shadow: 0 0 0 3px rgba(2, 132, 199, 0.2);
+}
+
+/* Khối nội dung chính của truyện (Dark Card) */
+.history-manga-card {
+    display: flex;
+    gap: 16px;
+    background: #1e222f; /* Đồng bộ màu nền card tối giống style web */
+    padding: 14px;
+    border-radius: 12px;
+    box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.2);
+    border: 1px solid #2a2f40;
+    transition: transform 0.2s ease, border-color 0.2s ease;
+}
+
+.history-manga-card:hover {
+    border-color: #38bdf8;
+    transform: none;
+}
+
+.history-cover {
+    width: 65px;
+    height: 85px;
+    object-fit: cover;
+    border-radius: 6px;
+    flex-shrink: 0;
+}
+
+.history-content {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    justify-content: flex-start;
+}
+
+.history-manga-title {
+    font-size: 15px;
+    font-weight: 600;
+    color: #f8fafc; /* Chữ tên truyện sáng nổi bật */
+    text-decoration: none;
+    margin-bottom: 8px;
+    display: inline-block;
+}
+
+.history-manga-title:hover {
+    color: #f8fafc;
+    text-decoration: none;
+}
+
+/* Danh sách các chapter đọc gần đây trong 1 truyện */
+.history-chapters-list {
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+}
+
+.history-chapter-row {
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+}
+
+.history-chapter-info {
+    display: flex;
+    justify-content: space-between;
+    font-size: 13px;
+}
+
+.history-chapter-link {
+    color: #cbd5e1;
+    text-decoration: none;
+    font-weight: 500;
+}
+
+.history-chapter-link:hover {
+    color: #cbd5e1;
+    text-decoration: none;
+}
+
+.history-chapter-title-sub {
+    color: #94a3b8;
+    font-weight: 400;
+}
+
+/* Thanh progress */
+.progress {
+    width: 100%;
+    height: 6px;
+    background: #2a2f40;
+    border-radius: 999px;
+    overflow: hidden;
+}
+
+.progress-bar {
+    height: 100%;
+    background: #3b82f6;
+    border-radius: 999px;
+}
+
+.progress-bar.completed {
+    background: #22c55e;
+}
+
+.progress-text {
+    font-size: 11px;
+    color: #94a3b8;
+    margin-top: 2px;
+}
+
+/* ==========================
+   RESPONSIVE - TABLET (<=900px)
+========================== */
+
+/* ==========================
+   RESPONSIVE - MOBILE (<=560px)
+   Bỏ timeline dọc bên trái (không đủ chỗ), chuyển thời gian
+   thành nhãn nhỏ nằm ngay trên mỗi card cho dễ đọc.
+========================== */

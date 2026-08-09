@@ -1,0 +1,239 @@
+<style>
+.tp-page {
+    padding: 2rem;
+    max-width: 1200px;
+    margin: 0 auto;
+}
+
+.tp-header {
+    text-align: center;
+    margin-bottom: 1rem;
+}
+
+.tp-avatar {
+    width: 72px;
+    height: 72px;
+    border-radius: 50%;
+    object-fit: cover;
+    margin-bottom: 0.6rem;
+}
+
+.tp-name {
+    margin: 0 0 0.3rem;
+    font-size: 1.3rem;
+}
+
+.tp-desc {
+    margin: 0 0 0.6rem;
+    color: #9aa5ce;
+    font-size: 0.9rem;
+}
+
+.tp-social-btn {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.4rem;
+    padding: 0.3rem 0.9rem;
+    background: #1877f2;
+    color: #fff;
+    border-radius: 999px;
+    text-decoration: none;
+    font-size: 0.85rem;
+}
+
+.tp-tabs {
+    display: flex;
+    justify-content: center;
+    gap: 2rem;
+    border-bottom: 1px solid rgba(255,255,255,0.1);
+    margin-bottom: 2rem;
+}
+
+.tp-tab {
+    padding: 0.8rem 0.2rem;
+    color: #9aa5ce;
+    text-decoration: none;
+    font-size: 0.9rem;
+    font-weight: 600;
+    border-bottom: 2px solid transparent;
+    transition: color 0.2s ease, border-color 0.2s ease;
+}
+
+.tp-tab.active {
+    color: #7aa2f7;
+    border-bottom-color: #7aa2f7;
+}
+
+.tp-tab:hover {
+    color: #c0caf5;
+}
+
+.tp-section {
+    margin-bottom: 2.5rem;
+}
+
+.tp-section-top {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 1rem;
+    flex-wrap: wrap;
+    gap: 0.8rem;
+}
+
+.tp-section-title {
+    font-size: 1.1rem;
+    margin: 0;
+    text-transform: uppercase;
+    color: #9aa5ce;
+    letter-spacing: 0.5px;
+}
+
+.tp-period-tabs {
+    position: relative;
+    display: flex;
+    gap: 0.2rem;
+    background: #1a1b26;
+    padding: 4px;
+    border-radius: 999px;
+}
+
+.tp-period-indicator {
+    position: absolute;
+    top: 4px;
+    left: 4px;
+    height: calc(100% - 8px);
+    width: 0;
+    background: #e53e6f;
+    border-radius: 999px;
+    transition: transform 0.28s ease, width 0.28s ease;
+    z-index: 0;
+}
+
+.tp-period-btn {
+    position: relative;
+    z-index: 1;
+    padding: 0.35rem 1rem;
+    border-radius: 999px;
+    color: #9aa5ce;
+    text-decoration: none;
+    font-size: 0.8rem;
+    font-weight: 700;
+    transition: color 0.2s ease;
+}
+
+.tp-period-btn.active {
+    color: #fff;
+}
+
+.tp-empty {
+    color: #9aa5ce;
+    font-size: 0.9rem;
+}
+
+#tp-content {
+    transition: opacity 0.2s ease;
+}
+
+.tp-grid {
+    display: grid;
+    grid-template-columns: repeat(6, 1fr);
+    gap: 1rem;
+}
+
+.tp-grid-full {
+    grid-template-columns: repeat(5, 1fr);
+}
+
+.tp-card {
+    display: block;
+    text-decoration: none;
+    color: inherit;
+}
+
+.tp-card img {
+    width: 100%;
+    aspect-ratio: 3/4;
+    object-fit: cover;
+    border-radius: 6px;
+    background: #1a1b26;
+}
+
+.tp-card h3 {
+    font-size: 0.85rem;
+    margin: 0.5rem 0 0.2rem;
+    line-height: 1.3;
+    display: -webkit-box;
+    -webkit-line-clamp: 2;
+    -webkit-box-orient: vertical;
+    overflow: hidden;
+}
+
+.tp-card-meta {
+    font-size: 0.75rem;
+    color: #9aa5ce;
+    margin: 0;
+}
+
+.tp-see-all {
+    display: block;
+    text-align: right;
+    margin-top: 0.8rem;
+    font-size: 0.85rem;
+    color: #7aa2f7;
+    text-decoration: none;
+}
+
+.tp-see-all:hover {
+    text-decoration: underline;
+}
+
+.tp-pagination {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 1.2rem;
+    margin-top: 2rem;
+}
+
+.tp-page-nav {
+    padding: 0.5rem 1rem;
+    border-radius: 6px;
+    background: #1a1b26;
+    color: #c0caf5;
+    text-decoration: none;
+    font-size: 0.85rem;
+    transition: background 0.2s ease;
+}
+
+.tp-page-nav:hover {
+    background: #24263a;
+}
+
+.tp-page-nav.disabled {
+    pointer-events: none;
+    opacity: 0.4;
+}
+
+.tp-page-info {
+    color: #9aa5ce;
+    font-size: 0.85rem;
+    white-space: nowrap;
+}
+
+@media (max-width: 900px) {
+    .tp-grid,
+    .tp-grid-full {
+        grid-template-columns: repeat(3, 1fr);
+    }
+}
+
+@media (max-width: 500px) {
+    .tp-grid,
+    .tp-grid-full {
+        grid-template-columns: repeat(2, 1fr);
+    }
+}
+</style>
+
+<script src="/js/translatorProfile.js" defer></script>

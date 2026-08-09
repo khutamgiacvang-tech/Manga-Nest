@@ -1,0 +1,611 @@
+/* ===========================
+        NAVBAR
+=========================== */
+
+* {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+}
+
+body {
+    font-family: "Be Vietnam Pro", sans-serif;
+    background: #0F1117;
+    color: #fff;
+}
+
+a {
+    text-decoration: none;
+    color: white;
+}
+
+.navbar {
+    position: sticky;
+    top: 0;
+    z-index: 999;
+    background: #171A21;
+    border-bottom: 1px solid rgba(255, 255, 255, .08);
+}
+
+.container {
+    width: 92%;
+    max-width: 1450px;
+    margin: auto;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 32px;
+    height: 75px;
+}
+
+.logo {
+    font-size: 28px;
+    font-weight: 800;
+}
+
+.logo span {
+    color: #fff;
+}
+
+.nav-menu {
+    display: flex;
+    gap: 28px;
+}
+
+.nav-menu a {
+    color: #ddd;
+    font-size: 15px;
+    transition: .25s;
+}
+
+.nav-menu a:hover {
+    color: #E63946;
+}
+
+/* ==========================
+   SEARCH TOGGLE BUTTON 
+========================== */
+
+.search-toggle-btn {
+    width: 42px;
+    height: 42px;
+    border: none;
+    border-radius: 50%;
+    background: #242833;
+    color: #ddd;
+    font-size: 16px;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    transition: .2s;
+    flex-shrink: 0;
+    margin-left: auto;
+    /* Kéo nút search gần nút thông báo hơn */
+    margin-right: -18px;
+}
+
+.search-toggle-btn:hover {
+    background: #2f333f;
+    color: #fff;
+}
+
+/* ==========================
+   SEARCH OVERLAY
+========================== */
+
+.search-overlay {
+    position: fixed;
+    top: 0;
+    left: 0;
+    right: 0;
+    z-index: 1200;
+    background: #171A21;
+    border-bottom: 1px solid rgba(255, 255, 255, .08);
+    box-shadow: 0 12px 30px rgba(0, 0, 0, .45);
+    transform: translateY(-100%);
+    opacity: 0;
+    visibility: hidden;
+    transition: transform .28s ease, opacity .22s ease, visibility .28s;
+}
+
+.search-overlay.active {
+    transform: translateY(0);
+    opacity: 1;
+    visibility: visible;
+}
+
+.search-overlay-inner {
+    width: 92%;
+    max-width: 1450px;
+    margin: 0 auto;
+    padding: 18px 0 22px;
+    min-height: 75px;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+}
+
+.search-overlay-box {
+    position: relative;
+    display: flex;
+    align-items: center;
+    background: #242833;
+    padding: 12px 18px;
+    border-radius: 30px;
+    border: 1px solid transparent;
+    transition: .2s;
+}
+
+.search-overlay-box:focus-within {
+    border-color: #E63946;
+}
+
+.search-overlay-box i {
+    color: #aaa;
+}
+
+.search-overlay-box input {
+    flex: 1;
+    margin-left: 12px;
+    border: none;
+    outline: none;
+    background: none;
+    color: white;
+    font-size: 15px;
+}
+
+.search-clear {
+    background: #E63946;
+    border: none;
+    color: #fff;
+    width: 22px;
+    height: 22px;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    cursor: pointer;
+    font-size: 12px;
+    flex-shrink: 0;
+    margin-left: 8px;
+    transition: .2s;
+}
+
+.search-clear:hover {
+    background: #ff5665;
+}
+
+.search-close-btn {
+    background: none;
+    border: none;
+    color: #aaa;
+    font-size: 18px;
+    cursor: pointer;
+    flex-shrink: 0;
+    margin-left: 14px;
+    padding: 4px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    transition: .2s;
+}
+
+.search-close-btn:hover {
+    color: #fff;
+}
+
+/* Khoá scroll nền khi overlay search đang mở (mobile) */
+body.search-overlay-open {
+    overflow: hidden;
+}
+
+/* ==========================
+   SEARCH DROPDOWN (nằm trong overlay)
+========================== */
+
+.search-dropdown {
+    margin-top: 14px;
+    width: 100%;
+    background: #1a1d27;
+    border: 1px solid #2c3240;
+    border-radius: 14px;
+    overflow: hidden;
+    display: none;
+    max-height: 60vh;
+    overflow-y: auto;
+    box-shadow: 0 12px 30px rgba(0, 0, 0, .4);
+}
+
+.search-dropdown.active {
+    display: block;
+}
+
+.search-item {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    padding: 10px 12px;
+    text-decoration: none;
+    color: #fff;
+    transition: .15s;
+}
+
+.search-item:hover {
+    background: #242938;
+}
+
+.search-item img {
+    width: 45px;
+    height: 60px;
+    object-fit: cover;
+    border-radius: 6px;
+    flex-shrink: 0;
+}
+
+.search-item span {
+    font-size: 14px;
+    font-weight: 600;
+    line-height: 1.4;
+}
+
+.search-empty {
+    padding: 14px;
+    color: #aaa;
+    text-align: center;
+}
+
+/* ==========================
+   SEARCH SKELETON LOADING
+========================== */
+
+.search-skeleton-item {
+    padding: 10px 12px;
+}
+
+.skeleton-line {
+    background: linear-gradient(90deg,
+            #2a2f3d 25%,
+            #383e4f 37%,
+            #2a2f3d 63%);
+    background-size: 400% 100%;
+    animation: skeleton-loading 1.4s ease infinite;
+    border-radius: 6px;
+    height: 14px;
+    margin-bottom: 8px;
+}
+
+.skeleton-line.title {
+    width: 40%;
+    height: 12px;
+}
+
+.skeleton-line.thumb {
+    width: 100%;
+    height: 36px;
+}
+
+@keyframes skeleton-loading {
+    0% {
+        background-position: 100% 50%;
+    }
+
+    100% {
+        background-position: 0 50%;
+    }
+}
+
+.user-menu {
+    display: flex;
+    align-items: center;
+    gap: 18px;
+    height: 100%;
+}
+
+.login-btn {
+    background: #E63946;
+    padding: 10px 18px;
+    border-radius: 10px;
+    transition: .25s;
+}
+
+.login-btn:hover {
+    background: #ff5665;
+}
+
+.avatar {
+    width: 42px;
+    height: 42px;
+    border-radius: 50%;
+    object-fit: cover;
+}
+
+/* ==========================
+   User Dropdown
+========================== */
+
+.user-dropdown {
+    position: relative;
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    cursor: pointer;
+    height: 75px;
+}
+
+.user-dropdown::after {
+    content: "";
+    position: absolute;
+    left: 0;
+    top: 100%;
+    width: 100%;
+    height: 15px;
+}
+
+.dropdown-menu {
+    position: absolute;
+    top: calc(100% + 5px);
+    right: 0;
+    min-width: 220px;
+    background: #232631;
+    border-radius: 12px;
+    overflow: hidden;
+    box-shadow: 0 10px 30px rgba(0, 0, 0, .35);
+    z-index: 999;
+    opacity: 0;
+    visibility: hidden;
+    transform: translateY(10px);
+    transition: all .25s ease;
+}
+
+/* Cầu nối giữa avatar và menu */
+.dropdown-menu::before {
+    content: "";
+    position: absolute;
+    top: -15px;
+    left: 0;
+    width: 100%;
+    height: 15px;
+}
+
+.dropdown-menu a {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    padding: 13px 18px;
+    color: #fff;
+    text-decoration: none;
+    transition: .2s;
+}
+
+.dropdown-menu a:hover {
+    background: #343848;
+    padding-left: 24px;
+}
+
+/* Hiện menu (click, không còn hover) */
+
+.user-dropdown.active .dropdown-menu {
+    opacity: 1;
+    visibility: visible;
+    transform: translateY(0);
+}
+
+/* =======================
+   Notification
+======================= */
+
+.notification-dropdown {
+    position: relative;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    height: 75px;
+}
+
+.notification-dropdown::after {
+    content: "";
+    position: absolute;
+    left: 0;
+    top: 100%;
+    width: 100%;
+    height: 15px;
+}
+
+.notification-btn {
+    width: 42px;
+    height: 42px;
+    border: none;
+    border-radius: 50%;
+    background: #232631;
+    color: #fff;
+    cursor: pointer;
+    font-size: 18px;
+    position: relative;
+    transition: .25s;
+}
+
+.notification-btn:hover {
+    background: #343848;
+}
+
+.notification-badge {
+    position: absolute;
+    top: -5px;
+    right: -5px;
+    min-width: 18px;
+    height: 18px;
+    border-radius: 50%;
+    background: #ff3b30;
+    color: #fff;
+    font-size: 11px;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    font-weight: 600;
+}
+
+.notification-menu {
+    position: absolute;
+    top: calc(100% + 5px);
+    right: 0;
+    width: 380px;
+    max-height: 500px;
+    background: #232631;
+    border-radius: 12px;
+    box-shadow: 0 12px 30px rgba(0, 0, 0, .35);
+    overflow-y: auto;
+    overflow-x: hidden;
+    opacity: 0;
+    visibility: hidden;
+    transform: translateY(10px);
+    transition: .25s;
+    z-index: 999;
+    scrollbar-width: thin;
+    scrollbar-color: #4a5266 transparent;
+}
+
+.notification-menu::-webkit-scrollbar {
+    width: 6px;
+}
+
+.notification-menu::-webkit-scrollbar-track {
+    background: transparent;
+}
+
+.notification-menu::-webkit-scrollbar-thumb {
+    background: #4a5266;
+    border-radius: 999px;
+}
+
+.notification-menu::before {
+    content: "";
+    position: absolute;
+    top: -15px;
+    left: 0;
+    width: 100%;
+    height: 15px;
+}
+
+.notification-dropdown.active .notification-menu {
+    opacity: 1;
+    visibility: visible;
+    transform: translateY(0);
+}
+
+.notification-menu h4 {
+    margin: 0;
+    padding: 15px 18px;
+    border-bottom: 1px solid #333;
+    color: #fff;
+}
+
+.notification-menu a {
+    padding: 14px 18px;
+    color: #fff;
+    text-decoration: none;
+    border-bottom: 1px solid #2f3442;
+    transition: .2s;
+}
+
+.notification-menu a:hover {
+    background: #343848;
+}
+
+.notification-footer {
+    text-align: center;
+}
+
+.notification-footer a {
+    color: #5aa9ff;
+    font-weight: 600;
+}
+
+.notification-item.unread {
+    background: #2b3352;
+    border-left: 4px solid #5865F2;
+}
+
+.notification-item {
+    display: block;
+    padding: 12px;
+    border-radius: 8px;
+    transition: .2s;
+}
+
+.notification-item:hover {
+    background: #353d5d;
+}
+
+.notification-label {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    font-size: 13px;
+    color: #9aa0aa;
+    margin-bottom: 8px;
+}
+
+.notification-body {
+    display: flex;
+    align-items: flex-start;
+    gap: 12px;
+}
+
+.notification-cover {
+    width: 44px;
+    height: 44px;
+    min-width: 44px;
+    object-fit: cover;
+    border-radius: 6px;
+    background: #2f3442;
+}
+
+.notification-content {
+    flex: 1;
+    min-width: 0;
+}
+
+.notification-content .notification-message {
+    display: block;
+    font-weight: 600;
+    color: #fff;
+    margin: 0;
+}
+
+.notification-content small {
+    display: block;
+    color: #9aa0aa;
+    margin-top: 6px;
+}
+
+/* ==========================
+   HAMBURGER (mobile/tablet)
+========================== */
+
+.hamburger-btn {
+    display: none;
+    width: 42px;
+    height: 42px;
+    border: none;
+    border-radius: 10px;
+    background: #242833;
+    color: #fff;
+    font-size: 18px;
+    cursor: pointer;
+    align-items: center;
+    justify-content: center;
+    flex-shrink: 0;
+}
+
+.hamburger-btn:hover {
+    background: #2f333f;
+}
+
+/* ==========================
+   RESPONSIVE - TABLET (<=900px)
+========================== */
+
+/* ==========================
+   RESPONSIVE - MOBILE (<=600px)
+========================== */

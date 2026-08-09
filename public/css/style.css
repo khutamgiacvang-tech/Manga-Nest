@@ -1,0 +1,1968 @@
+* {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+}
+
+/* ===== FIX: Sticky footer (không còn bị hở khoảng dưới footer) ===== */
+html {
+    height: 100%;
+}
+
+body {
+    min-height: 100vh;
+    display: flex;
+    flex-direction: column;
+}
+
+main {
+    flex: 1 0 auto;
+}
+
+footer {
+    flex-shrink: 0;
+}
+
+/* ===================================================================== */
+
+/* Trang admin cần full width, không bị bó bởi main 1200px */
+main:has(> .admin-page) {
+    width: 100%;
+    max-width: none;
+}
+
+/* Trang my-manga cũng cần full width để giống layout dashboard admin */
+main:has(> .my-manga-page) {
+    width: 100%;
+    max-width: none;
+}
+
+/* Trang chi tiết truyện cũng cần rộng hơn 1200px mặc định */
+main:has(> .manga-page) {
+    width: 100%;
+    max-width: none;
+}
+
+body {
+
+    font-family: Arial, Helvetica, sans-serif;
+
+    background: #0f1115;
+
+    color: white;
+
+}
+
+a {
+
+    text-decoration: none;
+
+    color: white;
+
+}
+
+main {
+
+    width: 1200px;
+    max-width: none;
+    margin: auto;
+
+}
+
+/* =========================
+   MANGA DETAIL
+========================= */
+
+.manga-page {
+    max-width: 1450px;
+    margin: 30px auto;
+    padding: 0 20px;
+}
+
+.manga-card {
+    background: #1b2030;
+    border-radius: 18px;
+    overflow: hidden;
+    border: 1px solid rgba(255, 255, 255, .05);
+}
+
+/* Chặn triệt để mọi hiệu ứng hover nhích lên trong trang detail */
+
+.manga-card,
+.manga-card:hover,
+.manga-banner,
+.manga-banner:hover,
+.manga-banner img,
+.manga-banner img:hover,
+.manga-banner-img,
+.manga-banner-img:hover,
+.manga-cover,
+.manga-cover:hover,
+.cover-wrapper,
+.cover-wrapper:hover {
+    transform: none !important;
+    transition: none !important;
+}
+
+/* =========================
+   BANNER
+========================= */
+
+.manga-banner {
+    position: relative;
+    height: 650px;
+    overflow: hidden;
+
+    background: #1b2030;
+    border-radius: 18px 18px 0 0;
+}
+
+.manga-banner img,
+.manga-banner-img {
+    display: block;
+    width: 100%;
+    height: 100%;
+
+    object-fit: cover;
+    object-position: center 25%;
+}
+
+.manga-banner::before {
+    content: "";
+    position: absolute;
+    inset: 0;
+    z-index: 1;
+
+    /* Không cần gradient tối nữa vì chữ đã nằm ở khung riêng bên dưới banner,
+       không đè lên ảnh -> giữ banner sáng rõ nguyên bản */
+
+    background: none;
+    pointer-events: none;
+}
+
+/* Lớp tối ở dưới banner giống Cứu Truyện */
+
+.manga-banner::after {
+    content: "";
+
+    position: absolute;
+
+    left: 0;
+    right: 0;
+    bottom: 0;
+
+    height: 180px;
+
+    z-index: 2;
+
+    background: linear-gradient(to top,
+            rgba(16, 18, 27, .95) 0%,
+            rgba(16, 18, 27, .75) 35%,
+            rgba(16, 18, 27, .35) 70%,
+            transparent 100%);
+
+    pointer-events: none;
+}
+
+/* =========================
+   HEADER
+========================= */
+
+.manga-header {
+    position: relative;
+    z-index: 5;
+
+    display: flex;
+    gap: 20px;
+    align-items: flex-end;
+
+    margin-top: -82px;
+
+    padding: 0 40px 35px;
+}
+
+.cover-wrapper {
+    flex-shrink: 0;
+}
+
+.manga-cover {
+    width: 190px;
+    height: 270px;
+
+    border-radius: 6px;
+
+    border: 4px solid white;
+
+    box-shadow: 0 8px 20px rgba(0, 0, 0, .25);
+}
+
+.manga-info {
+    flex: 1;
+    align-self: flex-end;
+    color: #fff;
+}
+
+.manga-info h1 {
+    font-size: 28px;
+    line-height: 1.25;
+    font-weight: 800;
+
+    margin-bottom: 12px;
+
+    text-shadow: 0 2px 8px rgba(0, 0, 0, .5);
+}
+
+.author-line {
+    display: flex;
+    gap: 25px;
+    flex-wrap: wrap;
+
+    font-size: 14px;
+    color: #d5d8e5;
+
+    margin-bottom: 14px;
+}
+
+.genre-list {
+    display: flex;
+    gap: 8px;
+    flex-wrap: wrap;
+
+    margin-bottom: 14px;
+}
+
+.genre-tag {
+    background: #363d50;
+    color: #fff;
+
+    padding: 6px 12px;
+
+    border-radius: 999px;
+
+    font-size: 12px;
+
+    text-decoration: none;
+    display: inline-block;
+    cursor: pointer;
+    transition: background 0.2s ease;
+}
+
+.genre-tag:hover {
+    background: #4a5370;
+}
+
+.status {
+    display: inline-block;
+
+    padding: 7px 14px;
+
+    border-radius: 999px;
+
+    font-size: 12px;
+    font-weight: 700;
+
+    margin-bottom: 16px;
+}
+
+.ongoing {
+    background: #3d5afe;
+}
+
+.completed {
+    background: #28c76f;
+}
+
+.hiatus {
+    background: #ea5455;
+}
+
+.action-buttons {
+    margin-top: 10px;
+
+    display: flex;
+    align-items: center;
+    flex-wrap: wrap;
+    gap: 12px;
+}
+
+.follow-form {
+    display: inline-block;
+}
+
+.btn-follow-toggle {
+    display: inline-flex;
+    align-items: center;
+
+    padding: 14px 24px;
+
+    border-radius: 10px;
+
+    font-weight: 700;
+    font-size: 15px;
+    color: #fff;
+
+    border: 1px solid rgba(255, 255, 255, .15);
+    background: transparent;
+
+    cursor: pointer;
+
+    transition: .2s;
+}
+
+.btn-follow-toggle:hover {
+    background: rgba(255, 255, 255, .08);
+}
+
+.btn-follow-toggle.active {
+    background: #ea5455;
+    border-color: #ea5455;
+}
+
+.btn-follow-toggle.active:hover {
+    background: #d9433f;
+}
+
+.btn-follow,
+.btn-read {
+    display: inline-flex;
+    align-items: center;
+
+    padding: 14px 24px;
+
+    border-radius: 10px;
+
+    font-weight: 700;
+
+    margin-right: 12px;
+
+    transition: .2s;
+}
+
+.btn-follow {
+    background: #4f6cff;
+}
+
+.btn-read {
+    background: #ff8a2f;
+}
+
+.btn-follow:hover,
+.btn-read:hover {
+    transform: translateY(-2px);
+}
+
+/* =========================
+   BODY
+========================= */
+
+.detail-layout {
+    display: grid;
+
+    grid-template-columns: minmax(0, 1fr) 350px;
+
+    gap: 22px;
+
+    padding: 0 40px 40px;
+}
+
+.info-box,
+.chapter-box,
+.side-box {
+    background: #262c3f;
+
+    border-radius: 14px;
+
+    padding: 22px;
+}
+
+/* ===========================
+   TRUYỆN TƯƠNG TỰ
+=========================== */
+
+.similar-box {
+
+    width: 100%;
+    margin-top: 30px;
+    background: #24283b;
+    border-radius: 16px;
+    padding: 22px;
+
+}
+
+.similar-header {
+
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 22px;
+
+}
+
+.similar-header h3 {
+
+    color: #fff;
+    font-size: 28px;
+    font-weight: 700;
+    letter-spacing: .5px;
+
+}
+
+.similar-row-wrapper {
+
+    position: relative;
+
+}
+
+.similar-prev,
+.similar-next {
+
+    position: absolute !important;
+    top: 50% !important;
+    transform: translateY(-50%) !important;
+
+    width: 42px !important;
+    height: 42px !important;
+    margin: 0 !important;
+
+    border-radius: 50%;
+    background: rgba(20, 22, 30, .85);
+    box-shadow: 0 6px 18px rgba(0, 0, 0, .4);
+
+    z-index: 5;
+
+    opacity: 0;
+    transition: .25s;
+
+}
+
+.similar-row-wrapper:hover .similar-prev,
+.similar-row-wrapper:hover .similar-next {
+
+    opacity: 1;
+
+}
+
+.similar-prev {
+    left: -18px !important;
+    right: auto !important;
+}
+
+.similar-next {
+    right: -18px !important;
+    left: auto !important;
+}
+
+.similar-prev:hover,
+.similar-next:hover {
+
+    background: rgba(20, 22, 30, 1);
+
+}
+
+.similar-prev::after,
+.similar-next::after {
+
+    font-size: 20px !important;
+    font-weight: bold;
+    color: #fff;
+
+}
+
+/* Swiper */
+
+.similarSwiper {
+
+    width: 100%;
+    overflow: hidden;
+
+}
+
+.similarSwiper .swiper-slide {
+
+    height: auto;
+
+}
+
+/* Card */
+
+.similar-card {
+
+    display: block;
+    text-decoration: none;
+
+}
+
+/* Ảnh */
+
+.similar-card img {
+
+    width: 100%;
+    height: 235px;
+    object-fit: cover;
+
+    border-radius: 12px;
+
+    transition: .25s;
+
+}
+
+.similar-card:hover img {
+
+    transform: translateY(-4px);
+    box-shadow: 0 10px 20px rgba(0, 0, 0, .35);
+
+}
+
+/* Tên */
+
+.similar-title {
+
+    margin-top: 10px;
+
+    color: #fff;
+
+    font-size: 15px;
+    font-weight: 700;
+
+    line-height: 1.4;
+
+    overflow: hidden;
+    display: -webkit-box;
+    -webkit-line-clamp: 2;
+    -webkit-box-orient: vertical;
+
+    min-height: 42px;
+
+}
+
+/* Chapter */
+
+.similar-chapter {
+
+    margin-top: 6px;
+
+    color: #9fa6c3;
+
+    font-size: 13px;
+
+}
+
+/* Mobile */
+
+/* =========================
+   TRANSLATOR
+========================= */
+
+.detail-translator-card,
+.detail-translator-card:hover,
+.translator-top,
+.translator-top:hover,
+.translator-identity,
+.translator-identity:hover,
+.detail-translator-card .translator-avatar,
+.detail-translator-card .translator-avatar:hover {
+    transform: none !important;
+    transition: none !important;
+}
+
+.detail-translator-card {
+    background: #1f2434;
+
+    border-radius: 12px;
+
+    padding: 18px;
+
+    display: flex;
+    flex-direction: column;
+    gap: 16px;
+}
+
+.translator-top {
+    display: flex;
+    align-items: flex-start;
+    justify-content: space-between;
+    gap: 12px;
+    flex-wrap: wrap;
+}
+
+.translator-identity {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+}
+
+.detail-translator-card .translator-avatar {
+    width: 48px !important;
+    height: 48px !important;
+    flex-shrink: 0;
+
+    border-radius: 50%;
+
+    object-fit: cover;
+}
+
+.translator-name {
+    font-size: 15px;
+    font-weight: 700;
+
+    margin-bottom: 3px;
+}
+
+.translator-count {
+    font-size: 12px;
+    font-weight: 600;
+    letter-spacing: .3px;
+    color: #9aa1b5;
+}
+
+.translator-social {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+}
+
+.fb-chip {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+
+    background: #26314f;
+    color: #dbe4ff;
+
+    padding: 9px 16px;
+
+    border-radius: 999px;
+
+    font-size: 14px;
+    font-weight: 600;
+}
+
+.fb-icon {
+    width: 26px;
+    height: 26px;
+
+    border-radius: 50%;
+
+    background: #1877f2;
+    color: #fff;
+
+    display: flex;
+    align-items: center;
+    justify-content: center;
+
+    font-size: 15px;
+    font-weight: 800;
+}
+
+.msg-icon {
+    width: 36px;
+    height: 36px;
+
+    border-radius: 50%;
+
+    background: #3b4257;
+
+    display: flex;
+    align-items: center;
+    justify-content: center;
+
+    font-size: 17px;
+}
+
+.btn-view-group {
+    align-self: flex-start;
+
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+
+    border: 1px solid #4b5570;
+
+    padding: 8px 16px;
+
+    border-radius: 999px;
+
+    font-size: 13px;
+    font-weight: 600;
+    color: #fff;
+
+    transition: .2s;
+}
+
+.btn-view-group:hover {
+    background: #30364b;
+}
+
+.info-box hr {
+    border: none;
+    height: 1px;
+
+    background: #3b4257;
+
+    margin: 20px 0;
+}
+
+.description-content {
+    font-size: 15px;
+    line-height: 2;
+
+    color: #d6d9e5;
+}
+
+/* =========================
+   CHAPTER
+========================= */
+
+.chapter-box h3 {
+    margin-bottom: 18px;
+}
+
+.chapter-list {
+    display: flex;
+    flex-direction: column;
+}
+
+.chapter-list.collapsed {
+    max-height: 970px;
+    overflow: hidden;
+}
+
+.chapter-list.expanded {
+    max-height: 970px;
+    overflow-y: auto;
+    padding-right: 6px;
+
+    scrollbar-width: thin;
+    scrollbar-color: #4b5570 #1b2030;
+}
+
+.chapter-list.expanded::-webkit-scrollbar {
+    width: 8px;
+}
+
+.chapter-list.expanded::-webkit-scrollbar-track {
+    background: #1b2030;
+    border-radius: 10px;
+}
+
+.chapter-list.expanded::-webkit-scrollbar-thumb {
+    background: #4b5570;
+    border-radius: 10px;
+}
+
+.chapter-list.expanded::-webkit-scrollbar-thumb:hover {
+    background: #5a6482;
+}
+
+.btn-show-more {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 6px;
+    width: 100%;
+
+    margin-top: 12px;
+    padding: 12px;
+
+    background: #30364b;
+    color: #d6d9e5;
+
+    border: none;
+    border-radius: 10px;
+
+    font-weight: 700;
+    font-size: 13px;
+    cursor: pointer;
+
+    transition: .2s;
+}
+
+.btn-show-more:hover {
+    background: #3b4259;
+}
+
+.arrow-icon {
+    font-size: 11px;
+}
+
+.chapter-item {
+    display: flex;
+    align-items: center;
+
+    padding: 16px 18px;
+
+    border-radius: 10px;
+    border-left: 4px solid transparent;
+
+    background: #30364b;
+
+    color: #fff;
+
+    margin-bottom: 10px;
+
+    transition: .2s;
+}
+
+.chapter-item:hover {
+    background: #3b4259;
+}
+
+/* Đã đọc hết chương -> viền xanh lá */
+.chapter-status-done {
+    border-left-color: #2ecc71;
+}
+
+/* Đang đọc dở chương -> viền xanh biển */
+.chapter-status-reading {
+    border-left-color: #3498db;
+}
+
+.chapter-item-main {
+    width: 100%;
+}
+
+.chapter-sub {
+    font-size: 13px;
+    font-style: italic;
+    color: #bcc3d3;
+    margin-top: 4px;
+}
+
+.chapter-meta {
+    font-size: 12px;
+    color: #8b93a7;
+    margin-top: 6px;
+}
+
+/* =========================
+   SIDEBAR
+========================= */
+
+.sidebar {
+    display: flex;
+    flex-direction: column;
+    gap: 22px;
+}
+
+.side-box h4 {
+    margin-bottom: 20px;
+    font-size: 20px;
+}
+
+.stat-row {
+    margin-bottom: 18px;
+    font-size: 15px;
+    color: #e5e7ef;
+}
+
+/* =========================
+   MOBILE
+========================= */
+
+.share-link-row {
+    display: flex;
+    gap: 8px;
+    margin-bottom: 14px;
+}
+
+.share-link-input {
+    flex: 1;
+    min-width: 0;
+
+    background: #1f2434;
+    border: 1px solid #3b4257;
+    border-radius: 8px;
+
+    padding: 10px 12px;
+
+    color: #c8cedd;
+    font-size: 13px;
+}
+
+.copy-btn {
+    background: #363d50;
+    border: none;
+    border-radius: 8px;
+
+    width: 40px;
+
+    color: #fff;
+    cursor: pointer;
+}
+
+.share-buttons {
+    display: flex;
+    gap: 10px;
+}
+
+.btn-share,
+.btn-facebook {
+    flex: 1;
+
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 6px;
+
+    padding: 10px;
+
+    border: none;
+    border-radius: 8px;
+
+    font-weight: 700;
+    font-size: 14px;
+    color: #fff;
+
+    cursor: pointer;
+    text-align: center;
+}
+
+.btn-share {
+    background: #28c76f;
+}
+
+.btn-facebook {
+    background: #4267ff;
+}
+
+/* ========================= */
+/* TRANG ĐỌC TRUYỆN */
+/* ========================= */
+
+.reader-container {
+    max-width: 900px;
+    margin: auto;
+    padding: 30px 20px 100px;
+}
+
+/* Mode toggle pill */
+
+.reader-modebar {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 10px;
+    margin-bottom: 26px;
+}
+
+.reader-mode-help-btn {
+    width: 34px;
+    height: 34px;
+
+    border: none;
+    border-radius: 50%;
+
+    background: #b5590b;
+    color: #fff;
+
+    font-weight: 800;
+    font-size: 15px;
+
+    cursor: pointer;
+
+    display: flex;
+    align-items: center;
+    justify-content: center;
+
+    transition: .15s;
+}
+
+.reader-mode-help-btn:hover {
+    background: #d16b0f;
+}
+
+/* ========================= */
+/* Popup chọn giao diện đọc (giống cuutruyen.net) */
+/* ========================= */
+
+.reader-mode-modal-overlay {
+    position: fixed;
+    inset: 0;
+    z-index: 9999;
+
+    background: rgba(0, 0, 0, .6);
+
+    display: flex;
+    align-items: center;
+    justify-content: center;
+
+    padding: 20px;
+}
+
+.reader-mode-modal {
+    width: 100%;
+    max-width: 560px;
+
+    background: #1b2030;
+    border-radius: 14px;
+
+    padding: 22px 24px 26px;
+
+    box-shadow: 0 25px 60px rgba(0, 0, 0, .5);
+}
+
+.reader-mode-modal-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+
+    margin-bottom: 18px;
+}
+
+.reader-mode-modal-header h3 {
+    font-size: 17px;
+    color: #fff;
+}
+
+.reader-mode-modal-close {
+    border: none;
+    background: transparent;
+    color: #9aa1b5;
+
+    font-size: 22px;
+    line-height: 1;
+    cursor: pointer;
+}
+
+.reader-mode-modal-close:hover {
+    color: #fff;
+}
+
+.reader-mode-modal-options {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 14px;
+
+    margin-bottom: 16px;
+}
+
+.mode-option-card {
+    border: 2px solid #2b3146;
+    border-radius: 10px;
+
+    padding: 16px;
+
+    cursor: pointer;
+
+    transition: .15s;
+}
+
+.mode-option-card:hover {
+    border-color: #3b4257;
+}
+
+.mode-option-card.active {
+    border-color: #5865f2;
+    background: rgba(88, 101, 242, .08);
+}
+
+.mode-option-card h4 {
+    font-size: 14px;
+    color: #fff;
+    margin-bottom: 10px;
+
+    display: flex;
+    align-items: center;
+    gap: 8px;
+}
+
+.mode-option-card p {
+    font-size: 12.5px;
+    color: #9aa1b5;
+    line-height: 1.6;
+
+    margin-bottom: 4px;
+}
+
+.reader-mode-modal-note {
+    font-size: 12.5px;
+    color: #7a8098;
+    line-height: 1.7;
+
+    margin-bottom: 18px;
+}
+
+.reader-mode-modal-confirm {
+    width: 100%;
+
+    padding: 12px;
+
+    border: none;
+    border-radius: 8px;
+
+    background: #5865f2;
+    color: #fff;
+
+    font-weight: 700;
+    font-size: 14px;
+
+    cursor: pointer;
+
+    transition: .15s;
+}
+
+.reader-mode-modal-confirm:hover {
+    background: #4752c4;
+}
+
+.mode-toggle {
+    display: inline-flex;
+    gap: 4px;
+
+    background: #1b2030;
+
+    padding: 4px;
+
+    border-radius: 10px;
+}
+
+.mode-btn {
+    border: none;
+    cursor: pointer;
+
+    padding: 9px 22px;
+
+    border-radius: 8px;
+
+    background: transparent;
+    color: #9aa1b5;
+
+    font-weight: 700;
+    font-size: 13px;
+    letter-spacing: .3px;
+
+    transition: .15s;
+}
+
+.mode-btn.active {
+    background: #5865f2;
+    color: #fff;
+}
+
+/* Header: back link + chapter title */
+
+.reader-header {
+    text-align: left;
+    margin-bottom: 22px;
+}
+
+.back-btn {
+    display: inline-block;
+
+    font-size: 14px;
+    font-weight: 600;
+    color: #7c90ff;
+
+    margin-bottom: 14px;
+}
+
+.reader-chapter-title {
+    font-size: 22px;
+    font-weight: 800;
+    color: #fff;
+}
+
+/* Nav buttons stacked full width */
+
+.chapter-nav {
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+
+    margin-bottom: 30px;
+
+    transition: opacity .25s ease, visibility .25s ease;
+}
+
+.nav-btn-block {
+    display: block;
+    width: 100%;
+
+    text-align: center;
+
+    padding: 14px;
+
+    border-radius: 8px;
+
+    background: #262c3f;
+    color: #fff;
+    border: 1px solid transparent;
+
+    font-weight: 700;
+    font-size: 13px;
+    letter-spacing: .5px;
+
+    transition: .15s;
+}
+
+.nav-btn-block:hover {
+    background: #30364b;
+}
+
+.nav-btn-block.outline {
+    background: transparent;
+    border: 1px solid #3b4257;
+}
+
+/* Trạng thái disabled: xám hẳn, không hover, không click được — dùng khi
+   hết chương trước/sau (vd "ĐÂY LÀ CHƯƠNG MỚI NHẤT") */
+
+.nav-btn-block.disabled {
+    background: #171a24;
+    color: #4b5064;
+    border-color: #1f2330;
+
+    cursor: not-allowed;
+    pointer-events: none;
+    opacity: .55;
+}
+
+.nav-btn-block.disabled:hover {
+    background: #171a24;
+}
+
+.bottom-nav {
+    flex-direction: row;
+    margin-top: 16px;
+    margin-bottom: 0;
+}
+
+.bottom-nav .nav-btn-block {
+    flex: 1;
+}
+
+/* ========================= */
+/* READER CONTENT */
+/* ========================= */
+
+#readerContent {
+    max-width: 900px;
+    margin: auto;
+}
+
+.reader-page {
+    display: block;
+    margin: 0 auto 4px;
+    max-width: 100%;
+    height: auto;
+}
+
+/* ========================= */
+/* ZEN UI */
+/* ========================= */
+
+.reader-zen {
+    background: #0f1115;
+}
+
+.reader-zen footer {
+    display: none !important;
+}
+
+.reader-zen .reader-container {
+    max-width: 100%;
+    padding: 30px 0 100px;
+}
+
+.reader-zen #readerContent {
+    max-width: 1200px;
+    margin: auto;
+}
+
+.reader-zen .reader-page {
+    display: block;
+    margin: auto;
+    width: auto;
+    max-width: 100%;
+}
+
+.reader-page .navbar {
+    position: static !important;
+}
+
+/* Ẩn các phần chỉ dành cho Classic UI khi ở Zen */
+
+.reader-zen .bottom-nav,
+.reader-zen .end-page-nav,
+.reader-zen .reader-info-text {
+    display: none;
+}
+
+/* Chapter-nav-top đã được thay bằng màn hình bìa (.zen-cover-panel)
+   bên trong Zen UI, nên ẩn thanh nav phía trên đi để khỏi bị trùng lặp */
+
+.reader-zen .chapter-nav-top {
+    display: none;
+}
+
+/* Immersive: ẩn navbar + thanh nổi khi đang lật trang */
+
+.reader-modebar,
+.reader-header,
+#floatingNav,
+.zen-counter {
+    transition: opacity .25s ease, visibility .25s ease;
+    opacity: 1;
+    visibility: visible;
+}
+
+body.zen-immersive .reader-modebar,
+body.zen-immersive .reader-header,
+body.zen-immersive .chapter-nav-top,
+body.zen-immersive #floatingNav,
+body.zen-immersive .zen-counter {
+    opacity: 0;
+    visibility: hidden;
+    pointer-events: none;
+}
+
+/* Zen stage: ảnh hiện tại + xem trước 2 bên */
+
+#zenReader {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    min-height: 100vh;
+    gap: 16px;
+    padding: 20px;
+}
+
+.zen-stage {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 18px;
+    width: 100%;
+}
+
+.zen-image {
+    max-width: 68%;
+    max-height: 88vh;
+
+    object-fit: contain;
+
+    border-radius: 4px;
+    cursor: pointer;
+}
+
+.zen-side-image {
+    max-width: 16%;
+    max-height: 65vh;
+
+    object-fit: cover;
+
+    border-radius: 4px;
+
+    opacity: .25;
+    filter: blur(1px);
+
+    visibility: hidden;
+}
+
+.zen-end-panel {
+    text-align: center;
+    padding: 20px;
+}
+
+.zen-end-panel h2 {
+    font-size: 20px;
+    margin-bottom: 20px;
+    color: #fff;
+}
+
+.zen-end-panel .chapter-nav {
+    max-width: 360px;
+    margin: 0 auto;
+}
+
+/* ========================= */
+/* Màn hình bìa Zen UI (vào chương / kết thúc chương), giống cuutruyen.net */
+/* ========================= */
+
+.zen-cover-panel {
+    position: relative;
+
+    width: 100%;
+    min-height: 60vh;
+
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.zen-cover-inner {
+    width: 100%;
+    max-width: 420px;
+
+    padding: 0 60px;
+
+    text-align: center;
+}
+
+.zen-cover-title {
+    font-size: 19px;
+    color: #fff;
+    margin-bottom: 22px;
+    line-height: 1.5;
+}
+
+.zen-cover-nav {
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+
+    max-width: 320px;
+    margin: 0 auto;
+}
+
+/* 2 mép trái/phải để chuyển trang, chữ dọc giống cuutruyen.net */
+
+.zen-edge {
+    position: absolute;
+    top: 0;
+    bottom: 0;
+
+    width: 70px;
+
+    display: flex;
+    align-items: center;
+    justify-content: center;
+
+    cursor: pointer;
+    user-select: none;
+
+    color: #6d7180;
+    font-size: 12px;
+    letter-spacing: 3px;
+
+    transition: background .2s ease, color .2s ease;
+}
+
+.zen-edge span {
+    writing-mode: vertical-rl;
+    text-orientation: mixed;
+}
+
+.zen-edge:hover {
+    background: rgba(255, 255, 255, .04);
+    color: #fff;
+}
+
+.zen-edge-left {
+    left: 0;
+}
+
+.zen-edge-right {
+    right: 0;
+}
+
+.zen-edge.disabled {
+    cursor: not-allowed;
+    color: #3a3d47;
+}
+
+.zen-edge.disabled:hover {
+    background: transparent;
+    color: #3a3d47;
+}
+
+/* Immersive Zen: đưa stage lên toàn màn hình thật sự */
+
+body.zen-immersive #zenReader {
+    position: fixed;
+    inset: 0;
+    z-index: 9990;
+    background: #000;
+    padding: 0;
+    justify-content: center;
+}
+
+body.zen-immersive .zen-stage {
+    height: 100vh;
+}
+
+body.zen-immersive .zen-image {
+    max-height: 100vh;
+}
+
+/* ========================= */
+/* END PAGE NAV (giống ảnh cuutruyen: nút full-width + 2 nút chia đôi) */
+/* ========================= */
+
+.end-page-nav {
+    flex-direction: column;
+    gap: 10px;
+
+    margin-top: 10px;
+}
+
+.end-page-nav .nav-btn-block {
+    width: 100%;
+}
+
+.end-page-row {
+    display: flex;
+    gap: 10px;
+}
+
+.end-page-row .nav-btn-block {
+    flex: 1;
+}
+
+/* ========================= */
+/* SEO TEXT (chỉ Classic UI) */
+/* ========================= */
+
+.reader-info-text {
+    margin-top: 30px;
+    padding-top: 20px;
+
+    border-top: 1px solid #262c3f;
+
+    font-size: 13px;
+    line-height: 1.9;
+    color: #8890a3;
+
+    text-align: center;
+}
+
+/* ========================= */
+/* FLOATING NAV (góc dưới trái) */
+/* ========================= */
+
+#floatingNav {
+    position: fixed;
+    left: 20px;
+    bottom: 20px;
+
+    background: #1b2030;
+    padding: 8px;
+
+    border-radius: 12px;
+
+    display: flex;
+    align-items: center;
+    gap: 8px;
+
+    z-index: 9999;
+
+    box-shadow: 0 5px 20px rgba(0, 0, 0, .4);
+
+    border: 1px solid rgba(255, 255, 255, .06);
+}
+
+.float-arrow {
+    width: 34px;
+    height: 34px;
+
+    display: flex;
+    align-items: center;
+    justify-content: center;
+
+    border: none;
+    border-radius: 8px;
+
+    background: #262c3f;
+    color: #fff;
+
+    font-size: 18px;
+    font-weight: 700;
+
+    cursor: pointer;
+    transition: .15s;
+}
+
+.float-arrow:hover {
+    background: #30364b;
+}
+
+.float-arrow.disabled {
+    background: #171a24;
+    color: #4b5064;
+
+    cursor: not-allowed;
+    pointer-events: none;
+    opacity: .5;
+}
+
+.float-arrow.disabled:hover {
+    background: #171a24;
+}
+
+.float-select {
+    background: #262c3f;
+    color: #fff;
+
+    border: none;
+    border-radius: 8px;
+
+    padding: 9px 12px;
+
+    font-size: 13px;
+    font-weight: 600;
+
+    max-width: 140px;
+}
+
+.zen-counter {
+    color: white;
+    margin-bottom: 15px;
+    font-size: 18px;
+    font-weight: 700;
+}
+
+/* ========================= */
+/* MOBILE */
+/* ========================= */
+
+/* ===========================
+   Comment Panel
+=========================== */
+
+.comment-toggle-btn {
+    display: flex;
+    align-items: center;
+    gap: 4px;
+    width: auto !important;
+    padding: 0 12px;
+    font-size: 13px;
+    font-weight: 700;
+}
+
+.comment-overlay {
+    display: none;
+    position: fixed;
+    inset: 0;
+    background: rgba(0, 0, 0, .5);
+    z-index: 9997;
+}
+
+.comment-overlay.open {
+    display: block;
+}
+
+.comment-panel {
+    position: fixed;
+    top: 0;
+    right: -420px;
+    width: 400px;
+    max-width: 90vw;
+    height: 100vh;
+
+    background: #1b2030;
+    border-left: 1px solid #2f3545;
+
+    z-index: 9998;
+
+    display: flex;
+    flex-direction: column;
+
+    transition: right .3s ease;
+
+    box-shadow: -10px 0 30px rgba(0, 0, 0, .4);
+}
+
+.comment-panel.open {
+    right: 0;
+}
+
+.comment-panel-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+
+    padding: 18px 20px;
+
+    border-bottom: 1px solid #2f3545;
+}
+
+.comment-panel-header h3 {
+    font-size: 17px;
+    color: #fff;
+}
+
+.close-comment {
+    font-size: 26px;
+    cursor: pointer;
+    color: #9aa1b5;
+    line-height: 1;
+}
+
+.close-comment:hover {
+    color: #fff;
+}
+
+.comment-list {
+    flex: 1;
+    overflow-y: auto;
+    padding: 16px 20px;
+
+    display: flex;
+    flex-direction: column;
+    gap: 16px;
+}
+
+.comment-list::-webkit-scrollbar {
+    width: 6px;
+}
+
+.comment-list::-webkit-scrollbar-thumb {
+    background: #4a5266;
+    border-radius: 999px;
+}
+
+.comment-loading,
+.comment-empty {
+    text-align: center;
+    color: #9aa1b5;
+    padding: 30px 10px;
+    font-size: 14px;
+}
+
+.comment-item {
+    display: flex;
+    gap: 12px;
+}
+
+.comment-avatar {
+    width: 38px;
+    height: 38px;
+    border-radius: 50%;
+    object-fit: cover;
+    flex-shrink: 0;
+}
+
+.comment-body {
+    flex: 1;
+    min-width: 0;
+}
+
+.comment-meta {
+    display: flex;
+    align-items: baseline;
+    gap: 8px;
+    margin-bottom: 4px;
+}
+
+.comment-username {
+    font-weight: 700;
+    font-size: 14px;
+    color: #fff;
+}
+
+.comment-time {
+    font-size: 12px;
+    color: #8890a3;
+}
+
+.comment-content {
+    font-size: 14px;
+    line-height: 1.6;
+    color: #d6d9e5;
+    word-break: break-word;
+    white-space: pre-wrap;
+}
+
+.comment-input-box {
+    display: flex;
+    gap: 10px;
+    padding: 16px 20px;
+
+    border-top: 1px solid #2f3545;
+}
+
+.comment-input-box textarea {
+    flex: 1;
+    resize: none;
+
+    background: #262c3f;
+    border: 1px solid #3b4257;
+    border-radius: 8px;
+
+    padding: 10px 12px;
+
+    color: #fff;
+    font-family: inherit;
+    font-size: 14px;
+}
+
+.comment-input-box textarea:focus {
+    outline: none;
+    border-color: #5865F2;
+}
+
+.comment-input-box button {
+    align-self: flex-end;
+
+    background: #5865F2;
+    color: #fff;
+    border: none;
+    border-radius: 8px;
+
+    padding: 10px 18px;
+
+    font-weight: 700;
+    font-size: 14px;
+    cursor: pointer;
+}
+
+.comment-input-box button:hover {
+    background: #6c78ff;
+}
+
+.comment-input-box button:disabled {
+    opacity: .6;
+    cursor: not-allowed;
+}
+
+.comment-meta {
+
+    display: flex;
+
+    justify-content: space-between;
+
+    align-items: center;
+
+}
+
+.comment-meta-left {
+
+    display: flex;
+
+    align-items: baseline;
+
+    gap: 8px;
+
+    min-width: 0;
+
+}
+
+.comment-edited-tag {
+
+    font-size: 11px;
+
+    color: #6c7488;
+
+    font-style: italic;
+
+}
+
+.comment-actions {
+
+    display: flex;
+
+    align-items: center;
+
+    gap: 6px;
+
+    flex-shrink: 0;
+
+}
+
+.comment-edit-btn,
+.comment-delete-btn {
+
+    border: none;
+
+    background: none;
+
+    cursor: pointer;
+
+    font-size: 15px;
+
+    opacity: .6;
+
+    transition: .2s;
+
+    padding: 2px;
+
+    line-height: 1;
+
+}
+
+.comment-edit-btn:hover,
+.comment-delete-btn:hover {
+
+    opacity: 1;
+
+    transform: scale(1.15);
+
+}
+
+.comment-edit-input {
+
+    width: 100%;
+
+    resize: none;
+
+    background: #262c3f;
+    border: 1px solid #5865F2;
+    border-radius: 8px;
+
+    padding: 8px 10px;
+
+    color: #fff;
+    font-family: inherit;
+    font-size: 14px;
+
+    margin-top: 2px;
+
+}
+
+.comment-edit-input:focus {
+    outline: none;
+}
+
+.comment-edit-actions {
+
+    display: flex;
+
+    justify-content: flex-end;
+
+    gap: 8px;
+
+    margin-top: 6px;
+
+}
+
+.comment-save-btn,
+.comment-cancel-btn {
+
+    border: none;
+    border-radius: 6px;
+
+    padding: 5px 12px;
+
+    font-size: 13px;
+    font-weight: 700;
+
+    cursor: pointer;
+
+    transition: .2s;
+
+}
+
+.comment-save-btn {
+    background: #5865F2;
+    color: #fff;
+}
+
+.comment-save-btn:hover {
+    background: #6c78ff;
+}
+
+.comment-cancel-btn {
+    background: #3b4257;
+    color: #d6d9e5;
+}
+
+.comment-cancel-btn:hover {
+    background: #464e68;
+}
+
+.comment-save-btn:disabled,
+.comment-cancel-btn:disabled {
+    opacity: .6;
+    cursor: not-allowed;
+}
