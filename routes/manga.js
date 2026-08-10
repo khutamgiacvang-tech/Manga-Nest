@@ -254,26 +254,40 @@ router.get("/manga", async (req, res) => {
       }
     }
 
-    const totalMangas = await Manga.countDocuments(filter);
+    const [totalMangas, mangas] = await Promise.all([
+      Manga.countDocuments(filter),
+      Manga.find(filter)
+        .sort({ lastUpdated: -1 })
+        .skip((page - 1) * limit)
+        .limit(limit)
+        .lean(),
+    ]);
+
     const totalPages = Math.max(Math.ceil(totalMangas / limit), 1);
 
-    // Sắp xếp: truyện có chương mới nhất lên đầu
-    const mangas = await Manga.find(filter)
-      .sort({ lastUpdated: -1 })
-      .skip((page - 1) * limit)
-      .limit(limit)
-      .lean();
+    // Lấy chapter mới nhất của cả trang bằng 1 aggregate query.
+    if (mangas.length > 0) {
+      const latestChapters = await Chapter.aggregate([
+        { $match: { manga: { $in: mangas.map((manga) => manga._id) } } },
+        { $sort: { manga: 1, chapterOrder: -1, createdAt: -1 } },
+        {
+          $group: {
+            _id: "$manga",
+            chapterNumber: { $first: "$chapterNumber" },
+            createdAt: { $first: "$createdAt" },
+          },
+        },
+      ]);
 
-    // Lấy thông tin chapter mới nhất để hiển thị giống card ở home
-    for (const manga of mangas) {
-      const latestChapter = await Chapter.findOne({
-        manga: manga._id,
-      })
-        .sort({ chapterOrder: -1 })
-        .lean();
+      const latestMap = new Map(
+        latestChapters.map((chapter) => [String(chapter._id), chapter]),
+      );
 
-      manga.lastChapter = latestChapter?.chapterNumber || 0;
-      manga.lastChapterDate = latestChapter?.createdAt || manga.createdAt;
+      for (const manga of mangas) {
+        const latest = latestMap.get(String(manga._id));
+        manga.lastChapter = latest?.chapterNumber || manga.lastChapter || 0;
+        manga.lastChapterDate = latest?.createdAt || manga.createdAt;
+      }
     }
 
     // =========================
@@ -360,30 +374,44 @@ router.get("/search", async (req, res) => {
 
     const hasSearched = Boolean(keyword || selectedGenres.length);
 
-    const totalMangas = await Manga.countDocuments(filter);
+    const [totalMangas, mangas, allGenres] = await Promise.all([
+      Manga.countDocuments(filter),
+      Manga.find(filter)
+        .sort({ lastUpdated: -1 })
+        .skip((page - 1) * limit)
+        .limit(limit)
+        .lean(),
+      Manga.distinct("genres", { status: "approved" }),
+    ]);
+
     const totalPages = Math.max(Math.ceil(totalMangas / limit), 1);
 
-    const mangas = await Manga.find(filter)
-      .sort({ lastUpdated: -1 })
-      .skip((page - 1) * limit)
-      .limit(limit)
-      .lean();
+    if (mangas.length > 0) {
+      const latestChapters = await Chapter.aggregate([
+        { $match: { manga: { $in: mangas.map((manga) => manga._id) } } },
+        { $sort: { manga: 1, chapterOrder: -1, createdAt: -1 } },
+        {
+          $group: {
+            _id: "$manga",
+            chapterNumber: { $first: "$chapterNumber" },
+            createdAt: { $first: "$createdAt" },
+          },
+        },
+      ]);
 
-    for (const manga of mangas) {
-      const latestChapter = await Chapter.findOne({
-        manga: manga._id,
-      })
-        .sort({ chapterOrder: -1 })
-        .lean();
+      const latestMap = new Map(
+        latestChapters.map((chapter) => [String(chapter._id), chapter]),
+      );
 
-      manga.lastChapter = latestChapter?.chapterNumber || 0;
-      manga.lastChapterDate = latestChapter?.createdAt || manga.createdAt;
+      for (const manga of mangas) {
+        const latest = latestMap.get(String(manga._id));
+        manga.lastChapter = latest?.chapterNumber || manga.lastChapter || 0;
+        manga.lastChapterDate = latest?.createdAt || manga.createdAt;
+      }
     }
 
     // Toàn bộ thể loại đang có trên hệ thống (để hiển thị checkbox)
-    const allGenres = (
-      await Manga.distinct("genres", { status: "approved" })
-    ).sort((a, b) => a.localeCompare(b));
+    allGenres.sort((a, b) => a.localeCompare(b));
 
     // Giữ activeTab: nếu đang lọc theo thể loại thì mở sẵn tab đó
     const activeTab = selectedGenres.length > 0 ? "genre" : "name";

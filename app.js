@@ -25,6 +25,9 @@ const checkBan = require("./middleware/checkBan");
 // =====================
 const app = express();
 
+// Render chạy sau reverse proxy; giữ đúng scheme HTTPS cho OAuth/URL.
+app.set("trust proxy", 1);
+
 // =====================
 // GLOBAL HELPER CHO EJS
 // =====================
@@ -41,6 +44,18 @@ connectDB();
 app.use(express.urlencoded({ extended: true }));
 app.use(express.json());
 app.use(cookieParser());
+
+// =====================
+// STATIC FILES
+// =====================
+// CSS/JS/ảnh không cần session/passport/checkBan. Đặt trước middleware
+// động để tránh MongoDB query cho mỗi tài nguyên tĩnh.
+app.use(
+  express.static(path.join(__dirname, "public"), {
+    maxAge: "7d",
+    etag: true,
+  }),
+);
 
 // =====================
 // SESSION
@@ -95,7 +110,9 @@ app.use(async (req, res, next) => {
       user: req.user._id,
     })
       .sort({ createdAt: -1 })
-      .limit(8);
+      .limit(8)
+      .select("title message link image isRead createdAt")
+      .lean();
 
     res.locals.notifications = notifications;
 
@@ -109,10 +126,8 @@ app.use(async (req, res, next) => {
   next();
 });
 // =====================
-// STATIC + VIEW ENGINE
+// VIEW ENGINE
 // =====================
-app.use(express.static(path.join(__dirname, "public")));
-
 app.set("view engine", "ejs");
 app.set("views", path.join(__dirname, "views"));
 
@@ -153,8 +168,8 @@ app.use((err, req, res, next) => {
 // =====================
 const PORT = process.env.PORT || 3000;
 
-app.listen(PORT, () => {
-  console.log(`🚀 MangaNest running on port ${PORT}`);
+app.listen(PORT, "0.0.0.0", () => {
+  console.log(`🚀 Server chạy tại http://localhost:${PORT}`);
 });
 
 // =====================

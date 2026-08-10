@@ -110,4 +110,7 @@ chapterSchema.index(
   },
 );
 
+// Tối ưu lấy chapter mới nhất theo từng manga.
+chapterSchema.index({ manga: 1, chapterOrder: -1, createdAt: -1 });
+
 module.exports = mongoose.model("Chapter", chapterSchema);

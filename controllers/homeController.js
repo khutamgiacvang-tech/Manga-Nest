@@ -3,74 +3,53 @@ const Chapter = require("../models/Chapter");
 
 exports.home = async (req, res) => {
   try {
-    const mangas = await Manga.find({
-      status: "approved",
-    })
-      .sort({ lastUpdated: -1 })
-      .limit(12)
-      .lean();
+    const [mangas, topWeek, topMonth, topAll] = await Promise.all([
+      Manga.find({ status: "approved" })
+        .sort({ lastUpdated: -1 })
+        .limit(12)
+        .lean(),
+      Manga.find({ status: "approved" })
+        .sort({ weeklyViews: -1 })
+        .limit(9)
+        .lean(),
+      Manga.find({ status: "approved" })
+        .sort({ monthlyViews: -1 })
+        .limit(9)
+        .lean(),
+      Manga.find({ status: "approved" })
+        .sort({ views: -1 })
+        .limit(9)
+        .lean(),
+    ]);
 
-    for (const manga of mangas) {
-      const chapters = await Chapter.find({
-        manga: manga._id,
-      }).lean();
+    // Lấy chapter mới nhất của toàn bộ manga trong 1 query aggregate,
+    // thay vì 1 query riêng cho từng card (tránh N+1 queries).
+    const allMangas = [...mangas, ...topWeek, ...topMonth, ...topAll];
+    const mangaIds = [
+      ...new Map(allMangas.map((manga) => [String(manga._id), manga._id])).values(),
+    ];
 
-      chapters.sort((a, b) => {
-        const aNum = parseFloat(a.chapterNumber);
-        const bNum = parseFloat(b.chapterNumber);
+    if (mangaIds.length > 0) {
+      const latestChapters = await Chapter.aggregate([
+        { $match: { manga: { $in: mangaIds } } },
+        { $sort: { manga: 1, chapterOrder: -1, createdAt: -1 } },
+        {
+          $group: {
+            _id: "$manga",
+            chapterNumber: { $first: "$chapterNumber" },
+            createdAt: { $first: "$createdAt" },
+          },
+        },
+      ]);
 
-        const aIsNum = !isNaN(aNum);
-        const bIsNum = !isNaN(bNum);
+      const latestMap = new Map(
+        latestChapters.map((chapter) => [String(chapter._id), chapter]),
+      );
 
-        if (aIsNum && bIsNum) return bNum - aNum;
-
-        if (aIsNum && !bIsNum) return -1;
-        if (!aIsNum && bIsNum) return 1;
-
-        return String(b.chapterNumber).localeCompare(String(a.chapterNumber));
-      });
-
-      const latestChapter = chapters[0];
-
-      manga.lastChapter = latestChapter?.chapterNumber || 0;
-
-      manga.lastChapterDate = latestChapter?.createdAt || manga.createdAt;
-    }
-
-    const topWeek = await Manga.find({
-      status: "approved",
-    })
-      .sort({ weeklyViews: -1 })
-      .limit(9)
-      .lean();
-
-    const topMonth = await Manga.find({
-      status: "approved",
-    })
-      .sort({ monthlyViews: -1 })
-      .limit(9)
-      .lean();
-
-    const topAll = await Manga.find({
-      status: "approved",
-    })
-      .sort({ views: -1 })
-      .limit(9)
-      .lean();
-
-    const rankingLists = [topWeek, topMonth, topAll];
-
-    for (const list of rankingLists) {
-      for (const manga of list) {
-        const latestChapter = await Chapter.findOne({
-          manga: manga._id,
-        })
-          .sort({ chapterOrder: -1 })
-          .lean();
-
-        manga.lastChapter = latestChapter?.chapterNumber || 0;
-
-        manga.lastChapterDate = latestChapter?.createdAt || manga.createdAt;
+      for (const manga of allMangas) {
+        const latest = latestMap.get(String(manga._id));
+        manga.lastChapter = latest?.chapterNumber || manga.lastChapter || "0";
+        manga.lastChapterDate = latest?.createdAt || manga.createdAt;
       }
     }
 
@@ -82,7 +61,7 @@ exports.home = async (req, res) => {
       topAll,
     });
   } catch (err) {
-    console.log(err);
+    console.error("HOME ERROR:", err);
 
     res.render("home", {
       title: "MangaNest",

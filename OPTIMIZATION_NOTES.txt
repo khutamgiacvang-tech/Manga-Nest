@@ -1,0 +1,18 @@
+MangaNest - optimized build
+
+Da toi uu:
+- Trang home: gom latest chapter bang 1 aggregate query, tranh N+1 queries.
+- Trang /manga va /search: gom latest chapter theo ca trang bang 1 aggregate query.
+- Trang manga detail: toi uu danh sach manga tuong tu, tranh query Chapter theo tung item.
+- checkBan: bo User.findById lap lai; passport.session da deserialize user.
+- Static files: dua len truoc session/passport/checkBan, cache 7 ngay.
+- app.set("trust proxy", 1) de Render nhan dung HTTPS cho OAuth/URL.
+- Bo ep DNS Google 8.8.8.8/8.8.4.4.
+- Notification: select + lean + compound index user/createdAt.
+- Manga: them index cho status + lastUpdated/weeklyViews/monthlyViews/views.
+- Chapter: them index manga + chapterOrder + createdAt.
+- Them .gitignore: khong commit .env, node_modules, public/uploads.
+
+Luu y:
+- File .env khong duoc dong goi. Hay dung Environment Variables tren Render.
+- Khong xoa project local hien tai; day la ban code toi uu de copy vao repo GitHub.

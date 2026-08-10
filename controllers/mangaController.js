@@ -1591,23 +1591,31 @@ exports.showManga = async (req, res) => {
       },
     ]);
 
-    // =========================
-    // Lấy chương mới nhất của từng truyện
-    // =========================
+    // Lấy chapter mới nhất của toàn bộ truyện tương tự bằng 1 aggregate query.
+    if (similarManga.length > 0) {
+      const latestChapters = await Chapter.aggregate([
+        { $match: { manga: { $in: similarManga.map((item) => item._id) } } },
+        { $sort: { manga: 1, chapterOrder: -1, createdAt: -1 } },
+        {
+          $group: {
+            _id: "$manga",
+            chapterNumber: { $first: "$chapterNumber" },
+            createdAt: { $first: "$createdAt" },
+          },
+        },
+      ]);
 
-    similarManga = await Promise.all(
-      similarManga.map(async (item) => {
-        const lastChapter = await Chapter.findOne({
-          manga: item._id,
-        }).sort({ chapterOrder: -1 });
+      const latestMap = new Map(
+        latestChapters.map((chapter) => [String(chapter._id), chapter]),
+      );
 
-        item.lastChapter = lastChapter?.chapterNumber || 0;
-
-        item.lastChapterTime = lastChapter?.createdAt || item.updatedAt;
-
+      similarManga = similarManga.map((item) => {
+        const latest = latestMap.get(String(item._id));
+        item.lastChapter = latest?.chapterNumber || item.lastChapter || 0;
+        item.lastChapterTime = latest?.createdAt || item.updatedAt;
         return item;
-      }),
-    );
+      });
+    }
 
     // =========================
     // Tăng view
