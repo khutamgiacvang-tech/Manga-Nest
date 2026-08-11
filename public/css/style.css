@@ -1293,9 +1293,7 @@ main {
     max-width: 100%;
 }
 
-.reader-page .navbar {
-    position: static !important;
-}
+
 
 /* Ẩn các phần chỉ dành cho Classic UI khi ở Zen */
 

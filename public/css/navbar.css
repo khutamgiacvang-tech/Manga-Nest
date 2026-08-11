@@ -20,11 +20,31 @@ a {
 }
 
 .navbar {
-    position: sticky;
+    position: fixed;
     top: 0;
+    left: 0;
+    width: 100%;
     z-index: 999;
     background: #171A21;
     border-bottom: 1px solid rgba(255, 255, 255, .08);
+}
+
+/* Các trang thường: navbar dính cố định ở đầu trang -> nội dung cần chừa
+   khoảng trống phía trên bằng chiều cao navbar để không bị che mất */
+main {
+    padding-top: 76px;
+}
+
+/* Trang đọc truyện (read.ejs): navbar cuộn theo trang như bình thường */
+body.reader-page .navbar {
+    position: static;
+    top: auto;
+    left: auto;
+    width: auto;
+}
+
+body.reader-page main {
+    padding-top: 0;
 }
 
 .container {
@@ -82,7 +102,7 @@ a {
     flex-shrink: 0;
     margin-left: auto;
     /* Kéo nút search gần nút thông báo hơn */
-    margin-right: -18px;
+    margin-right: -14px;
 }
 
 .search-toggle-btn:hover {
@@ -423,6 +443,7 @@ body.search-overlay-open {
     font-size: 18px;
     position: relative;
     transition: .25s;
+    margin-right: -5px;
 }
 
 .notification-btn:hover {

@@ -50,9 +50,13 @@ app.use(cookieParser());
 // =====================
 // CSS/JS/ảnh không cần session/passport/checkBan. Đặt trước middleware
 // động để tránh MongoDB query cho mỗi tài nguyên tĩnh.
+const isDev = process.env.NODE_ENV !== "production";
+
 app.use(
   express.static(path.join(__dirname, "public"), {
-    maxAge: "7d",
+    // Dev: tắt cache để sửa CSS/JS là thấy ngay, khỏi phải hard refresh.
+    // Production: giữ cache 7 ngày cho nhanh.
+    maxAge: isDev ? 0 : "7d",
     etag: true,
   }),
 );
