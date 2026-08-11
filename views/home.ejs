@@ -367,17 +367,6 @@
         BOX TRUYỆN ROMCOM (2 hàng cuộn ngang)
 ========================= -->
 
-<%
-const romcomMangas = mangas.filter(manga => {
-    if (!manga.genres) return false;
-
-    const genresLower = manga.genres.map(g => g.toLowerCase());
-
-    return genresLower.includes("romance")
-        && genresLower.includes("comedy");
-});
-%>
-
 <% if (romcomMangas.length > 0) { %>
 
 <section class="section">
@@ -458,19 +447,6 @@ const romcomMangas = mangas.filter(manga => {
 <!-- =========================
         BOX TRUYỆN ĐỜI THƯỜNG (2 hàng cuộn ngang)
 ========================= -->
-
-<%
-const sliceOfLifeMangas = mangas.filter(manga => {
-
-    if (!manga.genres) return false;
-
-    const genresLower = manga.genres.map(g => g.toLowerCase());
-
-    return genresLower.includes("slice of life")
-        || genresLower.includes("đời thường");
-
-});
-%>
 
 <% if (sliceOfLifeMangas.length > 0) { %>
 
