@@ -217,7 +217,7 @@ Swal.fire({
 <!-- Web Push Notification Script -->
 <script>
 if ('serviceWorker' in navigator && 'PushManager' in window) {
-    navigator.serviceWorker.register('/js/sw.js').then(async function(registration) {
+    navigator.serviceWorker.register('/sw.js').then(async function(registration) {
         const permission = await Notification.requestPermission();
         if (permission === 'granted') {
             const subscription = await registration.pushManager.subscribe({

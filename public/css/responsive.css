@@ -324,25 +324,20 @@
     }
 
     .rank-row {
-        grid-auto-columns: 280px;
+        grid-auto-columns: clamp(220px, 62vw, 280px);
     }
 
-    /* FIX: các hàng "Truyện mới / Romcom / Đời thường" dùng grid 2 hàng
-       (.home-row-new) trông rối và tốn chiều cao trên mobile. Chuyển
-       về dạng cuộn ngang 1 hàng giống hệt hàng "Đề xuất cho bạn"
-       (.home-row) cho đồng nhất và gọn hơn. */
+    /* Truyện mới / Romcom / Đời thường: giữ đúng lưới 2 hàng cuộn ngang
+       giống hệt desktop (không ép về 1 hàng nữa), và đồng bộ kích
+       thước thẻ NHỎ giống hệt "Đề xuất cho bạn" (.home-card 140px).
+       Đồng thời chỉnh grid-auto-columns về đúng 140px (thay vì 190px
+       mặc định) để khung lưới khít với thẻ, không bị thưa/hở nữa. */
     .home-row-new {
-        display: flex !important;
-        grid-template-rows: none;
-        grid-auto-flow: unset;
-
-        overflow-x: auto;
-        overflow-y: hidden;
-        scroll-snap-type: x proximity;
+        grid-auto-columns: 140px;
+        gap: 14px;
     }
 
     .home-row-new .home-card {
-        flex: 0 0 140px;
         width: 140px;
     }
 
@@ -1113,5 +1108,98 @@
     .translator-avatar-large {
         width: 90px;
         height: 90px;
+    }
+}
+
+/* ============================================================
+   BỔ SUNG - Banner hero trên mobile: chữ nằm đè trong ảnh (đáy
+   ảnh), có lớp kính mờ (backdrop-blur) phía sau chữ để dễ đọc
+   mà không cần phủ tối gần hết ảnh như trước.
+   ============================================================ */
+
+@media (max-width: 760px) {
+
+    .hero {
+        width: 92%;
+        max-width: 100%;
+        margin: 20px auto 14px;
+    }
+
+    .hero-track {
+        align-items: flex-start;
+    }
+
+    .hero-slide {
+        flex-basis: 100%;
+        height: auto;
+        aspect-ratio: 16 / 10;
+
+        border-radius: 14px;
+    }
+
+    .hero-banner {
+        position: absolute;
+        inset: 0;
+
+        width: 100%;
+        height: 100%;
+    }
+
+    /* Không cần gradient tối riêng nữa, để lớp kính mờ bên dưới tự
+       lo việc làm nổi chữ, image giữ nguyên màu sắc tự nhiên */
+    .hero-overlay {
+        display: none;
+    }
+
+    /* Lớp kính mờ loang dần vào ảnh (không phải khối chữ nhật cứng)
+       - mờ dần từ trong suốt (phía trên) sang mờ đục (đáy ảnh),
+       giống hiệu ứng của cuutruyen.net */
+    .hero-content {
+        position: absolute;
+        left: 0;
+        right: 0;
+        bottom: 0;
+        top: auto;
+
+        display: block;
+
+        padding: 34px 18px 16px;
+
+        background: rgba(8, 9, 14, .55);
+
+        backdrop-filter: blur(16px);
+        -webkit-backdrop-filter: blur(16px);
+
+        -webkit-mask-image: linear-gradient(to bottom, transparent 0%, #000 42%);
+        mask-image: linear-gradient(to bottom, transparent 0%, #000 42%);
+    }
+
+    .hero-info {
+        max-width: 100%;
+    }
+
+    .hero-info h1 {
+        font-size: clamp(16px, 4.6vw, 19px);
+        margin-bottom: 6px;
+
+        color: #fff;
+    }
+
+    .hero-desc {
+        font-size: 12.5px;
+        line-height: 1.5;
+
+        color: #d7d9e0;
+
+        -webkit-line-clamp: 1;
+        line-clamp: 1;
+    }
+
+    .hero-cta {
+        display: none;
+    }
+
+    .hero-dots {
+        margin-top: 12px;
     }
 }

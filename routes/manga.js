@@ -27,7 +27,11 @@ const storage = multer.diskStorage({
   },
 
   filename(req, file, cb) {
-    cb(null, Date.now() + path.extname(file.originalname));
+    // Thêm hậu tố ngẫu nhiên để tránh trùng tên khi 2 file (cover + banner)
+    // được upload gần như cùng lúc trong cùng 1 request và Date.now()
+    // trả về cùng giá trị mili-giây.
+    const unique = Date.now() + "-" + Math.round(Math.random() * 1e9);
+    cb(null, unique + path.extname(file.originalname));
   },
 });
 
@@ -46,10 +50,11 @@ const chapterUpload = multer({
     },
 
     filename(req, file, cb) {
+      const unique = Date.now() + "-" + Math.round(Math.random() * 1e9);
       cb(
         null,
 
-        Date.now() + path.extname(file.originalname),
+        unique + path.extname(file.originalname),
       );
     },
   }),
@@ -352,8 +357,7 @@ router.get("/search", async (req, res) => {
     }
     selectedGenres = selectedGenres.map((g) => g.trim()).filter(Boolean);
 
-    const escapeRegex = (str) =>
-      str.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
+    const escapeRegex = (str) => str.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
 
     const filter = { status: "approved" };
 
@@ -366,9 +370,7 @@ router.get("/search", async (req, res) => {
 
     if (selectedGenres.length > 0) {
       filter.genres = {
-        $all: selectedGenres.map(
-          (g) => new RegExp(`^${escapeRegex(g)}$`, "i"),
-        ),
+        $all: selectedGenres.map((g) => new RegExp(`^${escapeRegex(g)}$`, "i")),
       };
     }
 

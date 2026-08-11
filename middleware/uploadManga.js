@@ -1,57 +1,71 @@
 const multer = require("multer");
 const path = require("path");
-const fs = require("fs");
+const fs = require("fs-extra");
+const os = require("os");
 
-const coverPath = "public/uploads/covers";
-const chapterPath = "public/uploads/chapters";
+// =========================
+// Thư mục temporary
+// =========================
+// Dùng thư mục temp của hệ điều hành.
+// Render có filesystem tạm thời nên không nên phụ thuộc vào
+// thư mục temp tương đối trong project.
+const uploadPath = path.join(os.tmpdir(), "manganest");
 
-const ensureDir = (dir) => {
-  if (!fs.existsSync(dir)) {
-    fs.mkdirSync(dir, { recursive: true });
-  }
-};
+fs.ensureDirSync(uploadPath);
+
+// =========================
+// Multer storage
+// =========================
 
 const storage = multer.diskStorage({
   destination: (req, file, cb) => {
-    // Chỉ tạo thư mục khi thực sự có file được upload
-    if (file.fieldname === "cover") {
-      ensureDir(coverPath);
-      cb(null, coverPath);
-    } else {
-      ensureDir(chapterPath);
-      cb(null, chapterPath);
-    }
+    fs.ensureDir(uploadPath)
+      .then(() => {
+        cb(null, uploadPath);
+      })
+      .catch((err) => {
+        cb(err);
+      });
   },
 
   filename: (req, file, cb) => {
     const unique = Date.now() + "-" + Math.round(Math.random() * 1e9);
 
-    cb(
-      null,
-
-      unique + path.extname(file.originalname),
-    );
+    cb(null, unique + path.extname(file.originalname).toLowerCase());
   },
 });
 
-const fileFilter = (req, file, cb) => {
-  if (file.mimetype.startsWith("image/")) {
-    cb(null, true);
-  } else {
-    cb(
-      new Error("Chỉ được upload ảnh."),
+// =========================
+// Kiểm tra loại file
+// =========================
 
-      false,
-    );
+const fileFilter = (req, file, cb) => {
+  // Cover / Banner / ảnh
+  if (file.mimetype.startsWith("image/")) {
+    return cb(null, true);
   }
+
+  // ZIP chapter
+  if (
+    file.mimetype === "application/zip" ||
+    file.mimetype === "application/x-zip-compressed" ||
+    path.extname(file.originalname).toLowerCase() === ".zip"
+  ) {
+    return cb(null, true);
+  }
+
+  return cb(new Error("Chỉ được upload ảnh hoặc file ZIP."), false);
 };
+
+// =========================
+// Multer
+// =========================
 
 module.exports = multer({
   storage,
-
   fileFilter,
 
   limits: {
-    fileSize: 10 * 1024 * 1024,
+    fileSize: 50 * 1024 * 1024,
   },
 });

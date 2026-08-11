@@ -185,7 +185,9 @@ exports.create = async (req, res) => {
       cover = uploadedCover.url;
       coverPublicId = uploadedCover.public_id;
 
-      fs.unlinkSync(req.files.cover[0].path);
+      if (fs.existsSync(req.files.cover[0].path)) {
+        fs.unlinkSync(req.files.cover[0].path);
+      }
     }
 
     if (req.files?.banner) {
@@ -197,7 +199,9 @@ exports.create = async (req, res) => {
       banner = uploadedBanner.url;
       bannerPublicId = uploadedBanner.public_id;
 
-      fs.unlinkSync(req.files.banner[0].path);
+      if (fs.existsSync(req.files.banner[0].path)) {
+        fs.unlinkSync(req.files.banner[0].path);
+      }
     }
 
     const genres = req.body.genres
