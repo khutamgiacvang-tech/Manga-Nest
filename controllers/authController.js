@@ -20,7 +20,11 @@ exports.register = async (req, res) => {
       return res.redirect("/");
     }
 
-    const existed = await User.findOne({ email });
+    const normalizedEmail = email.toLowerCase().trim();
+
+    const existed = await User.findOne({
+      email: normalizedEmail,
+    });
 
     if (existed) {
       req.flash("error", "Email đã tồn tại.");
@@ -29,7 +33,7 @@ exports.register = async (req, res) => {
 
     const user = new User({
       username,
-      email,
+      email: normalizedEmail,
       password,
       provider: "local",
     });
@@ -40,7 +44,7 @@ exports.register = async (req, res) => {
 
     return res.redirect("/");
   } catch (err) {
-    console.log(err);
+    console.log("REGISTER ERROR:", err);
 
     req.flash("error", "Có lỗi xảy ra.");
 
@@ -54,12 +58,12 @@ exports.register = async (req, res) => {
 exports.login = (req, res, next) => {
   passport.authenticate("local", (err, user, info) => {
     if (err) {
-      console.log(err);
+      console.log("LOGIN ERROR:", err);
       return next(err);
     }
 
     if (!user) {
-      console.log(info);
+      console.log("LOGIN FAILED:", info);
 
       req.flash("error", info?.message || "Đăng nhập thất bại.");
 
@@ -101,7 +105,7 @@ exports.login = (req, res, next) => {
 // Đăng xuất
 // =======================
 exports.logout = (req, res, next) => {
-  req.logout(function (err) {
+  req.logout((err) => {
     if (err) {
       return next(err);
     }
@@ -112,7 +116,7 @@ exports.logout = (req, res, next) => {
 
 // =======================
 // Quên mật khẩu
-// Hiển thị form nhập email
+// Hiển thị form
 // =======================
 exports.showForgotPassword = (req, res) => {
   res.render("forgotPassword", {
@@ -122,7 +126,7 @@ exports.showForgotPassword = (req, res) => {
 
 // =======================
 // Quên mật khẩu
-// Gửi email chứa link reset
+// Gửi email reset
 // =======================
 exports.forgotPassword = async (req, res) => {
   try {
@@ -130,7 +134,6 @@ exports.forgotPassword = async (req, res) => {
 
     if (!email) {
       req.flash("error", "Vui lòng nhập email.");
-
       return res.redirect("/forgot-password");
     }
 
@@ -151,14 +154,14 @@ exports.forgotPassword = async (req, res) => {
     }
 
     // =======================
-    // Tài khoản Google / Discord
+    // Google / Discord
     // =======================
     if (user.provider !== "local") {
+      const providerName = user.provider === "google" ? "Google" : "Discord";
+
       req.flash(
         "error",
-        `Tài khoản này đăng nhập bằng ${
-          user.provider === "google" ? "Google" : "Discord"
-        }, không thể đặt lại mật khẩu.`,
+        `Tài khoản này đăng nhập bằng ${providerName}, không thể đặt lại mật khẩu.`,
       );
 
       return res.redirect("/forgot-password");
@@ -168,10 +171,10 @@ exports.forgotPassword = async (req, res) => {
     // Tạo reset token
     // =======================
 
-    // Token gốc gửi cho người dùng
+    // Token gửi cho email
     const rawToken = crypto.randomBytes(32).toString("hex");
 
-    // Chỉ lưu hash của token vào database
+    // Hash token để lưu DB
     const hashedToken = crypto
       .createHash("sha256")
       .update(rawToken)
@@ -185,13 +188,13 @@ exports.forgotPassword = async (req, res) => {
     await user.save();
 
     // =======================
-    // Tạo link reset
+    // Tạo URL reset
     // =======================
-    //
-    // Dùng domain riêng của MangaNest
-    // thay vì req.get("host")
-    //
-    const baseUrl = process.env.APP_URL || "https://manganest.site";
+
+    const baseUrl = (process.env.APP_URL || "https://manganest.site").replace(
+      /\/$/,
+      "",
+    );
 
     const resetUrl = `${baseUrl}/reset-password/${rawToken}`;
 
@@ -200,17 +203,19 @@ exports.forgotPassword = async (req, res) => {
     // =======================
     // Gửi email
     // =======================
+
     try {
       await sendResetPasswordEmail({
         to: user.email,
         username: user.username,
         resetUrl,
       });
-    } catch (mailErr) {
-      console.log("SEND MAIL ERROR:", mailErr);
 
-      // Nếu gửi mail thất bại
-      // thì xóa token để user thử lại
+      console.log("RESET PASSWORD EMAIL SENT TO:", user.email);
+    } catch (mailErr) {
+      console.error("SEND MAIL ERROR:", mailErr);
+
+      // Xóa token nếu gửi mail thất bại
       user.resetPasswordToken = null;
       user.resetPasswordExpires = null;
 
@@ -228,7 +233,7 @@ exports.forgotPassword = async (req, res) => {
 
     return res.redirect("/forgot-password");
   } catch (err) {
-    console.log(err);
+    console.error("FORGOT PASSWORD ERROR:", err);
 
     req.flash("error", "Có lỗi xảy ra, vui lòng thử lại.");
 
@@ -238,17 +243,14 @@ exports.forgotPassword = async (req, res) => {
 
 // =======================
 // Reset mật khẩu
-// Hiển thị form nhập mật khẩu mới
+// Hiển thị form
 // =======================
 exports.showResetPassword = async (req, res) => {
   try {
     const { token } = req.params;
 
-    // Hash token nhận từ URL
     const hashedToken = crypto.createHash("sha256").update(token).digest("hex");
 
-    // Tìm user có token hợp lệ
-    // và token chưa hết hạn
     const user = await User.findOne({
       resetPasswordToken: hashedToken,
       resetPasswordExpires: {
@@ -267,7 +269,7 @@ exports.showResetPassword = async (req, res) => {
       token,
     });
   } catch (err) {
-    console.log(err);
+    console.error("SHOW RESET PASSWORD ERROR:", err);
 
     req.flash("error", "Có lỗi xảy ra, vui lòng thử lại.");
 
@@ -333,17 +335,16 @@ exports.resetPassword = async (req, res) => {
     // =======================
     // Cập nhật mật khẩu
     // =======================
-    //
-    // Hook pre("save") trong User model
-    // sẽ tự hash password
-    //
+
     user.password = password;
 
-    // Token chỉ được sử dụng một lần
+    // Token chỉ dùng được 1 lần
     user.resetPasswordToken = null;
     user.resetPasswordExpires = null;
 
     await user.save();
+
+    console.log("PASSWORD RESET SUCCESS:", user.email);
 
     req.flash(
       "success",
@@ -352,7 +353,7 @@ exports.resetPassword = async (req, res) => {
 
     return res.redirect("/");
   } catch (err) {
-    console.log(err);
+    console.error("RESET PASSWORD ERROR:", err);
 
     req.flash("error", "Có lỗi xảy ra, vui lòng thử lại.");
 

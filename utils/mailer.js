@@ -1,54 +1,68 @@
-const nodemailer = require("nodemailer");
+// =====================
+// MangaNest Mailer
+// Gửi mail qua Resend API
+// Không dùng Gmail SMTP
+// =====================
+
+const RESEND_API_URL = "https://api.resend.com/emails";
 
 // =====================
-// Gmail SMTP Transporter
+// Gửi email qua Resend
 // =====================
 
-const transporter = nodemailer.createTransport({
-  host: process.env.EMAIL_HOST || "smtp.gmail.com",
+async function sendViaResend({ to, subject, html }) {
+  const apiKey = process.env.RESEND_API_KEY;
 
-  // Gmail SMTP dùng port 587
-  port: Number(process.env.EMAIL_PORT) || 587,
+  if (!apiKey) {
+    throw new Error(
+      "Thiếu RESEND_API_KEY trong Environment Variables của Render.",
+    );
+  }
 
-  // Port 587 dùng STARTTLS
-  secure: false,
+  const from = process.env.EMAIL_FROM || "MangaNest <no-reply@manganest.site>";
 
-  auth: {
-    user: process.env.EMAIL_USER,
-    pass: process.env.EMAIL_PASS,
-  },
+  const response = await fetch(RESEND_API_URL, {
+    method: "POST",
 
-  connectionTimeout: 15000,
-  greetingTimeout: 15000,
-  socketTimeout: 20000,
+    headers: {
+      Authorization: `Bearer ${apiKey}`,
+      "Content-Type": "application/json",
+    },
 
-  tls: {
-    // STARTTLS trên port 587
-    minVersion: "TLSv1.2",
-  },
-});
+    body: JSON.stringify({
+      from,
+      to: [to],
+      subject,
+      html,
+    }),
+  });
+
+  if (!response.ok) {
+    const errorText = await response.text().catch(() => "");
+
+    throw new Error(`Resend API lỗi (status ${response.status}): ${errorText}`);
+  }
+
+  return response.json();
+}
 
 // =====================
 // Gửi mail reset mật khẩu
 // =====================
 
 exports.sendResetPasswordEmail = async ({ to, username, resetUrl }) => {
-  const mailOptions = {
-    from: process.env.EMAIL_FROM || `MangaNest <${process.env.EMAIL_USER}>`,
+  const subject = "MangaNest - Yêu cầu đặt lại mật khẩu";
 
-    to,
-
-    replyTo: process.env.EMAIL_USER,
-
-    subject: "MangaNest - Yêu cầu đặt lại mật khẩu",
-
-    html: `
+  const html = `
 <!DOCTYPE html>
 <html lang="vi">
 
 <head>
   <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta
+    name="viewport"
+    content="width=device-width, initial-scale=1.0"
+  >
 
   <title>MangaNest - Đặt lại mật khẩu</title>
 </head>
@@ -73,6 +87,8 @@ exports.sendResetPasswordEmail = async ({ to, username, resetUrl }) => {
     "
   >
 
+    <!-- Logo / tên website -->
+
     <h2
       style="
         color:#ff4d4f;
@@ -82,10 +98,16 @@ exports.sendResetPasswordEmail = async ({ to, username, resetUrl }) => {
       MangaNest
     </h2>
 
+
+    <!-- Lời chào -->
+
     <p>
       Xin chào
       <strong>${username || "bạn"}</strong>,
     </p>
+
+
+    <!-- Nội dung -->
 
     <p style="line-height:1.6;">
       Chúng tôi nhận được yêu cầu đặt lại mật khẩu
@@ -95,6 +117,9 @@ exports.sendResetPasswordEmail = async ({ to, username, resetUrl }) => {
     <p style="line-height:1.6;">
       Nhấn vào nút bên dưới để đặt mật khẩu mới:
     </p>
+
+
+    <!-- Button -->
 
     <div
       style="
@@ -120,6 +145,9 @@ exports.sendResetPasswordEmail = async ({ to, username, resetUrl }) => {
 
     </div>
 
+
+    <!-- Fallback link -->
+
     <p>
       Nếu nút phía trên không hoạt động,
       bạn có thể copy đường dẫn sau vào trình duyệt:
@@ -135,6 +163,9 @@ exports.sendResetPasswordEmail = async ({ to, username, resetUrl }) => {
       ${resetUrl}
     </p>
 
+
+    <!-- Expiration -->
+
     <p
       style="
         color:#9aa0ac;
@@ -147,6 +178,9 @@ exports.sendResetPasswordEmail = async ({ to, username, resetUrl }) => {
       <strong>15 phút</strong>.
     </p>
 
+
+    <!-- Security notice -->
+
     <p
       style="
         color:#9aa0ac;
@@ -156,7 +190,11 @@ exports.sendResetPasswordEmail = async ({ to, username, resetUrl }) => {
     >
       Nếu bạn không yêu cầu đặt lại mật khẩu,
       vui lòng bỏ qua email này.
+      Tài khoản của bạn vẫn an toàn.
     </p>
+
+
+    <!-- Divider -->
 
     <hr
       style="
@@ -165,6 +203,9 @@ exports.sendResetPasswordEmail = async ({ to, username, resetUrl }) => {
         margin:25px 0;
       "
     >
+
+
+    <!-- Footer -->
 
     <p
       style="
@@ -181,8 +222,11 @@ exports.sendResetPasswordEmail = async ({ to, username, resetUrl }) => {
 </body>
 
 </html>
-    `,
-  };
+  `;
 
-  await transporter.sendMail(mailOptions);
+  return await sendViaResend({
+    to,
+    subject,
+    html,
+  });
 };
