@@ -12,13 +12,11 @@ exports.register = async (req, res) => {
 
     if (!username || !email || !password || !confirmPassword) {
       req.flash("error", "Vui lòng nhập đầy đủ thông tin.");
-
       return res.redirect("/");
     }
 
     if (password !== confirmPassword) {
       req.flash("error", "Mật khẩu xác nhận không khớp.");
-
       return res.redirect("/");
     }
 
@@ -26,7 +24,6 @@ exports.register = async (req, res) => {
 
     if (existed) {
       req.flash("error", "Email đã tồn tại.");
-
       return res.redirect("/");
     }
 
@@ -63,7 +60,9 @@ exports.login = (req, res, next) => {
 
     if (!user) {
       console.log(info);
-      req.flash("error", info.message);
+
+      req.flash("error", info?.message || "Đăng nhập thất bại.");
+
       return res.redirect("/");
     }
 
@@ -92,24 +91,28 @@ exports.login = (req, res, next) => {
       console.log("LOGIN SUCCESS:", user.email);
 
       req.flash("success", "Đăng nhập thành công.");
+
       return res.redirect("/");
     });
   })(req, res, next);
 };
+
 // =======================
 // Đăng xuất
 // =======================
-
 exports.logout = (req, res, next) => {
   req.logout(function (err) {
-    if (err) return next(err);
+    if (err) {
+      return next(err);
+    }
 
     res.redirect("/");
   });
 };
 
 // =======================
-// Quên mật khẩu - Hiển thị form nhập email
+// Quên mật khẩu
+// Hiển thị form nhập email
 // =======================
 exports.showForgotPassword = (req, res) => {
   res.render("forgotPassword", {
@@ -118,7 +121,8 @@ exports.showForgotPassword = (req, res) => {
 };
 
 // =======================
-// Quên mật khẩu - Gửi email chứa link reset
+// Quên mật khẩu
+// Gửi email chứa link reset
 // =======================
 exports.forgotPassword = async (req, res) => {
   try {
@@ -126,22 +130,29 @@ exports.forgotPassword = async (req, res) => {
 
     if (!email) {
       req.flash("error", "Vui lòng nhập email.");
+
       return res.redirect("/forgot-password");
     }
 
-    const user = await User.findOne({ email: email.toLowerCase().trim() });
+    const normalizedEmail = email.toLowerCase().trim();
 
-    // Không tiết lộ email có tồn tại hay không (tránh dò email người dùng)
-    // -> luôn báo thành công dù user có tồn tại hay không
+    const user = await User.findOne({
+      email: normalizedEmail,
+    });
+
+    // Không tiết lộ email có tồn tại hay không
     if (!user) {
       req.flash(
         "success",
         "Nếu email tồn tại trong hệ thống, chúng tôi đã gửi link đặt lại mật khẩu.",
       );
+
       return res.redirect("/forgot-password");
     }
 
-    // Tài khoản đăng nhập bằng Google/Discord thì không có mật khẩu local
+    // =======================
+    // Tài khoản Google / Discord
+    // =======================
     if (user.provider !== "local") {
       req.flash(
         "error",
@@ -149,25 +160,46 @@ exports.forgotPassword = async (req, res) => {
           user.provider === "google" ? "Google" : "Discord"
         }, không thể đặt lại mật khẩu.`,
       );
+
       return res.redirect("/forgot-password");
     }
 
-    // Tạo token ngẫu nhiên, chỉ lưu bản hash vào DB (an toàn hơn lưu token thô)
+    // =======================
+    // Tạo reset token
+    // =======================
+
+    // Token gốc gửi cho người dùng
     const rawToken = crypto.randomBytes(32).toString("hex");
+
+    // Chỉ lưu hash của token vào database
     const hashedToken = crypto
       .createHash("sha256")
       .update(rawToken)
       .digest("hex");
 
     user.resetPasswordToken = hashedToken;
-    user.resetPasswordExpires = Date.now() + 15 * 60 * 1000; // 15 phút
+
+    // Token hết hạn sau 15 phút
+    user.resetPasswordExpires = Date.now() + 15 * 60 * 1000;
 
     await user.save();
 
-    const resetUrl = `${req.protocol}://${req.get(
-      "host",
-    )}/reset-password/${rawToken}`;
+    // =======================
+    // Tạo link reset
+    // =======================
+    //
+    // Dùng domain riêng của MangaNest
+    // thay vì req.get("host")
+    //
+    const baseUrl = process.env.APP_URL || "https://manganest.site";
 
+    const resetUrl = `${baseUrl}/reset-password/${rawToken}`;
+
+    console.log("RESET PASSWORD URL:", resetUrl);
+
+    // =======================
+    // Gửi email
+    // =======================
     try {
       await sendResetPasswordEmail({
         to: user.email,
@@ -177,12 +209,15 @@ exports.forgotPassword = async (req, res) => {
     } catch (mailErr) {
       console.log("SEND MAIL ERROR:", mailErr);
 
-      // Gửi mail lỗi thì rollback token để user có thể thử lại ngay
+      // Nếu gửi mail thất bại
+      // thì xóa token để user thử lại
       user.resetPasswordToken = null;
       user.resetPasswordExpires = null;
+
       await user.save();
 
       req.flash("error", "Không thể gửi email lúc này. Vui lòng thử lại sau.");
+
       return res.redirect("/forgot-password");
     }
 
@@ -190,80 +225,121 @@ exports.forgotPassword = async (req, res) => {
       "success",
       "Nếu email tồn tại trong hệ thống, chúng tôi đã gửi link đặt lại mật khẩu.",
     );
+
     return res.redirect("/forgot-password");
   } catch (err) {
     console.log(err);
+
     req.flash("error", "Có lỗi xảy ra, vui lòng thử lại.");
+
     return res.redirect("/forgot-password");
   }
 };
 
 // =======================
-// Reset mật khẩu - Hiển thị form nhập mật khẩu mới
+// Reset mật khẩu
+// Hiển thị form nhập mật khẩu mới
 // =======================
 exports.showResetPassword = async (req, res) => {
   try {
     const { token } = req.params;
 
+    // Hash token nhận từ URL
     const hashedToken = crypto.createHash("sha256").update(token).digest("hex");
 
+    // Tìm user có token hợp lệ
+    // và token chưa hết hạn
     const user = await User.findOne({
       resetPasswordToken: hashedToken,
-      resetPasswordExpires: { $gt: Date.now() },
+      resetPasswordExpires: {
+        $gt: Date.now(),
+      },
     });
 
     if (!user) {
       req.flash("error", "Link đặt lại mật khẩu không hợp lệ hoặc đã hết hạn.");
+
       return res.redirect("/forgot-password");
     }
 
-    res.render("resetPassword", {
+    return res.render("resetPassword", {
       title: "Đặt lại mật khẩu",
       token,
     });
   } catch (err) {
     console.log(err);
+
     req.flash("error", "Có lỗi xảy ra, vui lòng thử lại.");
+
     return res.redirect("/forgot-password");
   }
 };
 
 // =======================
-// Reset mật khẩu - Xử lý lưu mật khẩu mới
+// Reset mật khẩu
+// Xử lý lưu mật khẩu mới
 // =======================
 exports.resetPassword = async (req, res) => {
   try {
     const { token } = req.params;
+
     const { password, confirmPassword } = req.body;
+
+    // =======================
+    // Kiểm tra dữ liệu
+    // =======================
 
     if (!password || !confirmPassword) {
       req.flash("error", "Vui lòng nhập đầy đủ mật khẩu.");
+
       return res.redirect(`/reset-password/${token}`);
     }
 
     if (password.length < 6) {
       req.flash("error", "Mật khẩu phải có ít nhất 6 ký tự.");
+
       return res.redirect(`/reset-password/${token}`);
     }
 
     if (password !== confirmPassword) {
       req.flash("error", "Mật khẩu xác nhận không khớp.");
+
       return res.redirect(`/reset-password/${token}`);
     }
 
+    // =======================
+    // Hash token
+    // =======================
+
     const hashedToken = crypto.createHash("sha256").update(token).digest("hex");
+
+    // =======================
+    // Tìm user
+    // =======================
 
     const user = await User.findOne({
       resetPasswordToken: hashedToken,
-      resetPasswordExpires: { $gt: Date.now() },
+      resetPasswordExpires: {
+        $gt: Date.now(),
+      },
     });
 
     if (!user) {
       req.flash("error", "Link đặt lại mật khẩu không hợp lệ hoặc đã hết hạn.");
+
       return res.redirect("/forgot-password");
     }
 
-    user.password = password; // hook pre("save") trong User model sẽ tự hash
+    // =======================
+    // Cập nhật mật khẩu
+    // =======================
+    //
+    // Hook pre("save") trong User model
+    // sẽ tự hash password
+    //
+    user.password = password;
+
+    // Token chỉ được sử dụng một lần
     user.resetPasswordToken = null;
     user.resetPasswordExpires = null;
 
@@ -273,10 +349,13 @@ exports.resetPassword = async (req, res) => {
       "success",
       "Đặt lại mật khẩu thành công. Vui lòng đăng nhập lại.",
     );
+
     return res.redirect("/");
   } catch (err) {
     console.log(err);
+
     req.flash("error", "Có lỗi xảy ra, vui lòng thử lại.");
+
     return res.redirect("/forgot-password");
   }
 };

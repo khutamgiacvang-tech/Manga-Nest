@@ -9,6 +9,20 @@ html {
     height: 100%;
 }
 
+/* ===== FIX: Chặn tràn ngang toàn site trên mobile =====
+   Đây là lưới an toàn cuối cùng: nếu bất kỳ phần tử con nào lỡ rộng
+   hơn viewport (ảnh, bảng, ...) thì trang vẫn không bị kéo ngang. */
+html,
+body {
+    max-width: 100%;
+    overflow-x: hidden;
+}
+
+img,
+video {
+    max-width: 100%;
+}
+
 body {
     min-height: 100vh;
     display: flex;
@@ -63,8 +77,11 @@ a {
 
 main {
 
-    width: 1200px;
-    max-width: none;
+    /* FIX: trước đây là width cố định 1200px khiến main luôn rộng 1200px
+       kể cả trên điện thoại -> toàn bộ trang bị tràn ngang, vỡ layout.
+       Đổi sang width fluid, chỉ đạt tối đa 1200px trên màn lớn. */
+    width: 100%;
+    max-width: 1200px;
     margin: auto;
 
 }

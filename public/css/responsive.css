@@ -28,17 +28,51 @@
 
 @media(max-width:900px) {
 
+    .manga-banner {
+        height: 320px;
+    }
+
+    .manga-banner::after {
+        height: 110px;
+    }
+
+    .manga-page {
+        margin: 16px auto;
+        padding: 0 14px;
+    }
+
     .manga-header {
         flex-direction: column;
         align-items: center;
 
         text-align: center;
 
-        margin-top: -120px;
+        margin-top: -70px;
+        padding: 0 16px 24px;
+        gap: 14px;
+    }
+
+    .manga-cover {
+        width: 130px;
+        height: 185px;
+        border-width: 3px;
+    }
+
+    .manga-info h1 {
+        font-size: 20px;
+        margin-bottom: 8px;
     }
 
     .detail-layout {
         grid-template-columns: 1fr;
+        padding: 0 16px 30px;
+        gap: 16px;
+    }
+
+    .info-box,
+    .chapter-box,
+    .side-box {
+        padding: 16px;
     }
 
     .genre-list {
@@ -47,6 +81,31 @@
 
     .author-line {
         justify-content: center;
+        gap: 12px;
+    }
+}
+
+@media(max-width: 480px) {
+
+    .manga-banner {
+        height: 220px;
+    }
+
+    .manga-banner::after {
+        height: 90px;
+    }
+
+    .manga-header {
+        margin-top: -55px;
+    }
+
+    .manga-cover {
+        width: 105px;
+        height: 150px;
+    }
+
+    .manga-info h1 {
+        font-size: 18px;
     }
 }
 
@@ -240,44 +299,67 @@
    Nguồn gốc: home.css
    ============================================================ */
 
-@media(max-width:900px){
+@media(max-width:900px) {
 
-    .hero-slide{
-        flex-basis:96%;
-        height:360px;
+    .hero-slide {
+        flex-basis: 96%;
+        height: 360px;
     }
 
-    .hero-info h1{
-        font-size:22px;
+    .hero-info h1 {
+        font-size: 22px;
     }
 
-    .hero-cta{
-        right:20px;
-        bottom:20px;
+    .hero-cta {
+        right: 20px;
+        bottom: 20px;
     }
 
-    .home-card{
-        flex:0 0 140px;
+    .home-card {
+        flex: 0 0 140px;
     }
 
-    .home-card img{
-        height:190px;
+    .home-card img {
+        height: 190px;
     }
 
-    .rank-row{
-        grid-auto-columns:280px;
+    .rank-row {
+        grid-auto-columns: 280px;
+    }
+
+    /* FIX: các hàng "Truyện mới / Romcom / Đời thường" dùng grid 2 hàng
+       (.home-row-new) trông rối và tốn chiều cao trên mobile. Chuyển
+       về dạng cuộn ngang 1 hàng giống hệt hàng "Đề xuất cho bạn"
+       (.home-row) cho đồng nhất và gọn hơn. */
+    .home-row-new {
+        display: flex !important;
+        grid-template-rows: none;
+        grid-auto-flow: unset;
+
+        overflow-x: auto;
+        overflow-y: hidden;
+        scroll-snap-type: x proximity;
+    }
+
+    .home-row-new .home-card {
+        flex: 0 0 140px;
+        width: 140px;
+    }
+
+    .home-row-new .home-card img {
+        height: 190px;
     }
 
 }
 
-@media(max-width:600px){
+@media(max-width:600px) {
 
-    .hero-slide{
-        height:420px;
+    .hero-slide {
+        height: 420px;
     }
 
-    .row-arrow{
-        display:none;
+    .row-arrow {
+        display: none;
     }
 
 }
@@ -286,19 +368,19 @@
    Nguồn gốc: footer.css
    ============================================================ */
 
-@media(max-width:900px){
+@media(max-width:900px) {
 
-    .footer-container{
+    .footer-container {
 
-        grid-template-columns:1fr;
+        grid-template-columns: 1fr;
 
-        text-align:center;
+        text-align: center;
 
     }
 
-    .social-icons{
+    .social-icons {
 
-        justify-content:center;
+        justify-content: center;
 
     }
 
@@ -479,34 +561,54 @@
    Nguồn gốc: list.css
    ============================================================ */
 
-@media(max-width:1200px){
+/* Theo yêu cầu: giữ nguyên cấu trúc lưới 5 cột (5x5 = 25 truyện/trang)
+   kể cả trên mobile, không thu về 1-2 cột như trước. Chỉ giảm khoảng
+   cách và kích thước ảnh/chữ cho vừa màn hình nhỏ. */
 
-    .list-grid{
-        grid-template-columns:repeat(4,1fr);
+@media(max-width:992px) {
+
+    .list-grid {
+        gap: 16px;
+    }
+
+    .list-card img {
+        height: 200px;
     }
 
 }
 
-@media(max-width:992px){
+@media(max-width:768px) {
 
-    .list-grid{
-        grid-template-columns:repeat(3,1fr);
+    .list-grid {
+        gap: 10px;
+    }
+
+    .list-card img {
+        height: 150px;
+    }
+
+    .list-card h3 {
+        font-size: 12px;
+        margin-top: 6px;
     }
 
 }
 
-@media(max-width:768px){
+@media(max-width:480px) {
 
-    .list-grid{
-        grid-template-columns:repeat(2,1fr);
+    .list-grid {
+        gap: 6px;
     }
 
-}
+    .list-card img {
+        height: 105px;
+        border-radius: 6px;
+    }
 
-@media(max-width:480px){
-
-    .list-grid{
-        grid-template-columns:1fr;
+    .list-card h3 {
+        font-size: 10.5px;
+        margin-top: 5px;
+        -webkit-line-clamp: 2;
     }
 
 }
@@ -515,25 +617,53 @@
    Nguồn gốc: library.css
    ============================================================ */
 
-@media(max-width:1100px){
+/* Cùng logic với list-grid: giữ 5 cột trên mọi kích thước màn hình */
 
-    .library-grid{
+@media(max-width:1100px) {
 
-        grid-template-columns:repeat(3,1fr);
+    .library-grid {
+
+        gap: 14px;
+
+    }
+
+}
+
+@media(max-width:600px) {
+
+    .library-grid {
+
+        gap: 8px;
+
+    }
+
+    .library-card img {
+
+        height: 140px;
+
+    }
+
+    .library-info {
+
+        padding: 8px;
+
+    }
+
+    .library-info h3 {
+
+        font-size: 11px;
+
+    }
+
+    .library-info p,
+    .library-info small {
+
+        font-size: 10.5px;
 
     }
 
 }
 
-@media(max-width:600px){
-
-    .library-grid{
-
-        grid-template-columns:repeat(2,1fr);
-
-    }
-
-}
 
 /* ============================================================
    Nguồn gốc: history.css
@@ -720,3 +850,268 @@
 
 }
 
+/* ============================================================
+   BỔ SUNG - Fix vỡ layout mobile toàn site (đợt rà soát responsive)
+   ============================================================ */
+
+/* -----------------------------
+   Nguồn gốc: home.css (hero) - thu nhỏ thêm cho màn rất nhỏ
+----------------------------- */
+
+@media (max-width: 480px) {
+
+    .hero {
+        margin: 20px auto 14px;
+    }
+
+    .hero-slide {
+        height: 320px;
+        border-radius: 14px;
+    }
+
+    .hero-content {
+        padding: 20px 18px;
+    }
+
+    .hero-info h1 {
+        font-size: 18px;
+        margin-bottom: 8px;
+    }
+
+    .hero-desc {
+        font-size: 13px;
+        -webkit-line-clamp: 2;
+        line-clamp: 2;
+    }
+
+    .hero-cta {
+        right: 16px;
+        bottom: 16px;
+        padding: 8px 14px;
+        font-size: 11.5px;
+    }
+
+    .section {
+        margin: 34px auto;
+    }
+
+    .section-title h2 {
+        font-size: 17px;
+    }
+}
+
+/* -----------------------------
+   Nguồn gốc: navbar.css - tránh bóp méo khi màn quá nhỏ (<380px)
+----------------------------- */
+
+@media (max-width: 380px) {
+
+    .container {
+        gap: 10px;
+    }
+
+    .logo span {
+        display: none;
+    }
+
+    .user-menu {
+        gap: 6px;
+    }
+
+    .avatar {
+        width: 34px;
+        height: 34px;
+    }
+
+    .notification-btn,
+    .search-toggle-btn {
+        width: 38px;
+        height: 38px;
+    }
+}
+
+/* -----------------------------
+   Nguồn gốc: profile.css
+----------------------------- */
+
+@media (max-width: 600px) {
+
+    .profile-page {
+        margin: 24px auto;
+        padding: 0 14px;
+    }
+
+    .settings-section {
+        padding: 22px 16px;
+    }
+}
+
+/* -----------------------------
+   Nguồn gốc: library.css
+----------------------------- */
+
+@media (max-width: 600px) {
+
+    .library-page {
+        padding: 20px 14px;
+    }
+}
+
+/* -----------------------------
+   Nguồn gốc: list.css
+----------------------------- */
+
+@media (max-width: 768px) {
+
+    .page-title {
+        font-size: 26px;
+        margin-bottom: 22px;
+    }
+}
+
+@media (max-width: 480px) {
+
+    .pagination {
+        gap: 12px;
+    }
+
+    .page-btn {
+        padding: 10px 16px;
+        font-size: 14px;
+    }
+}
+
+/* -----------------------------
+   Nguồn gốc: admin.css - dashboard & các khối cột
+----------------------------- */
+
+@media (max-width: 900px) {
+
+    .dashboard-header {
+        flex-wrap: wrap;
+    }
+
+    .dashboard-box {
+        min-width: 45%;
+        flex: 1 1 45%;
+    }
+
+    .status-columns,
+    .management-row {
+        flex-direction: column;
+    }
+
+    .status-column,
+    .management-col {
+        min-width: 100%;
+        width: 100%;
+    }
+
+    .application-modal-content {
+        padding: 18px;
+    }
+
+    .detail-header {
+        flex-wrap: wrap;
+    }
+}
+
+@media (max-width: 600px) {
+
+    .dashboard-box {
+        min-width: 100%;
+        flex: 1 1 100%;
+    }
+
+    .application-list-card {
+        flex-direction: column;
+        align-items: flex-start;
+        gap: 14px;
+    }
+
+    .application-right {
+        align-items: flex-start;
+        width: 100%;
+    }
+
+    .charts-row {
+        gap: 16px;
+    }
+
+    .chart-box {
+        min-width: 100%;
+    }
+}
+
+/* -----------------------------
+   Nguồn gốc: translator.css
+----------------------------- */
+
+@media (max-width: 700px) {
+
+    .translator-header {
+        flex-direction: column;
+        align-items: center;
+        text-align: center;
+        gap: 14px;
+    }
+
+    .project-item,
+    .profile-item {
+        grid-template-columns: 1fr;
+        gap: 10px;
+    }
+
+    .dashboard {
+        grid-template-columns: repeat(2, 1fr);
+    }
+
+    .manage-layout {
+        gap: 22px;
+    }
+
+    .chapter-card {
+        flex-direction: column;
+        align-items: flex-start;
+        gap: 14px;
+    }
+
+    .chapter-action {
+        width: 100%;
+    }
+
+    .chapter-action a,
+    .chapter-action button {
+        flex: 1;
+        text-align: center;
+    }
+
+    .chapter-title {
+        font-size: 24px;
+    }
+
+    .chapter-info h3 {
+        font-size: 19px;
+    }
+
+    .info-table td:first-child {
+        width: 40%;
+    }
+
+    .translator-page .upload-card,
+    .upload-card {
+        padding: 24px 18px;
+    }
+}
+
+@media (max-width: 480px) {
+
+    .dashboard {
+        grid-template-columns: 1fr;
+    }
+
+    .translator-avatar-large {
+        width: 90px;
+        height: 90px;
+    }
+}
