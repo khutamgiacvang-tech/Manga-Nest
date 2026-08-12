@@ -425,6 +425,12 @@
         min-height: 66px;
         padding: 14px 0 18px;
     }
+
+    /* Ở mobile/tablet menu ngang bị ẩn sau nút hamburger nên hiện lại
+       các mục Ủng hộ / Đăng truyện / Discord / Cộng đồng trong dropdown avatar */
+    .dropdown-nav-links {
+        display: contents;
+    }
 }
 
 @media (max-width: 600px) {

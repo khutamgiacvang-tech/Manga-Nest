@@ -4,7 +4,7 @@ const Notification = require("../models/Notification");
 const Manga = require("../models/Manga");
 const { uploadBuffer } = require("../utils/cloudinaryUpload");
 
-const MANGAS_PER_PAGE = 25;
+const MANGAS_PER_PAGE = 24;
 const PREVIEW_COUNT = 6;
 
 // ===============================

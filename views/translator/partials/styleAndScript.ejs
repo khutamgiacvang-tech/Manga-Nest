@@ -91,9 +91,9 @@
 
 .tp-period-tabs {
     position: relative;
-    display: flex;
-    gap: 0.2rem;
-    background: #1a1b26;
+    display: inline-flex;
+    gap: 4px;
+    background: #1a1d27;
     padding: 4px;
     border-radius: 999px;
 }
@@ -104,7 +104,7 @@
     left: 4px;
     height: calc(100% - 8px);
     width: 0;
-    background: #e53e6f;
+    background: #E63946;
     border-radius: 999px;
     transition: transform 0.28s ease, width 0.28s ease;
     z-index: 0;
@@ -113,13 +113,14 @@
 .tp-period-btn {
     position: relative;
     z-index: 1;
-    padding: 0.35rem 1rem;
+    padding: 8px 18px;
     border-radius: 999px;
-    color: #9aa5ce;
+    color: #9199ad;
     text-decoration: none;
-    font-size: 0.8rem;
+    font-size: 12px;
     font-weight: 700;
-    transition: color 0.2s ease;
+    letter-spacing: .3px;
+    transition: color .15s;
 }
 
 .tp-period-btn.active {
@@ -142,7 +143,7 @@
 }
 
 .tp-grid-full {
-    grid-template-columns: repeat(5, 1fr);
+    grid-template-columns: repeat(6, 1fr);
 }
 
 .tp-card {
@@ -221,17 +222,18 @@
     white-space: nowrap;
 }
 
+/* Tablet & mobile (<=900px, giống breakpoint navbar):
+   - Danh sách đầy đủ (new-mangas / top-mangas): 3 cột, 24 truyện -> 8 hàng
+   - Preview ở tab "Trang chính": vẫn 3 cột nhưng chỉ hiện 3 truyện đầu
+     (3 ngang x 1 dọc), giống cuutruyen */
 @media (max-width: 900px) {
     .tp-grid,
     .tp-grid-full {
         grid-template-columns: repeat(3, 1fr);
     }
-}
 
-@media (max-width: 500px) {
-    .tp-grid,
-    .tp-grid-full {
-        grid-template-columns: repeat(2, 1fr);
+    .tp-section .tp-grid > .tp-card:nth-child(n+4) {
+        display: none;
     }
 }
 </style>

@@ -423,6 +423,13 @@ body.search-overlay-open {
     padding-left: 24px;
 }
 
+/* Các mục Ủng hộ / Đăng truyện / Discord / Cộng đồng trong dropdown avatar:
+   ẩn ở desktop vì đã có sẵn trên thanh menu ngang, chỉ hiện ở mobile/tablet
+   (xem @media max-width:900px trong responsive.css) */
+.dropdown-nav-links {
+    display: none;
+}
+
 /* Hiện menu (click, không còn hover) */
 
 .user-dropdown.active .dropdown-menu {
