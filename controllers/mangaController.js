@@ -1824,7 +1824,9 @@ exports.readChapter = async (req, res) => {
         : null;
 
     // =========================
-    // Tăng view: mỗi tài khoản chỉ tính 1 view / chương
+    // Tăng view: chỉ tính cho user đã đăng nhập, mỗi tài khoản chỉ tính
+    // 1 view / chương (khách chưa đăng nhập không được tính view, vì
+    // không có ID cố định để chống trùng đáng tin cậy)
     // =========================
 
     let shouldCountView = false;
@@ -1847,19 +1849,6 @@ exports.readChapter = async (req, res) => {
         }
 
         shouldCountView = false;
-      }
-    } else {
-      // Khách chưa đăng nhập: không có tài khoản để gắn, tạm dùng session
-      if (!req.session.viewedChapters) {
-        req.session.viewedChapters = [];
-      }
-
-      const viewKey = `${manga._id}_${chapter._id}`;
-
-      if (!req.session.viewedChapters.includes(viewKey)) {
-        req.session.viewedChapters.push(viewKey);
-
-        shouldCountView = true;
       }
     }
 

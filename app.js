@@ -19,6 +19,9 @@ const passport = require("./config/passport");
 const Notification = require("./models/Notification");
 const timeAgo = require("./utils/timeAgo");
 const checkBan = require("./middleware/checkBan");
+const {
+  startViewsResetScheduler,
+} = require("./utils/viewsResetScheduler");
 
 // =====================
 // INIT APP
@@ -37,6 +40,7 @@ app.locals.timeAgo = timeAgo;
 // CONNECT DATABASE
 // =====================
 connectDB();
+startViewsResetScheduler();
 
 // =====================
 // MIDDLEWARE BODY
