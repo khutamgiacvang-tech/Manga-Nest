@@ -1,77 +1,77 @@
-.library-page{
+.library-page {
 
-    max-width:1200px;
-    margin:auto;
-    padding:30px;
-
-}
-
-.library-page h1{
-
-    margin-bottom:25px;
+    max-width: 1200px;
+    margin: auto;
+    padding: 30px;
 
 }
 
-.empty-box{
+.library-page h1 {
 
-    background:#232631;
-    padding:20px;
-    border-radius:10px;
-    text-align:center;
+    margin-bottom: 25px;
 
 }
 
-/* 5 cột x 5 hàng = 25 card/trang */
-.library-grid{
+.empty-box {
 
-    display:grid;
-    grid-template-columns:repeat(5,1fr);
-
-    gap:20px;
-
-}
-
-.library-card{
-
-    background:#232631;
-    border-radius:12px;
-    overflow:hidden;
-    text-decoration:none;
-    color:#fff;
+    background: #232631;
+    padding: 20px;
+    border-radius: 10px;
+    text-align: center;
 
 }
 
-.library-card img{
+/* Desktop: 6 cột x 4 hàng = 24 truyện/trang */
+.library-grid {
 
-    width:100%;
-    height:260px;
-    object-fit:cover;
+    display: grid;
+    grid-template-columns: repeat(6, 1fr);
 
-}
-
-.library-info{
-
-    padding:12px;
+    gap: 20px;
 
 }
 
-.library-info h3{
+.library-card {
 
-    font-size:15px;
-    line-height:1.4;
+    background: #232631;
+    border-radius: 12px;
+    overflow: hidden;
+    text-decoration: none;
+    color: #fff;
 
-    display:-webkit-box;
-    -webkit-line-clamp:2;
-    -webkit-box-orient:vertical;
-    overflow:hidden;
+}
+
+.library-card img {
+
+    width: 100%;
+    height: 260px;
+    object-fit: cover;
+
+}
+
+.library-info {
+
+    padding: 12px;
+
+}
+
+.library-info h3 {
+
+    font-size: 15px;
+    line-height: 1.4;
+
+    display: -webkit-box;
+    -webkit-line-clamp: 2;
+    -webkit-box-orient: vertical;
+    overflow: hidden;
 
 }
 
 .library-info p,
-.library-info small{
+.library-info small {
 
-    color:#9fa6b2;
-    font-size:13px;
+    color: #9fa6b2;
+    font-size: 13px;
 
 }
 
@@ -79,49 +79,49 @@
       PAGINATION
 ==========================*/
 
-.pagination{
+.pagination {
 
-    display:flex;
-    align-items:center;
-    justify-content:center;
-    gap:20px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 20px;
 
-    margin-top:40px;
-
-}
-
-.page-btn{
-
-    padding:10px 20px;
-    background:#5865F2;
-    color:#fff;
-    border:none;
-    border-radius:10px;
-    text-decoration:none;
-    font-weight:600;
-    transition:.25s;
+    margin-top: 40px;
 
 }
 
-.page-btn:hover{
+.page-btn {
 
-    background:#4452df;
-
-}
-
-.page-btn.disabled{
-
-    background:#2b3140;
-    color:#6b7280;
-    cursor:not-allowed;
-    pointer-events:none;
+    padding: 10px 20px;
+    background: #5865F2;
+    color: #fff;
+    border: none;
+    border-radius: 10px;
+    text-decoration: none;
+    font-weight: 600;
+    transition: .25s;
 
 }
 
-.page-info{
+.page-btn:hover {
 
-    color:#9fa6b2;
-    font-weight:600;
+    background: #4452df;
+
+}
+
+.page-btn.disabled {
+
+    background: #2b3140;
+    color: #6b7280;
+    cursor: not-allowed;
+    pointer-events: none;
+
+}
+
+.page-info {
+
+    color: #9fa6b2;
+    font-weight: 600;
 
 }
 

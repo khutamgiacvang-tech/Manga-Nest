@@ -371,23 +371,14 @@
 
         <% } %>
 
-        <select
-            onchange="location=this.value"
+        <button
+            type="button"
+            id="chapterSelectBtn"
             class="float-select"
+            onclick="openChapterSelectModal()"
         >
-
-            <% allChapters.slice().reverse().forEach(ch=>{ %>
-
-            <option
-                value="/manga/<%= manga.slug %>/chapter/<%= ch.chapterNumber %>"
-                <%= ch.chapterNumber===chapter.chapterNumber ? 'selected' : '' %>
-            >
-                Chương <%= ch.chapterNumber %>
-            </option>
-
-            <% }) %>
-
-        </select>
+            Chương <%= chapter.chapterNumber %>
+        </button>
 
         <% if(nextChapter){ %>
 
@@ -411,6 +402,42 @@
         >
             ↑
         </button>
+
+    </div>
+
+    <!-- Popup "Chuyển chương" (bấm vào nút chọn chương ở floatingNav),
+         giống cuutruyen: danh sách lưới các chương + nền đen phủ,
+         bấm ra ngoài (vào nền đen) để đóng -->
+    <div id="chapterSelectOverlay" class="chapter-select-overlay" onclick="if(event.target===this){closeChapterSelectModal();}">
+
+        <div class="chapter-select-modal">
+
+            <div class="chapter-select-header">
+
+                <h3>Chuyển chương</h3>
+
+                <button type="button" class="reader-mode-modal-close" onclick="closeChapterSelectModal()">
+                    &times;
+                </button>
+
+            </div>
+
+            <div class="chapter-select-grid" id="chapterSelectGrid">
+
+                <% allChapters.slice().reverse().forEach(ch=>{ %>
+
+                    <a
+                        href="/manga/<%= manga.slug %>/chapter/<%= ch.chapterNumber %>"
+                        class="chapter-select-item <%= ch.chapterNumber===chapter.chapterNumber ? 'active' : '' %>"
+                    >
+                        <%= ch.chapterNumber %>
+                    </a>
+
+                <% }) %>
+
+            </div>
+
+        </div>
 
     </div>
 
@@ -885,6 +912,7 @@ window.addEventListener("load", () => {
 
 const commentPanel = document.getElementById("commentPanel");
 const commentOverlay = document.getElementById("commentOverlay");
+const floatingNav = document.getElementById("floatingNav");
 const commentList = document.getElementById("commentList");
 const commentInput = document.getElementById("commentInput");
 const commentCountBadge = document.getElementById("commentCount");
@@ -1177,11 +1205,50 @@ async function loadComments(){
 
 }
 
+const chapterSelectOverlay = document.getElementById("chapterSelectOverlay");
+
+function openChapterSelectModal(){
+
+    if(!chapterSelectOverlay) return;
+
+    chapterSelectOverlay.classList.add("open");
+    document.body.classList.add("chapter-select-open");
+
+    const active = chapterSelectOverlay.querySelector(".chapter-select-item.active");
+
+    if(active){
+        active.scrollIntoView({ block: "center" });
+    }
+
+}
+
+function closeChapterSelectModal(){
+
+    if(!chapterSelectOverlay) return;
+
+    chapterSelectOverlay.classList.remove("open");
+    document.body.classList.remove("chapter-select-open");
+
+}
+
+document.addEventListener("keydown", function(e){
+
+    if(e.key === "Escape" && chapterSelectOverlay && chapterSelectOverlay.classList.contains("open")){
+        closeChapterSelectModal();
+    }
+
+});
+
 function toggleCommentPanel(){
 
     const isOpen = commentPanel.classList.toggle("open");
 
     commentOverlay.classList.toggle("open", isOpen);
+
+    // Bấm vào bình luận -> ẩn floatingNav, thoát bình luận -> hiện lại (giống cuutruyen)
+    if(floatingNav){
+        floatingNav.classList.toggle("hide-for-comment", isOpen);
+    }
 
     if(isOpen && !commentsLoaded){
 

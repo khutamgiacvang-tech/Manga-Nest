@@ -241,7 +241,8 @@ router.get("/manga/:slug/chapter/:number", mangaController.readChapter);
 router.get("/manga", async (req, res) => {
   try {
     const page = parseInt(req.query.page) || 1;
-    const limit = 25; // 5 cột x 5 hàng = 25/trang
+    // 24 truyện/trang: Desktop 4 cột x 6 hàng, Mobile/Tablet 3 cột x 8 hàng.
+    const limit = 24;
 
     const filter = { status: "approved" };
 
@@ -344,7 +345,8 @@ router.get("/manga", async (req, res) => {
 router.get("/search", async (req, res) => {
   try {
     const page = parseInt(req.query.page) || 1;
-    const limit = 25;
+    // 24 truyện/trang: Desktop 4 cột x 6 hàng, Mobile/Tablet 3 cột x 8 hàng.
+    const limit = 24;
 
     // ============ Chuẩn hoá tham số ============
     const keyword = (req.query.q || "").trim();

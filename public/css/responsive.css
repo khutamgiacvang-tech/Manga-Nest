@@ -83,6 +83,109 @@
         justify-content: center;
         gap: 12px;
     }
+
+    /* Nút Đọc từ đầu / Chương mới nhất / Theo dõi:
+       căn giữa, kéo dài full chiều ngang của box */
+    .action-buttons {
+        flex-direction: column;
+        align-items: stretch;
+        width: 100%;
+    }
+
+    .follow-form {
+        display: block;
+        width: 100%;
+    }
+
+    .btn-follow,
+    .btn-read,
+    .btn-follow-toggle {
+        width: 100%;
+        justify-content: center;
+        margin-right: 0;
+        box-sizing: border-box;
+    }
+
+    /* ==========================================================
+       CARD TRANSLATOR ở trang chi tiết truyện: bố cục giống cuutruyen
+       - Avatar + tên/số truyện nằm 1 hàng ngang, căn trái
+       - Icon Facebook/Messenger thu gọn thành icon tròn bên phải
+       - Nút "Xem trang nhóm" nằm dưới, căn trái (không full/không center)
+       ========================================================== */
+    .detail-translator-card {
+        flex-direction: column;
+        align-items: stretch;
+        text-align: left;
+        gap: 12px;
+
+        background: transparent;
+        border-radius: 0;
+        padding: 0;
+    }
+
+    .translator-top {
+        flex-wrap: nowrap;
+        align-items: flex-start;
+        text-align: left;
+    }
+
+    .translator-identity {
+        flex: 1;
+        min-width: 0;
+        text-align: left;
+    }
+
+    .detail-translator-card .translator-avatar {
+        width: 42px !important;
+        height: 42px !important;
+    }
+
+    .translator-meta {
+        min-width: 0;
+        text-align: left;
+    }
+
+    .translator-name {
+        font-size: 14px;
+        white-space: normal;
+    }
+
+    .translator-count {
+        font-size: 11px;
+    }
+
+    .translator-social {
+        flex-shrink: 0;
+        gap: 6px;
+    }
+
+    /* Ẩn phần chữ "Facebook" trong nút, chỉ giữ lại icon tròn */
+    .fb-chip {
+        width: 34px;
+        height: 34px;
+        padding: 0;
+        justify-content: center;
+        border-radius: 50%;
+        background: transparent;
+        font-size: 0;
+    }
+
+    .fb-chip .fb-icon {
+        width: 34px;
+        height: 34px;
+        font-size: 15px;
+    }
+
+    .msg-icon {
+        width: 34px;
+        height: 34px;
+        font-size: 15px;
+    }
+
+    .btn-view-group {
+        align-self: flex-start;
+        width: auto;
+    }
 }
 
 @media(max-width: 480px) {
@@ -169,6 +272,61 @@
     }
 }
 
+/* ==========================================================
+   FLOATING NAV (trang đọc chương) trên mobile/tablet:
+   dính chặt full-width ở cuối màn hình, giống cuutruyen
+   (không còn là khối nổi bo góc ở góc dưới trái nữa)
+   ========================================================== */
+@media (max-width: 900px) {
+
+    #floatingNav {
+        left: 0;
+        right: 0;
+        bottom: 0;
+        width: 100%;
+
+        border-radius: 0;
+        border: none;
+        border-top: 1px solid rgba(255, 255, 255, .08);
+
+        padding: 10px 12px;
+        gap: 8px;
+
+        justify-content: space-between;
+
+        box-shadow: 0 -4px 20px rgba(0, 0, 0, .4);
+
+        box-sizing: border-box;
+    }
+
+    .float-arrow {
+        flex-shrink: 0;
+    }
+
+    .comment-toggle-btn {
+        flex-shrink: 0;
+    }
+
+    .float-select {
+        flex: 1;
+        min-width: 0;
+        max-width: none;
+
+        text-align: center;
+        text-align-last: center;
+    }
+
+    /* Khi mở bảng bình luận trên mobile/tablet -> ẩn floatingNav đi,
+       đóng bình luận lại thì floatingNav hiện lại (giống cuutruyen) */
+    #floatingNav.hide-for-comment {
+        transform: translateY(100%);
+        opacity: 0;
+        pointer-events: none;
+        transition: transform .25s ease, opacity .2s ease;
+    }
+
+}
+
 /* ============================================================
    Nguồn gốc: navbar.css
    ============================================================ */
@@ -229,11 +387,20 @@
     .search-toggle-btn {
         order: 2;
         margin-left: auto;
+        /* Bỏ margin âm của bản desktop (dùng để kéo sát icon thông báo)
+           để icon search tự căn đều, cách bằng nhau với các icon khác */
+        margin-right: 0;
     }
 
     .user-menu {
         order: 3;
-        gap: 10px;
+        gap: 14px;
+    }
+
+    /* Bỏ margin âm của bản desktop (dùng để kéo sát avatar) để icon
+       thông báo tự căn đều, cách bằng nhau với icon search và avatar */
+    .notification-btn {
+        margin-right: 0;
     }
 
     .notification-menu {
@@ -339,8 +506,13 @@
         height: 190px;
     }
 
+    /* "Truyện nổi bật" trên tablet & mobile: giữ kiểu lưới 3 hàng cuộn
+       ngang giống cuutruyen.net, nhưng kéo card gần full chiều rộng
+       màn hình (chỉ hở một chút mép phải để gợi ý còn thẻ tiếp theo,
+       giống hệt cuutruyen), thay vì nhiều card nhỏ chen nhau như cũ. */
     .rank-row {
-        grid-auto-columns: clamp(220px, 62vw, 280px);
+        grid-auto-columns: 86%;
+        gap: 16px 18px;
     }
 
     /* Truyện mới / Romcom / Đời thường: giữ đúng lưới 2 hàng cuộn ngang
@@ -572,13 +744,13 @@
    Nguồn gốc: list.css
    ============================================================ */
 
-/* Theo yêu cầu: giữ nguyên cấu trúc lưới 5 cột (5x5 = 25 truyện/trang)
-   kể cả trên mobile, không thu về 1-2 cột như trước. Chỉ giảm khoảng
-   cách và kích thước ảnh/chữ cho vừa màn hình nhỏ. */
+/* Mobile & tablet: lưới 3 cột (x 8 hàng = 24 truyện/trang).
+   Desktop (>992px) dùng lưới 6 cột x 4 hàng = 24 truyện/trang (list.css). */
 
 @media(max-width:992px) {
 
     .list-grid {
+        grid-template-columns: repeat(3, minmax(0, 1fr));
         gap: 16px;
     }
 
@@ -591,11 +763,13 @@
 @media(max-width:768px) {
 
     .list-grid {
+        grid-template-columns: repeat(3, minmax(0, 1fr));
         gap: 10px;
     }
 
+    /* Card rộng hơn (3 cột) nên tăng chiều cao ảnh cho tỉ lệ đẹp hơn */
     .list-card img {
-        height: 150px;
+        height: 220px;
     }
 
     .list-card h3 {
@@ -608,11 +782,12 @@
 @media(max-width:480px) {
 
     .list-grid {
+        grid-template-columns: repeat(3, minmax(0, 1fr));
         gap: 6px;
     }
 
     .list-card img {
-        height: 105px;
+        height: 150px;
         border-radius: 6px;
     }
 
@@ -628,12 +803,14 @@
    Nguồn gốc: library.css
    ============================================================ */
 
-/* Cùng logic với list-grid: giữ 5 cột trên mọi kích thước màn hình */
+/* Mobile & tablet: lưới 3 cột (x 8 hàng = 24 truyện/trang).
+   Desktop (>1100px) dùng lưới 6 cột x 4 hàng = 24 truyện/trang (library.css). */
 
 @media(max-width:1100px) {
 
     .library-grid {
 
+        grid-template-columns: repeat(3, minmax(0, 1fr));
         gap: 14px;
 
     }
@@ -644,13 +821,15 @@
 
     .library-grid {
 
+        grid-template-columns: repeat(3, minmax(0, 1fr));
         gap: 8px;
 
     }
 
+    /* Card rộng hơn (3 cột) nên tăng chiều cao ảnh cho tỉ lệ đẹp hơn */
     .library-card img {
 
-        height: 140px;
+        height: 200px;
 
     }
 
@@ -921,7 +1100,8 @@
         gap: 10px;
     }
 
-    .logo span {
+    /* Chỉ ẩn icon cuốn sách 📚, chữ "MangaNest" vẫn hiển thị bình thường */
+    .logo-icon {
         display: none;
     }
 

@@ -168,7 +168,8 @@ exports.followLibrary = async (req, res) => {
 
     const followedIds = req.user.followedManga || [];
 
-    const limit = 25;
+    // 24 truyện/trang: Desktop 4 cột x 6 hàng, Mobile/Tablet 3 cột x 8 hàng.
+    const limit = 24;
 
     let page = parseInt(req.query.page) || 1;
 

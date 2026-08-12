@@ -1,132 +1,133 @@
-.manga-list-page{
+.manga-list-page {
 
-    width:92%;
-    max-width:1400px;
+    width: 92%;
+    max-width: 1400px;
 
-    margin:40px auto 80px;
-
-}
-
-.page-title{
-
-    color:#fff;
-
-    font-size:40px;
-    font-weight:800;
-
-    margin-bottom:35px;
+    margin: 40px auto 80px;
 
 }
 
-.list-grid{
+.page-title {
 
-    display:grid;
+    color: #fff;
 
-    grid-template-columns:repeat(5,minmax(0,1fr));
+    font-size: 40px;
+    font-weight: 800;
 
-    gap:25px;
-
-}
-
-.list-card{
-
-    text-decoration:none;
-
-    color:#fff;
+    margin-bottom: 35px;
 
 }
 
-.list-card img{
+.list-grid {
 
-    width:100%;
-    height:270px;
+    display: grid;
 
-    object-fit:cover;
+    /* Desktop: 6 cột x 4 hàng = 24 truyện/trang */
+    grid-template-columns: repeat(6, minmax(0, 1fr));
 
-    border-radius:10px;
-
-    transition:.25s;
+    gap: 25px;
 
 }
 
-.list-card:hover img{
+.list-card {
 
-    transform:translateY(-6px);
+    text-decoration: none;
 
-}
-
-.list-card h3{
-
-    margin-top:10px;
-
-    font-size:15px;
-
-    font-weight:700;
-
-    line-height:1.4;
-
-    display:-webkit-box;
-
-    -webkit-line-clamp:2;
-    line-clamp:2;
-
-    -webkit-box-orient:vertical;
-
-    overflow:hidden;
+    color: #fff;
 
 }
 
-.pagination{
+.list-card img {
 
-    margin-top:50px;
+    width: 100%;
+    height: 270px;
 
-    display:flex;
+    object-fit: cover;
 
-    justify-content:center;
-    align-items:center;
+    border-radius: 10px;
 
-    gap:20px;
-
-}
-
-.page-btn{
-
-    background:#2563eb;
-
-    color:#fff;
-
-    padding:12px 22px;
-
-    border-radius:8px;
-
-    text-decoration:none;
-
-    font-weight:700;
-
-    transition:.2s;
+    transition: .25s;
 
 }
 
-.page-btn:hover{
+.list-card:hover img {
 
-    background:#1d4ed8;
-
-}
-
-.page-btn.disabled{
-
-    background:#3a3a3a;
-
-    cursor:not-allowed;
-
-    pointer-events:none;
+    transform: translateY(-6px);
 
 }
 
-.page-number{
+.list-card h3 {
 
-    color:#fff;
+    margin-top: 10px;
 
-    font-weight:700;
+    font-size: 15px;
+
+    font-weight: 700;
+
+    line-height: 1.4;
+
+    display: -webkit-box;
+
+    -webkit-line-clamp: 2;
+    line-clamp: 2;
+
+    -webkit-box-orient: vertical;
+
+    overflow: hidden;
+
+}
+
+.pagination {
+
+    margin-top: 50px;
+
+    display: flex;
+
+    justify-content: center;
+    align-items: center;
+
+    gap: 20px;
+
+}
+
+.page-btn {
+
+    background: #2563eb;
+
+    color: #fff;
+
+    padding: 12px 22px;
+
+    border-radius: 8px;
+
+    text-decoration: none;
+
+    font-weight: 700;
+
+    transition: .2s;
+
+}
+
+.page-btn:hover {
+
+    background: #1d4ed8;
+
+}
+
+.page-btn.disabled {
+
+    background: #3a3a3a;
+
+    cursor: not-allowed;
+
+    pointer-events: none;
+
+}
+
+.page-number {
+
+    color: #fff;
+
+    font-weight: 700;
 
 }

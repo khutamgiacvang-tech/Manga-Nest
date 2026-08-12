@@ -221,6 +221,26 @@ body.search-overlay-open {
 }
 
 /* ==========================
+   SEARCH BACKDROP (nền đen phía dưới thanh search,
+   bấm vào để thoát - giống cuutruyen)
+========================== */
+
+.search-backdrop {
+    position: fixed;
+    inset: 0;
+    z-index: 1190;
+    background: rgba(0, 0, 0, .65);
+    opacity: 0;
+    visibility: hidden;
+    transition: opacity .25s ease, visibility .28s;
+}
+
+.search-backdrop.active {
+    opacity: 1;
+    visibility: visible;
+}
+
+/* ==========================
    SEARCH DROPDOWN (nằm trong overlay)
 ========================== */
 

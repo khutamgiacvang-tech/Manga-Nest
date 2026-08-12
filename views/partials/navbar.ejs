@@ -2,7 +2,7 @@
     <div class="container">
         <!-- Logo -->
         <a href="/" class="logo">
-            📚 <span>MangaNest</span>
+            <span class="logo-icon">📚</span> <span>MangaNest</span>
         </a>
 
         <!-- Menu -->
@@ -165,6 +165,9 @@
         </div>
     </div>
 
+    <!-- Nền đen phía sau khi mở search (bấm vào đây để đóng, giống cuutruyen) -->
+    <div class="search-backdrop" id="searchBackdrop"></div>
+
     <!-- Overlay Search (kiểu cuutruyen: bấm kính lúp -> đổ xuống che navbar) -->
     <div class="search-overlay" id="searchOverlay">
         <div class="search-overlay-inner">
@@ -232,6 +235,7 @@
     (function(){
         const toggleBtn = document.getElementById('searchToggleBtn');
         const overlay = document.getElementById('searchOverlay');
+        const backdrop = document.getElementById('searchBackdrop');
         const closeBtn = document.getElementById('searchCloseBtn');
         const overlayInput = document.getElementById('searchInput');
 
@@ -239,6 +243,7 @@
 
         function openOverlay(){
             overlay.classList.add('active');
+            if (backdrop) backdrop.classList.add('active');
             document.body.classList.add('search-overlay-open');
             // Focus vào ô input sau khi hiệu ứng đổ xuống bắt đầu
             setTimeout(() => overlayInput && overlayInput.focus(), 150);
@@ -246,6 +251,7 @@
 
         function closeOverlay(){
             overlay.classList.remove('active');
+            if (backdrop) backdrop.classList.remove('active');
             document.body.classList.remove('search-overlay-open');
         }
 
@@ -262,6 +268,11 @@
             closeBtn.addEventListener('click', closeOverlay);
         }
 
+        // Bấm vào vùng nền đen phía dưới -> đóng search
+        if (backdrop) {
+            backdrop.addEventListener('click', closeOverlay);
+        }
+
         // ESC để tắt
         document.addEventListener('keydown', function(e){
             if (e.key === 'Escape' && overlay.classList.contains('active')) {
@@ -272,7 +283,7 @@
         // Click ra ngoài thanh search (nhưng vẫn trong overlay, hoặc bên ngoài overlay) để tắt
         document.addEventListener('click', function(e){
             if (!overlay.classList.contains('active')) return;
-            if (!e.target.closest('.search-overlay') && !e.target.closest('.search-toggle-btn')) {
+            if (!e.target.closest('.search-overlay') && !e.target.closest('.search-toggle-btn') && !e.target.closest('.search-backdrop')) {
                 closeOverlay();
             }
         });
