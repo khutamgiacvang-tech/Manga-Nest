@@ -726,6 +726,29 @@
     }
 }
 
+/* --- Tablet: quản lý truyện / upload chapter / đổi cover-banner / đăng truyện --- */
+@media (max-width: 1024px) {
+
+    .translator-page,
+    .upload-page {
+        width: 94%;
+    }
+
+    .manage-layout {
+        grid-template-columns: 220px 1fr;
+        gap: 24px;
+    }
+
+    .upload-card,
+    .translator-card {
+        padding: 30px;
+    }
+
+    .dashboard {
+        grid-template-columns: repeat(2, 1fr);
+    }
+}
+
 @media(max-width:900px) {
 
     .manage-layout {
@@ -734,6 +757,39 @@
 
     }
 
+    .left-panel {
+        flex-direction: row;
+        align-items: flex-start;
+        gap: 24px;
+    }
+
+    .manage-cover {
+        width: 160px;
+        flex-shrink: 0;
+    }
+
+    .left-buttons {
+        flex: 1;
+        margin-top: 0;
+        display: flex;
+        align-items: center;
+    }
+
+    .left-buttons .upload-btn {
+        width: 100%;
+    }
+
+    .form-grid {
+        grid-template-columns: 1fr;
+    }
+
+    .form-group.full {
+        grid-column: auto;
+    }
+
+    .image-grid {
+        grid-template-columns: 1fr;
+    }
 }
 
 /* ============================================================
@@ -1267,6 +1323,42 @@
         gap: 22px;
     }
 
+    .left-panel {
+        flex-direction: column;
+    }
+
+    .manage-cover {
+        width: 100%;
+        max-width: 220px;
+        margin: 0 auto;
+    }
+
+    .left-buttons {
+        width: 100%;
+    }
+
+    .manage-buttons {
+        gap: 10px;
+    }
+
+    .manage-buttons .edit-btn,
+    .manage-buttons .delete-btn {
+        flex: 1 1 calc(50% - 10px);
+        min-width: 140px;
+        text-align: center;
+    }
+
+    .manage-buttons .upload-btn {
+        flex: 1 1 100%;
+        width: 100%;
+        min-width: 0;
+        text-align: center;
+    }
+
+    .chapter-list-scroll {
+        max-height: 520px;
+    }
+
     .chapter-card {
         flex-direction: column;
         align-items: flex-start;
@@ -1291,6 +1383,11 @@
         font-size: 19px;
     }
 
+    .chapter-status-badge {
+        margin-left: 0;
+        margin-top: 6px;
+    }
+
     .info-table td:first-child {
         width: 40%;
     }
@@ -1298,6 +1395,29 @@
     .translator-page .upload-card,
     .upload-card {
         padding: 24px 18px;
+    }
+
+    .genre-box {
+        gap: 8px;
+    }
+
+    .genre-item span {
+        padding: 8px 14px;
+        font-size: 14px;
+    }
+
+    .edit-actions {
+        flex-direction: column;
+    }
+
+    .edit-actions .submit-btn {
+        order: 1;
+    }
+
+    .cancel-btn {
+        width: 100%;
+        padding: 14px;
+        order: 2;
     }
 }
 
@@ -1310,6 +1430,46 @@
     .translator-avatar-large {
         width: 90px;
         height: 90px;
+    }
+
+    .manage-title {
+        font-size: 22px;
+    }
+
+    .chapter-title {
+        font-size: 20px;
+    }
+
+    .chapter-card {
+        padding: 16px;
+    }
+
+    .chapter-info h3 {
+        font-size: 17px;
+    }
+
+    .info-table td {
+        padding: 10px 6px;
+        font-size: 13.5px;
+    }
+
+    .info-table td:first-child {
+        width: 46%;
+    }
+
+    .manage-buttons .edit-btn,
+    .manage-buttons .delete-btn {
+        flex: 1 1 100%;
+    }
+
+    .upload-card h1,
+    .edit-chapter-card h1 {
+        font-size: 24px;
+    }
+
+    .translator-page .upload-card,
+    .upload-card {
+        padding: 20px 14px;
     }
 }
 
