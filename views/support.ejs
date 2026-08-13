@@ -174,25 +174,31 @@
     }
     .info-row{
       display:flex;
+      flex-wrap:wrap;
       justify-content:space-between;
       align-items:center;
       padding:14px 0;
       border-bottom:1px solid var(--border);
-      gap:12px;
+      gap:8px 12px;
     }
     .info-row:last-of-type{border-bottom:none;}
     .info-label{
+      flex-shrink:0;
       font-size:12.5px;
       color:var(--ink-dim);
       text-transform:uppercase;
       letter-spacing:1px;
     }
     .info-value{
+      flex:1 1 auto;
+      min-width:0;
+      overflow-wrap:break-word;
       font-weight:700;
       font-size:15.5px;
       letter-spacing:0.5px;
     }
     .copy-btn{
+      flex-shrink:0;
       background:var(--bg-0);
       border:1px solid var(--border);
       color:var(--ink);

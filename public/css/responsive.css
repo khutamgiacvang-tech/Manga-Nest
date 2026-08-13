@@ -490,13 +490,34 @@
 
 @media(max-width:900px) {
 
+    /* Bỏ kiểu "tràn 105% rồi kéo về giữa bằng left/transform" của
+       desktop trên mobile & tablet - kiểu đó dễ bị lệch dính sát
+       mép phải màn hình. Thay bằng width% + margin:auto đơn giản,
+       giống hệt cách .section đang canh giữa (an toàn, luôn đúng). */
+    .hero {
+        position: static;
+        left: auto;
+        transform: none;
+
+        width: 92%;
+        max-width: 100%;
+
+        margin: 30px auto 20px;
+    }
+
     .hero-slide {
         flex-basis: 96%;
         height: 360px;
     }
 
+    /* Tiêu đề chỉ hiện 1 dòng trên mobile/tablet, dài quá sẽ bị
+       cắt và hiện dấu "..." thay vì xuống dòng nhiều lần */
     .hero-info h1 {
         font-size: 22px;
+
+        white-space: nowrap;
+        overflow: hidden;
+        text-overflow: ellipsis;
     }
 
     .hero-cta {
@@ -719,6 +740,7 @@
 @media (max-width: 900px) {
     .my-manga-status-columns {
         flex-direction: column;
+        gap: 18px;
     }
 
     .my-manga-status-column {
@@ -1296,6 +1318,213 @@
     }
 }
 
+@media (max-width: 480px) {
+
+    .admin-page {
+        padding: 0 12px;
+        margin: 24px auto;
+    }
+
+    .admin-page h1 {
+        font-size: 20px;
+        margin-bottom: 24px;
+    }
+
+    .chart-box {
+        padding: 16px;
+    }
+
+    .chart-box h4 {
+        font-size: 13px;
+    }
+
+    .chart-box canvas {
+        max-height: 190px;
+    }
+
+    .status-column,
+    .management-col {
+        padding: 14px;
+    }
+
+    .section-title h2 {
+        font-size: 16px;
+    }
+
+    .section-title span {
+        font-size: 12px;
+    }
+
+    .status-column-body,
+    .management-list {
+        max-height: 560px;
+    }
+
+    .application-left {
+        gap: 10px;
+    }
+
+    .user-avatar {
+        width: 48px;
+        height: 48px;
+    }
+
+    .manga-cover-thumb {
+        width: 48px;
+        height: 64px;
+    }
+
+    .application-left h3 {
+        font-size: 13.5px;
+    }
+
+    .application-left p {
+        font-size: 12px;
+        margin: 4px 0;
+    }
+
+    .application-left small {
+        font-size: 11px;
+    }
+
+    .status {
+        padding: 4px 10px;
+        font-size: 11.5px;
+    }
+
+    .view-btn {
+        padding: 7px 14px;
+        font-size: 12.5px;
+    }
+
+    .management-item {
+        padding: 12px 4px;
+        gap: 10px;
+        flex-wrap: wrap;
+    }
+
+    .management-item img {
+        width: 38px;
+        height: 38px;
+    }
+
+    .management-info {
+        min-width: 60%;
+    }
+
+    .management-actions {
+        width: 100%;
+        justify-content: flex-end;
+    }
+}
+
+/* -----------------------------
+   Nguồn gốc: admin.css - Nhật ký bình luận / chương truyện
+   (fix vỡ layout: item không tự xuống dòng -> info bị bóp
+   quá hẹp khiến chữ tự xuống dòng theo từng từ/ký tự)
+----------------------------- */
+
+@media (max-width: 700px) {
+
+    .comment-log-item,
+    .chapter-log-item {
+        flex-direction: column;
+        align-items: flex-start;
+        gap: 10px;
+    }
+
+    .comment-log-item>img,
+    .chapter-log-cover {
+        align-self: flex-start;
+    }
+
+    .comment-log-info {
+        width: 100%;
+    }
+
+    .comment-log-top {
+        width: 100%;
+    }
+
+    .comment-log-manga {
+        width: 100%;
+    }
+
+    .comment-log-manga a {
+        max-width: 100%;
+        white-space: normal;
+        word-break: break-word;
+    }
+
+    .comment-log-content {
+        width: 100%;
+        box-sizing: border-box;
+    }
+
+    .comment-log-actions {
+        width: 100%;
+        justify-content: flex-end;
+        align-self: stretch;
+        margin-top: 2px;
+    }
+
+}
+
+@media (max-width: 480px) {
+
+    .comment-log-list,
+    .chapter-log-list {
+        max-height: 560px;
+        gap: 10px;
+    }
+
+    .comment-log-item,
+    .chapter-log-item {
+        padding: 12px 14px;
+        gap: 8px;
+    }
+
+    .comment-log-item>img {
+        width: 40px;
+        height: 40px;
+    }
+
+    .chapter-log-cover {
+        width: 52px;
+        height: 72px;
+    }
+
+    .comment-log-top strong {
+        font-size: 13px;
+    }
+
+    .comment-log-time {
+        font-size: 11px;
+    }
+
+    .comment-log-manga {
+        font-size: 11.5px;
+    }
+
+    .comment-log-content {
+        font-size: 12.5px;
+        padding: 8px 10px;
+    }
+
+    .chapter-log-reason {
+        font-size: 11.5px;
+        padding: 5px 10px;
+    }
+
+    .comment-log-actions .btn-lock,
+    .comment-log-actions .btn-unlock,
+    .comment-log-actions .btn-delete-account {
+        padding: 6px 10px;
+        font-size: 11px;
+    }
+
+}
+
 /* -----------------------------
    Nguồn gốc: translator.css
 ----------------------------- */
@@ -1471,6 +1700,74 @@
     .upload-card {
         padding: 20px 14px;
     }
+
+    /* --- Truyện của tôi (translator) --- */
+
+    .my-manga-page h1 {
+        font-size: 20px;
+    }
+
+    .dashboard-card {
+        padding: 16px;
+    }
+
+    .dashboard-card h3 {
+        font-size: 28px;
+        margin-bottom: 8px;
+    }
+
+    .dashboard-card strong {
+        font-size: 22px;
+    }
+
+    .my-manga-status-column {
+        padding: 16px;
+        min-width: 100%;
+    }
+
+    .my-manga-section-title h2 {
+        font-size: 16px;
+    }
+
+    .my-manga-column-body {
+        max-height: 560px;
+    }
+
+    .my-manga-list-card {
+        padding: 14px 16px;
+        gap: 10px;
+    }
+
+    .my-manga-list-left {
+        gap: 10px;
+    }
+
+    .my-manga-thumb {
+        width: 54px;
+        height: 74px;
+    }
+
+    .my-manga-list-left h3 {
+        font-size: 14px;
+    }
+
+    .my-manga-list-left p {
+        font-size: 12px;
+    }
+
+    .my-manga-list-left small {
+        font-size: 11px;
+    }
+
+    .my-manga-status {
+        padding: 4px 10px;
+        font-size: 11px;
+    }
+
+    .my-manga-manage-btn {
+        padding: 7px 12px;
+        font-size: 12px;
+    }
 }
 
 /* ============================================================
@@ -1545,6 +1842,10 @@
         margin-bottom: 6px;
 
         color: #fff;
+
+        white-space: nowrap;
+        overflow: hidden;
+        text-overflow: ellipsis;
     }
 
     .hero-desc {
