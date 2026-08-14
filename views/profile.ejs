@@ -535,10 +535,26 @@
 
             if (!subscription) {
                 const vapidPublicKey = await getVapidPublicKey();
-                subscription = await registration.pushManager.subscribe({
-                    userVisibleOnly: true,
-                    applicationServerKey: urlBase64ToUint8Array(vapidPublicKey)
-                });
+                try {
+                    subscription = await registration.pushManager.subscribe({
+                        userVisibleOnly: true,
+                        applicationServerKey: urlBase64ToUint8Array(vapidPublicKey)
+                    });
+                } catch (err) {
+                    // Một số thiết bị có sẵn subscription cũ được tạo bằng key
+                    // sai định dạng (từ phiên bản trước hoặc trình duyệt khác),
+                    // khiến subscribe() báo lỗi lệch applicationServerKey. Hủy
+                    // subscription cũ rồi thử đăng ký lại một lần nữa trước khi
+                    // báo lỗi thật sự cho người dùng.
+                    const staleSubscription = await registration.pushManager.getSubscription();
+                    if (staleSubscription) {
+                        await staleSubscription.unsubscribe();
+                    }
+                    subscription = await registration.pushManager.subscribe({
+                        userVisibleOnly: true,
+                        applicationServerKey: urlBase64ToUint8Array(vapidPublicKey)
+                    });
+                }
             }
 
             const response = await fetch('/api/save-subscription', {
