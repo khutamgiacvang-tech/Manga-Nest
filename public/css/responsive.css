@@ -265,35 +265,10 @@
 
 }
 
-@media (max-width: 768px) {
-    /* Panel dính sát mép màn hình, không bo góc, không có khoảng
-       trống xung quanh — giống cách #floatingNav dính chặt vào cạnh
-       màn hình (không "nổi" giữa như bản modal trước đó). */
-    .comment-panel {
-        top: 0;
-        right: -100%;
-        left: auto;
-        bottom: 0;
-
-        width: 100%;
-        max-width: none;
-        height: 100dvh;
-        max-height: none;
-
-        border-radius: 0;
-
-        opacity: 1;
-        transform: none;
-        pointer-events: auto;
-        visibility: visible;
-
-        transition: right .3s ease;
-    }
-
-    .comment-panel.open {
-        right: 0;
-    }
-}
+/* Widget bình luận giờ dùng chung 1 kiểu (góc dưới-trái, kích thước
+   giới hạn theo calc(100vw/100vh - 40px)) cho mọi kích thước màn
+   hình nên không cần override riêng cho mobile nữa — xem .comment-panel
+   trong style.css. */
 
 /* ==========================================================
    FLOATING NAV (trang đọc chương) trên mobile/tablet:

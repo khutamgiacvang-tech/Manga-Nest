@@ -1775,11 +1775,29 @@ body.zen-immersive .zen-image {
 }
 
 .comment-overlay {
+    /* Panel giờ là widget nhỏ ở góc màn hình (giống #floatingNav),
+       không còn che kín màn hình nữa nên không cần lớp phủ tối phía
+       sau — vẫn giữ lớp này (trong suốt) để bắt sự kiện click ra
+       ngoài nhằm đóng panel lại. */
     display: none;
     position: fixed;
     inset: 0;
-    background: rgba(0, 0, 0, .5);
+    background: transparent;
     z-index: 9997;
+}
+
+/* Khóa cuộn trang (và ảnh truyện) phía sau khi bảng bình luận đang mở,
+   để kéo trên panel không làm nội dung truyện cuộn/di chuyển theo.
+   Dùng position:fixed trên body kèm lưu lại vị trí cuộn (xử lý bằng
+   JS) là cách chống scroll-through đáng tin cậy nhất trên mobile,
+   overflow:hidden một mình không đủ để chặn touch scroll ở Safari/
+   Chrome iOS & Android trong mọi trường hợp. */
+body.comment-lock-scroll {
+    position: fixed;
+    left: 0;
+    right: 0;
+    overflow: hidden;
+    width: 100%;
 }
 
 .comment-overlay.open {
@@ -1787,20 +1805,22 @@ body.zen-immersive .zen-image {
 }
 
 .comment-panel {
+    /* Widget nhỏ dính chặt góc dưới-trái màn hình, giống #floatingNav,
+       thay vì chiếm hết/gần hết màn hình như các bản trước. */
     position: fixed;
-    top: 0;
-    right: -420px;
-    width: 400px;
-    max-width: 90vw;
-    height: 100vh;
-    /* Dùng dvh (dynamic viewport height) để khớp đúng vùng nhìn thấy thật
-       trên trình duyệt di động, tránh bị thanh địa chỉ/thanh điều hướng
-       làm panel cao hơn màn hình khiến khung nhập bình luận bị đẩy khuất
-       phía dưới. Trình duyệt không hỗ trợ dvh sẽ tự fallback về 100vh. */
-    height: 100dvh;
+    left: 20px;
+    bottom: 20px;
+    top: auto;
+    right: auto;
+
+    width: 380px;
+    max-width: calc(100vw - 40px);
+    height: min(600px, calc(100vh - 40px));
+    max-height: calc(100vh - 40px);
 
     background: #1b2030;
-    border-left: 1px solid #2f3545;
+    border: 1px solid #2f3545;
+    border-radius: 0;
 
     z-index: 9998;
 
@@ -1808,18 +1828,28 @@ body.zen-immersive .zen-image {
     flex-direction: column;
     /* Chặn nội dung bên trong tràn ra khỏi panel. Nếu không có dòng này,
        khi comment-list (flex:1) có nhiều nội dung, nó sẽ đẩy toàn bộ
-       panel cao hơn 100dvh thay vì tự cuộn bên trong, khiến khung nhập
-       bình luận + nút Gửi bị đẩy khuất, phải kéo cả panel xuống mới thấy. */
+       panel cao hơn kích thước đã đặt thay vì tự cuộn bên trong, khiến
+       khung nhập bình luận + nút Gửi bị đẩy khuất. */
     overflow: hidden;
 
-    transition: right .3s ease;
+    opacity: 0;
+    transform: translateY(12px) scale(.97);
+    pointer-events: none;
+    visibility: hidden;
 
-    box-shadow: -10px 0 30px rgba(0, 0, 0, .4);
+    transition: opacity .2s ease, transform .2s ease, visibility 0s linear .2s;
+
+    box-shadow: 0 10px 40px rgba(0, 0, 0, .5);
 }
 
 .comment-panel.open {
-    right: 0;
+    opacity: 1;
+    transform: translateY(0) scale(1);
+    pointer-events: auto;
+    visibility: visible;
+    transition: opacity .2s ease, transform .2s ease;
 }
+
 
 .comment-panel-header {
     display: flex;
