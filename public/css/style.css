@@ -1806,6 +1806,11 @@ body.zen-immersive .zen-image {
 
     display: flex;
     flex-direction: column;
+    /* Chặn nội dung bên trong tràn ra khỏi panel. Nếu không có dòng này,
+       khi comment-list (flex:1) có nhiều nội dung, nó sẽ đẩy toàn bộ
+       panel cao hơn 100dvh thay vì tự cuộn bên trong, khiến khung nhập
+       bình luận + nút Gửi bị đẩy khuất, phải kéo cả panel xuống mới thấy. */
+    overflow: hidden;
 
     transition: right .3s ease;
 
@@ -1824,6 +1829,8 @@ body.zen-immersive .zen-image {
     padding: 18px 20px;
 
     border-bottom: 1px solid #2f3545;
+    /* Không cho header bị co lại khi list bên dưới cần nhiều chỗ */
+    flex-shrink: 0;
 }
 
 .comment-panel-header h3 {
@@ -1844,6 +1851,11 @@ body.zen-immersive .zen-image {
 
 .comment-list {
     flex: 1;
+    /* Mặc định của flex item là min-height:auto (co theo nội dung),
+       khiến overflow-y:auto không có tác dụng khi nội dung dài.
+       Đặt min-height:0 để nó thực sự bị giới hạn trong phần còn lại
+       của panel và tự cuộn bên trong, thay vì đẩy panel cao lên. */
+    min-height: 0;
     overflow-y: auto;
     padding: 16px 20px;
 
@@ -1919,6 +1931,9 @@ body.zen-immersive .zen-image {
     padding: 16px 20px;
 
     border-top: 1px solid #2f3545;
+    /* Luôn dính đáy panel, giống cuutruyen, không bị flexbox co lại
+       hay bị comment-list đẩy khuất xuống dưới màn hình */
+    flex-shrink: 0;
 }
 
 .comment-input-box textarea {
