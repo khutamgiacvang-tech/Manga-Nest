@@ -140,13 +140,7 @@ exports.showCreate = async (req, res) => {
 
 exports.create = async (req, res) => {
   try {
-    const {
-      title,
-      alternativeTitles,
-      author,
-      description,
-      status,
-    } = req.body;
+    const { title, alternativeTitles, author, description, status } = req.body;
 
     let slug = slugify(title, {
       lower: true,
@@ -1618,10 +1612,11 @@ exports.showManga = async (req, res) => {
     }
 
     // =========================
-    // Tăng view
+    // Lượt xem của manga CHỈ được tính khi người dùng đọc chapter
+    // (xem hàm đọc chapter bên dưới), không tính khi chỉ vào trang
+    // chi tiết truyện — để "Lượt xem" ở THỐNG KÊ khớp với tổng lượt
+    // xem cộng dồn từ các chapter.
     // =========================
-
-    const viewedKey = `viewed_${manga._id}`;
 
     // =========================
     // Kiểm tra chủ truyện
@@ -1633,12 +1628,6 @@ exports.showManga = async (req, res) => {
       req.isAuthenticated() &&
       manga.translator &&
       manga.translator._id.toString() === req.user._id.toString();
-
-    if (!isOwner && !req.session[viewedKey]) {
-      manga.views += 1;
-      await manga.save();
-      req.session[viewedKey] = true;
-    }
 
     // =========================
     // Kiểm tra follow
