@@ -21,6 +21,12 @@
 
     <link rel="icon" type="image/png" href="/images/icon/favicon.png">
 
+    <!-- Web App Manifest: khai báo gcm_sender_id để khắc phục lỗi
+         "Registration failed - push service error" khi bật thông báo
+         đẩy trên một số thiết bị Android/Chrome (thiếu manifest khiến
+         dịch vụ push của Google từ chối đăng ký trên các máy đó). -->
+    <link rel="manifest" href="/manifest.json">
+
     <link href="https://fonts.googleapis.com/css2?family=Be+Vietnam+Pro:wght@300;400;500;600;700;800&display=swap"
           rel="stylesheet">
 
@@ -174,7 +180,7 @@ Swal.fire({
 
     toast:true,
 
-    position:"top-end",
+    position:"bottom",
 
     icon:"success",
 
@@ -198,7 +204,7 @@ Swal.fire({
 
     toast:true,
 
-    position:"top-end",
+    position:"bottom",
 
     icon:"error",
 

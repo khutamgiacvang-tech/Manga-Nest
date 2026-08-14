@@ -271,13 +271,20 @@
    vì giữ nguyên margin 20px của bản desktop. */
 @media (max-width: 900px) {
     .comment-panel {
+        /* Giữ đúng kiểu widget nhỏ dính góc dưới-trái như hiện tại
+           trên mobile/tablet (khác với desktop giờ là panel trượt
+           từ mép trái cao hết màn hình). */
         left: 0;
+        top: auto;
         bottom: 0;
 
         width: 300px;
         max-width: 100vw;
         height: min(600px, 100dvh);
         max-height: 100dvh;
+
+        border-right: 1px solid #2f3545;
+        box-shadow: 0 10px 40px rgba(0, 0, 0, .5);
     }
 }
 
@@ -561,6 +568,14 @@
     .rank-row {
         grid-auto-columns: 86%;
         gap: 16px 18px;
+    }
+
+    /* Dòng "CHƯƠNG X - thời gian" trong card nổi bật: ép về đúng 1 dòng
+       trên mobile/tablet, dài quá thì cắt và hiện dấu "...". */
+    .rank-body p {
+        white-space: nowrap;
+        overflow: hidden;
+        text-overflow: ellipsis;
     }
 
     /* Truyện mới / Romcom / Đời thường: giữ đúng lưới 2 hàng cuộn ngang

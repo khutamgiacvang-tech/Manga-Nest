@@ -59,7 +59,7 @@
                                 <img
                                     src="<%= application.user.avatar || '/images/icon/avatar.png' %>"
                                     class="user-avatar"
-                                    onerror="this.src='/images/icon/avatar.png'">
+                                    onerror="this.onerror=null;this.src='/images/icon/avatar.png'">
 
                                 <div>
 
@@ -109,7 +109,7 @@
                                 <img
                                     src="<%= manga.cover || '/images/default-cover.jpg' %>"
                                     class="manga-cover-thumb"
-                                    onerror="this.src='/images/default-cover.jpg'">
+                                    onerror="this.onerror=null;this.src='/images/default-cover.jpg'">
 
                                 <div>
 
@@ -188,7 +188,7 @@
                                 <img
                                     src="<%= application.user.avatar || '/images/icon/avatar.png' %>"
                                     class="user-avatar"
-                                    onerror="this.src='/images/icon/avatar.png'">
+                                    onerror="this.onerror=null;this.src='/images/icon/avatar.png'">
 
                                 <div>
 
@@ -238,7 +238,7 @@
                                 <img
                                     src="<%= manga.cover || '/images/default-cover.jpg' %>"
                                     class="manga-cover-thumb"
-                                    onerror="this.src='/images/default-cover.jpg'">
+                                    onerror="this.onerror=null;this.src='/images/default-cover.jpg'">
 
                                 <div>
 
@@ -317,7 +317,7 @@
                                 <img
                                     src="<%= application.user.avatar || '/images/icon/avatar.png' %>"
                                     class="user-avatar"
-                                    onerror="this.src='/images/icon/avatar.png'">
+                                    onerror="this.onerror=null;this.src='/images/icon/avatar.png'">
 
                                 <div>
 
@@ -367,7 +367,7 @@
                                 <img
                                     src="<%= manga.cover || '/images/default-cover.jpg' %>"
                                     class="manga-cover-thumb"
-                                    onerror="this.src='/images/default-cover.jpg'">
+                                    onerror="this.onerror=null;this.src='/images/default-cover.jpg'">
 
                                 <div>
 
@@ -441,7 +441,7 @@
 
                     <img
                         src="<%= u.avatar || '/images/icon/avatar.png' %>"
-                        onerror="this.src='/images/icon/avatar.png'">
+                        onerror="this.onerror=null;this.src='/images/icon/avatar.png'">
 
                     <div class="management-info">
 
@@ -512,7 +512,7 @@
 
                     <img
                         src="<%= t.avatar || '/images/icon/avatar.png' %>"
-                        onerror="this.src='/images/icon/avatar.png'">
+                        onerror="this.onerror=null;this.src='/images/icon/avatar.png'">
 
                     <div class="management-info">
 
@@ -585,7 +585,7 @@
 
                     <img
                         src="<%= c.user?.avatar || '/images/icon/avatar.png' %>"
-                        onerror="this.src='/images/icon/avatar.png'">
+                        onerror="this.onerror=null;this.src='/images/icon/avatar.png'">
 
                     <div class="comment-log-info">
 
@@ -689,7 +689,7 @@
                     <img
                         src="<%= ch.manga?.cover || '/images/default-cover.jpg' %>"
                         class="chapter-log-cover"
-                        onerror="this.src='/images/default-cover.jpg'">
+                        onerror="this.onerror=null;this.src='/images/default-cover.jpg'">
 
                     <div class="comment-log-info">
 
@@ -1059,7 +1059,7 @@ async function banUser(id){
 
                 toast:true,
 
-                position:"top-end",
+                position:"bottom",
 
                 icon:"success",
 
@@ -1173,7 +1173,7 @@ async function banUser(id){
 
             toast:true,
 
-            position:"top-end",
+            position:"bottom",
 
             icon:"success",
 
@@ -1256,7 +1256,7 @@ if(el){
 
             Swal.fire({
                 toast: true,
-                position: "top-end",
+                position: "bottom",
                 icon: "success",
                 title: "Đã xóa tài khoản",
                 showConfirmButton: false,
@@ -1398,7 +1398,7 @@ async function toggleHideComment(id){
 
             Swal.fire({
                 toast: true,
-                position: "top-end",
+                position: "bottom",
                 icon: "success",
                 title: data.isHidden ? "Đã ẩn bình luận" : "Đã hiện bình luận",
                 showConfirmButton: false,
@@ -1492,7 +1492,7 @@ async function deleteCommentAdmin(id){
 
             Swal.fire({
                 toast: true,
-                position: "top-end",
+                position: "bottom",
                 icon: "success",
                 title: "Đã xóa bình luận",
                 showConfirmButton: false,
@@ -1637,7 +1637,7 @@ async function toggleHideChapter(id){
 
             Swal.fire({
                 toast: true,
-                position: "top-end",
+                position: "bottom",
                 icon: "success",
                 title: data.isHidden ? "Đã ẩn chương" : "Đã hiện chương",
                 showConfirmButton: false,
@@ -1730,7 +1730,7 @@ async function deleteChapterAdmin(id){
 
             Swal.fire({
                 toast: true,
-                position: "top-end",
+                position: "bottom",
                 icon: "success",
                 title: "Đã xóa chương",
                 showConfirmButton: false,

@@ -495,6 +495,16 @@
             return 'Notification' in window && 'serviceWorker' in navigator && 'PushManager' in window;
         }
 
+        function friendlyPushErrorMessage(err) {
+            const msg = err?.message || '';
+            if (/push service error|registration failed/i.test(msg)) {
+                return 'Thiết bị/trình duyệt của bạn đang chặn dịch vụ đẩy thông báo của Google. ' +
+                    'Hãy thử: cập nhật Google Play Services, kiểm tra kết nối mạng (một số mạng/VPN ' +
+                    'chặn dịch vụ này), hoặc đổi sang trình duyệt Chrome bản mới nhất rồi thử lại.';
+            }
+            return 'Lỗi khi bật thông báo: ' + msg;
+        }
+
         function urlBase64ToUint8Array(base64String) {
             const padding = '='.repeat((4 - (base64String.length % 4)) % 4);
             const base64 = (base64String + padding).replace(/-/g, '+').replace(/_/g, '/');
@@ -675,7 +685,7 @@
             } catch (err) {
                 console.error(err);
                 addStatusLine('Lỗi: ' + err.message, true);
-                showToast('Lỗi thiết lập thông báo đẩy: ' + err.message, true);
+                showToast(friendlyPushErrorMessage(err), true);
             }
         }
 
@@ -698,7 +708,7 @@
                     toggle.checked = false;
                     updateTestButtonState();
                     renderStatusLines(true, false);
-                    showToast('Lỗi khi bật thông báo: ' + err.message, true);
+                    showToast(friendlyPushErrorMessage(err), true);
                 }
                 return;
             }

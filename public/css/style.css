@@ -1694,6 +1694,8 @@ body.zen-immersive .zen-image {
     box-shadow: 0 5px 20px rgba(0, 0, 0, .4);
 
     border: 1px solid rgba(255, 255, 255, .06);
+
+    transition: transform .2s ease, opacity .2s ease;
 }
 
 .float-arrow {
@@ -1719,6 +1721,16 @@ body.zen-immersive .zen-image {
 
 .float-arrow:hover {
     background: #30364b;
+}
+
+/* Khi mở bảng bình luận (desktop) -> ẩn floatingNav đi, đóng bình
+   luận lại thì floatingNav hiện lại (giống cuutruyen). Bản mobile/
+   tablet có rule riêng đè lên trong responsive.css. */
+#floatingNav.hide-for-comment {
+    opacity: 0;
+    transform: translateY(12px);
+    pointer-events: none;
+    transition: transform .2s ease, opacity .2s ease;
 }
 
 .float-arrow.disabled {
@@ -1775,10 +1787,8 @@ body.zen-immersive .zen-image {
 }
 
 .comment-overlay {
-    /* Panel giờ là widget nhỏ ở góc màn hình (giống #floatingNav),
-       không còn che kín màn hình nữa nên không cần lớp phủ tối phía
-       sau — vẫn giữ lớp này (trong suốt) để bắt sự kiện click ra
-       ngoài nhằm đóng panel lại. */
+    /* Lớp phủ tối phía sau panel bình luận, bắt sự kiện click ra
+       ngoài để đóng panel lại. */
     display: none;
     position: fixed;
     inset: 0;
@@ -1802,24 +1812,32 @@ body.comment-lock-scroll {
 
 .comment-overlay.open {
     display: block;
+    /* Trên desktop panel giờ nằm sát mép trái cao hết màn hình
+       (giống cuutruyen) nên cần lớp phủ tối phía sau, thay vì
+       trong suốt như kiểu widget góc màn hình trước đây. */
+    background: rgba(0, 0, 0, .6);
 }
 
 .comment-panel {
-    /* Widget nhỏ dính chặt góc dưới-trái màn hình, giống #floatingNav,
-       thay vì chiếm hết/gần hết màn hình như các bản trước. */
+    /* Desktop: panel bình luận trượt ra từ mép trái màn hình, cao
+       hết chiều cao trang, giống cuutruyen — thay cho kiểu widget
+       nhỏ nổi ở góc dưới-trái trước đây. */
     position: fixed;
-    left: 20px;
-    bottom: 20px;
-    top: auto;
+    left: 0;
+    top: 0;
+    bottom: 0;
     right: auto;
 
-    width: 380px;
-    max-width: calc(100vw - 40px);
-    height: min(600px, calc(100vh - 40px));
-    max-height: calc(100vh - 40px);
+    width: 400px;
+    max-width: 100vw;
+    height: 100vh;
+    height: 100dvh;
+    max-height: 100vh;
+    max-height: 100dvh;
 
     background: #1b2030;
-    border: 1px solid #2f3545;
+    border: none;
+    border-right: 1px solid #2f3545;
     border-radius: 0;
 
     z-index: 9998;
@@ -1832,22 +1850,21 @@ body.comment-lock-scroll {
        khung nhập bình luận + nút Gửi bị đẩy khuất. */
     overflow: hidden;
 
-    opacity: 0;
-    transform: translateY(12px) scale(.97);
+    /* Trượt vào/ra từ mép trái thay vì mờ dần + trồi lên như trước. */
+    transform: translateX(-100%);
     pointer-events: none;
     visibility: hidden;
 
-    transition: opacity .2s ease, transform .2s ease, visibility 0s linear .2s;
+    transition: transform .25s ease, visibility 0s linear .25s;
 
-    box-shadow: 0 10px 40px rgba(0, 0, 0, .5);
+    box-shadow: 8px 0 40px rgba(0, 0, 0, .5);
 }
 
 .comment-panel.open {
-    opacity: 1;
-    transform: translateY(0) scale(1);
+    transform: translateX(0);
     pointer-events: auto;
     visibility: visible;
-    transition: opacity .2s ease, transform .2s ease;
+    transition: transform .25s ease;
 }
 
 

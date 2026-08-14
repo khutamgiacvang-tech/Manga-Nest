@@ -211,7 +211,8 @@ app.post("/api/test-push", async (req, res) => {
       title: "MangaNest Test",
       body: "Thông báo đẩy từ server hoạt động thành công rồi nhé! 🎉",
       icon: faviconUrl,
-      image: faviconUrl,
+      // Không gửi field "image" cho thông báo thử -> tránh hiện banner to,
+      // các thông báo thật (chương mới...) vẫn dùng field "image" bình thường.
       url: "/profile",
     });
 

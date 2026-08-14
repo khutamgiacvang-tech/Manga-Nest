@@ -596,3 +596,69 @@ Toast
     background: #3b82f6;
 
 }
+
+/*=========================
+SweetAlert2 Toast (flash message success/error)
+- Đưa xuống giữa dưới màn hình, nền màu đặc theo loại
+  (xanh lá = thành công, đỏ = lỗi), giống style cuutruyen.
+=========================*/
+
+.swal2-container.swal2-bottom {
+
+    padding-bottom: 30px !important;
+
+}
+
+.swal2-popup.swal2-toast {
+
+    background: #22314a !important;
+
+    border-radius: 12px !important;
+
+    padding: 14px 22px !important;
+
+    box-shadow: 0 15px 35px rgba(0, 0, 0, .35) !important;
+
+}
+
+.swal2-popup.swal2-toast .swal2-title {
+
+    color: #fff !important;
+
+    font-weight: 600 !important;
+
+    font-size: 15px !important;
+
+    margin: 0 !important;
+
+}
+
+.swal2-popup.swal2-toast .swal2-icon {
+
+    display: none !important;
+
+}
+
+.swal2-popup.swal2-toast.swal2-icon-success {
+
+    background: #22c55e !important;
+
+}
+
+.swal2-popup.swal2-toast.swal2-icon-error {
+
+    background: #ef4444 !important;
+
+}
+
+.swal2-popup.swal2-toast.swal2-icon-warning {
+
+    background: #f59e0b !important;
+
+}
+
+.swal2-popup.swal2-toast.swal2-icon-info {
+
+    background: #3b82f6 !important;
+
+}

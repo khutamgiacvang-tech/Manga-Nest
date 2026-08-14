@@ -959,7 +959,7 @@ function renderCommentItem(c){
             <img
                 src="${c.avatar}"
                 class="comment-avatar"
-                onerror="this.src='/images/icon/avatar.png'"
+                onerror="this.onerror=null;this.src='/images/icon/avatar.png'"
             >
 
             <div class="comment-body">
@@ -1255,11 +1255,12 @@ function toggleCommentPanel(){
     // Khóa/mở khóa cuộn trang truyện: mở bình luận -> khóa cuộn nền lại
     // (giữ nguyên vị trí đang đọc), đóng bình luận -> trả lại đúng vị
     // trí cuộn cũ để không bị nhảy trang.
-    // Chỉ áp dụng trên mobile/tablet (<=900px) — trên desktop panel chỉ
-    // là widget nhỏ ở góc, không cần chặn cuộn trang truyện phía sau.
-    const isMobileOrTablet = window.matchMedia("(max-width: 900px)").matches;
-
-    if(isOpen && isMobileOrTablet){
+    // Áp dụng cho MỌI kích thước màn hình — panel giờ nằm che một phần
+    // màn hình (desktop: mép trái cao hết trang; mobile/tablet: góc
+    // dưới-trái) nên khi đang mở bình luận, lăn chuột/kéo ở vùng truyện
+    // phía sau sẽ không cuộn trang được nữa, phải đóng bình luận lại
+    // mới thao tác cuộn tiếp được, giống cuutruyen.
+    if(isOpen){
 
         lockedScrollY = window.scrollY || window.pageYOffset || 0;
 

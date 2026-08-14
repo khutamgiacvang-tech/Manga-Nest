@@ -1627,7 +1627,18 @@ exports.showManga = async (req, res) => {
 
     const viewedKey = `viewed_${manga._id}`;
 
-    if (!req.session[viewedKey]) {
+    // =========================
+    // Kiểm tra chủ truyện
+    // manga.translator đã được populate ở trên nên phải so sánh qua
+    // manga.translator._id (không dùng .toString() trực tiếp trên object)
+    // =========================
+
+    const isOwner =
+      req.isAuthenticated() &&
+      manga.translator &&
+      manga.translator._id.toString() === req.user._id.toString();
+
+    if (!isOwner && !req.session[viewedKey]) {
       manga.views += 1;
       await manga.save();
       req.session[viewedKey] = true;
@@ -1644,15 +1655,6 @@ exports.showManga = async (req, res) => {
         (id) => id.toString() === manga._id.toString(),
       );
     }
-
-    // =========================
-    // Kiểm tra chủ truyện
-    // =========================
-
-    const isOwner =
-      req.isAuthenticated() &&
-      manga.translator &&
-      manga.translator._id.toString() === req.user._id.toString();
 
     // =========================
     // Render
@@ -1831,7 +1833,14 @@ exports.readChapter = async (req, res) => {
 
     let shouldCountView = false;
 
-    if (req.user) {
+    // Chủ truyện (translator) hoặc người upload chương tự xem lại chương
+    // của mình (để kiểm tra sau khi đăng) thì KHÔNG tính view.
+    const isOwnerOrUploader =
+      req.user &&
+      (req.user._id.toString() === manga.translator?.toString() ||
+        req.user._id.toString() === chapter.uploadedBy?.toString());
+
+    if (req.user && !isOwnerOrUploader) {
       // Đã đăng nhập: dùng DB để nhớ vĩnh viễn, không phụ thuộc session
       // (tránh bị tính view lại khi session hết hạn hoặc đổi trình duyệt/thiết bị)
       try {
