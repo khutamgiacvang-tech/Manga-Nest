@@ -919,6 +919,8 @@ const commentCountBadge = document.getElementById("commentCount");
 const commentPanelCount = document.getElementById("commentPanelCount");
 
 let commentsLoaded = false;
+let lockedScrollY = 0;
+let commentTouchMoveHandler = null;
 
 function escapeHtml(text){
 
@@ -1248,6 +1250,52 @@ function toggleCommentPanel(){
     // Bấm vào bình luận -> ẩn floatingNav, thoát bình luận -> hiện lại (giống cuutruyen)
     if(floatingNav){
         floatingNav.classList.toggle("hide-for-comment", isOpen);
+    }
+
+    // Khóa/mở khóa cuộn trang truyện: mở bình luận -> khóa cuộn nền lại
+    // (giữ nguyên vị trí đang đọc), đóng bình luận -> trả lại đúng vị
+    // trí cuộn cũ để không bị nhảy trang.
+    // Chỉ áp dụng trên mobile/tablet (<=900px) — trên desktop panel chỉ
+    // là widget nhỏ ở góc, không cần chặn cuộn trang truyện phía sau.
+    const isMobileOrTablet = window.matchMedia("(max-width: 900px)").matches;
+
+    if(isOpen && isMobileOrTablet){
+
+        lockedScrollY = window.scrollY || window.pageYOffset || 0;
+
+        document.body.style.top = `-${lockedScrollY}px`;
+
+        document.body.classList.add("comment-lock-scroll");
+
+        // Chỉ khóa CSS (position:fixed trên body) đôi khi không đủ để
+        // chặn cuộn trên di động thực tế (một số trình duyệt vẫn cho
+        // scroll-chaining/rubber-band). Chặn thêm touchmove ở tầng JS:
+        // mọi thao tác kéo bên NGOÀI danh sách bình luận sẽ bị chặn,
+        // kéo bên trong danh sách vẫn cuộn bình thường.
+        commentTouchMoveHandler = function(e){
+            if(!commentList.contains(e.target)){
+                e.preventDefault();
+            }
+        };
+
+        document.addEventListener("touchmove", commentTouchMoveHandler, { passive: false });
+
+    } else if(!isOpen && document.body.classList.contains("comment-lock-scroll")){
+
+        document.body.classList.remove("comment-lock-scroll");
+
+        document.body.style.top = "";
+
+        window.scrollTo(0, lockedScrollY);
+
+        if(commentTouchMoveHandler){
+
+            document.removeEventListener("touchmove", commentTouchMoveHandler, { passive: false });
+
+            commentTouchMoveHandler = null;
+
+        }
+
     }
 
     if(isOpen && !commentsLoaded){

@@ -1887,6 +1887,10 @@ body.comment-lock-scroll {
        của panel và tự cuộn bên trong, thay vì đẩy panel cao lên. */
     min-height: 0;
     overflow-y: auto;
+    /* Chặn scroll-chaining: cuộn hết danh sách (chạm đỉnh/đáy) sẽ
+       không kéo tràn sang cuộn trang truyện phía sau nữa (hay gặp
+       trên iOS Safari dù đã khóa cuộn body). */
+    overscroll-behavior: contain;
     padding: 16px 20px;
 
     display: flex;
