@@ -82,14 +82,6 @@ const mangaSchema = new mongoose.Schema(
       trim: true,
     },
 
-    artist: {
-      type: String,
-
-      default: "",
-
-      trim: true,
-    },
-
     // =========================
     // Thể loại
     // =========================
@@ -124,18 +116,6 @@ const mangaSchema = new mongoose.Schema(
       enum: ["ongoing", "completed", "hiatus"],
 
       default: "ongoing",
-    },
-
-    // =========================
-    // Độ tuổi
-    // =========================
-
-    ageRating: {
-      type: String,
-
-      enum: ["all", "16+", "18+"],
-
-      default: "all",
     },
 
     // =========================

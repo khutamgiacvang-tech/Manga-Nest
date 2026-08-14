@@ -144,10 +144,8 @@ exports.create = async (req, res) => {
       title,
       alternativeTitles,
       author,
-      artist,
       description,
       status,
-      ageRating,
     } = req.body;
 
     let slug = slugify(title, {
@@ -224,12 +222,10 @@ exports.create = async (req, res) => {
       banner,
       bannerPublicId,
       author,
-      artist,
-      description,
+      description: description ? description.trim() : description,
       genres,
       publishStatus: status,
       status: "pending",
-      ageRating,
       translator: req.user._id,
     });
     await manga.save();
@@ -707,10 +703,10 @@ exports.updateManga = async (req, res) => {
           .filter((i) => i !== "")
       : [];
     manga.author = req.body.author;
-    manga.artist = req.body.artist;
-    manga.description = req.body.description;
+    manga.description = req.body.description
+      ? req.body.description.trim()
+      : req.body.description;
     manga.publishStatus = req.body.publishStatus;
-    manga.ageRating = req.body.ageRating;
     manga.genres = req.body.genres
       ? Array.isArray(req.body.genres)
         ? req.body.genres

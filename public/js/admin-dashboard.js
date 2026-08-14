@@ -274,11 +274,6 @@ async function openManga(id) {
     </div>
 
     <div class="info-box">
-        <strong>Artist</strong>
-        <p>${manga.artist || "Không có"}</p>
-    </div>
-
-    <div class="info-box">
         <strong>Thể loại</strong>
         <p>
             ${manga.genres ? manga.genres.join(", ") : "Không có"}
@@ -288,11 +283,6 @@ async function openManga(id) {
     <div class="info-box">
         <strong>Mô tả</strong>
         <p>${manga.description || "Không có mô tả."}</p>
-    </div>
-
-    <div class="info-box">
-        <strong>Age Rating</strong>
-        <p>${manga.ageRating || "All"}</p>
     </div>
 
     <div class="info-box">

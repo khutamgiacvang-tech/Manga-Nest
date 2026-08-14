@@ -724,6 +724,8 @@ main {
     line-height: 2;
 
     color: #d6d9e5;
+
+    white-space: pre-line;
 }
 
 /* =========================

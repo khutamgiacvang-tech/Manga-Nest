@@ -15,7 +15,6 @@
                 <h1><%= manga.title %></h1>
                 <div class="author-line">
                     <span><strong>Tác giả:</strong> <%= manga.author || "Đang cập nhật" %></span>
-                    <span><strong>Họa sĩ:</strong> <%= manga.artist || "Đang cập nhật" %></span>
                 </div>
 
                 <div class="genre-list">
@@ -121,9 +120,7 @@
 
             <hr>
 
-            <div class="description-content">
-                <%= manga.description || "Chưa có mô tả." %>
-            </div>
+            <div class="description-content"><%= (manga.description || "Chưa có mô tả.").trim() %></div>
 
         </div>
 
