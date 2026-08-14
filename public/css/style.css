@@ -1793,6 +1793,11 @@ body.zen-immersive .zen-image {
     width: 400px;
     max-width: 90vw;
     height: 100vh;
+    /* Dùng dvh (dynamic viewport height) để khớp đúng vùng nhìn thấy thật
+       trên trình duyệt di động, tránh bị thanh địa chỉ/thanh điều hướng
+       làm panel cao hơn màn hình khiến khung nhập bình luận bị đẩy khuất
+       phía dưới. Trình duyệt không hỗ trợ dvh sẽ tự fallback về 100vh. */
+    height: 100dvh;
 
     background: #1b2030;
     border-left: 1px solid #2f3545;
