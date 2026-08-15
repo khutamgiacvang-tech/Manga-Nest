@@ -1,0 +1,108 @@
+<div class="notif-page">
+
+    <div class="notif-page-header">
+        <h1>
+            🔔 Thông báo
+        </h1>
+
+        <% if(unread.length > 0){ %>
+        <button
+            class="notif-mark-all-btn"
+            onclick="markAllRead()">
+            <i class="fa-solid fa-check-double"></i>
+            Đánh dấu tất cả là đã đọc
+        </button>
+        <% } %>
+    </div>
+
+    <% if(unread.length === 0 && read.length === 0){ %>
+
+        <div class="empty-box">
+            Chưa có thông báo.
+        </div>
+
+    <% } else { %>
+
+        <% if(unread.length > 0){ %>
+        <div class="notif-section">
+            <h2 class="notif-section-title">
+                Chưa đọc
+            </h2>
+
+            <div class="notif-list">
+                <% unread.forEach(notification => { %>
+                    <a href="<%= notification.link %>"
+                        data-id="<%= notification._id %>"
+                        class="notification-item unread"
+                        onclick="readNotification(event,this)">
+
+                        <div class="notification-label">
+                            <%= notification.title %>
+                        </div>
+
+                        <div class="notification-body">
+                            <img
+                                class="notification-cover"
+                                src="<%= notification.image ? notification.image : '/images/icon/avatar.png' %>"
+                                alt="">
+
+                            <div class="notification-content">
+                                <p class="notification-message">
+                                    <%= notification.message %>
+                                </p>
+
+                                <small>
+                                    <%= notification.createdAt.toLocaleString("vi-VN") %>
+                                </small>
+                            </div>
+                        </div>
+
+                    </a>
+                <% }) %>
+            </div>
+        </div>
+        <% } %>
+
+        <% if(read.length > 0){ %>
+        <div class="notif-section">
+            <h2 class="notif-section-title">
+                Đã đọc
+            </h2>
+
+            <div class="notif-list">
+                <% read.forEach(notification => { %>
+                    <a href="<%= notification.link %>"
+                        data-id="<%= notification._id %>"
+                        class="notification-item"
+                        onclick="readNotification(event,this)">
+
+                        <div class="notification-label">
+                            <%= notification.title %>
+                        </div>
+
+                        <div class="notification-body">
+                            <img
+                                class="notification-cover"
+                                src="<%= notification.image ? notification.image : '/images/icon/avatar.png' %>"
+                                alt="">
+
+                            <div class="notification-content">
+                                <p class="notification-message">
+                                    <%= notification.message %>
+                                </p>
+
+                                <small>
+                                    <%= notification.createdAt.toLocaleString("vi-VN") %>
+                                </small>
+                            </div>
+                        </div>
+
+                    </a>
+                <% }) %>
+            </div>
+        </div>
+        <% } %>
+
+    <% } %>
+
+</div>

@@ -43,4 +43,14 @@ const notificationSchema = new mongoose.Schema(
 // scan + sort trong RAM mỗi lần load bất kỳ trang nào.
 notificationSchema.index({ user: 1, createdAt: -1 });
 
+// TTL index: MongoDB tự động xoá thông báo sau 7 ngày kể từ createdAt.
+// Lưu ý: TTL index phải là index đơn (single-field) trên field kiểu Date,
+// không dùng chung được với index compound ở trên nên phải tạo riêng.
+// MongoDB chạy 1 background job kiểm tra mỗi ~60s để xoá các doc hết hạn,
+// nên việc xoá không diễn ra chính xác ngay giây thứ 7 ngày mà có độ trễ nhỏ.
+notificationSchema.index(
+  { createdAt: 1 },
+  { expireAfterSeconds: 7 * 24 * 60 * 60 },
+);
+
 module.exports = mongoose.model("Notification", notificationSchema);

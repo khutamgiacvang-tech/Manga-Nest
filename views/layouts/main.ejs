@@ -63,6 +63,8 @@
 
     <link rel="stylesheet" href="/css/history.css">
 
+    <link rel="stylesheet" href="/css/notifications.css">
+
     <link rel="stylesheet" href="/css/banned.css">
 
     <link rel="stylesheet" href="/css/policy.css">
@@ -159,6 +161,14 @@ async function markAllRead(){
         if(badge){
 
             badge.remove();
+
+        }
+
+        const markAllBtn=document.querySelector(".notif-mark-all-btn");
+
+        if(markAllBtn){
+
+            markAllBtn.remove();
 
         }
 

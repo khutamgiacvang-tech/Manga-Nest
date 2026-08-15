@@ -1,0 +1,143 @@
+.notif-page {
+    max-width: 900px;
+    margin: 40px auto;
+    padding: 0 20px;
+    font-family: inherit;
+    color: #e2e8f0;
+}
+
+.notif-page-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    flex-wrap: wrap;
+    gap: 12px;
+    margin-bottom: 30px;
+}
+
+.notif-page-header h1 {
+    font-size: 24px;
+    font-weight: 700;
+    margin: 0;
+    color: #ffffff;
+    text-transform: uppercase;
+}
+
+.notif-mark-all-btn {
+    border: none;
+    background: #5865F2;
+    color: #fff;
+    padding: 10px 16px;
+    border-radius: 8px;
+    cursor: pointer;
+    font-size: 13px;
+    font-weight: 600;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    transition: .2s;
+}
+
+.notif-mark-all-btn:hover {
+    background: #4752c4;
+}
+
+.notif-section {
+    margin-bottom: 30px;
+}
+
+.notif-section-title {
+    font-size: 14px;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: .5px;
+    color: #94a3b8;
+    margin: 0 0 14px;
+    padding-bottom: 8px;
+    border-bottom: 1px solid #2a2f40;
+}
+
+.notif-list {
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+}
+
+.notif-list .notification-item {
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
+    text-decoration: none;
+    color: inherit;
+    background: #1e222f;
+    padding: 14px;
+    border-radius: 12px;
+    border: 1px solid #2a2f40;
+    box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.2);
+    transition: border-color .2s, transform .2s;
+}
+
+.notif-list .notification-item:hover {
+    border-color: #38bdf8;
+}
+
+.notif-list .notification-item.unread {
+    background: #232a4a;
+    border-left: 4px solid #5865F2;
+}
+
+.notif-list .notification-label {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    font-size: 13px;
+    color: #9aa0aa;
+}
+
+.notif-list .notification-body {
+    display: flex;
+    align-items: flex-start;
+    gap: 12px;
+}
+
+.notif-list .notification-cover {
+    width: 48px;
+    height: 48px;
+    flex-shrink: 0;
+    object-fit: cover;
+    border-radius: 8px;
+    background: #222;
+}
+
+.notif-list .notification-content {
+    flex: 1;
+    min-width: 0;
+}
+
+.notif-list .notification-message {
+    margin: 0 0 4px;
+    color: #f8fafc;
+}
+
+.notif-list .notification-content small {
+    color: #94a3b8;
+    font-size: 12px;
+}
+
+/* ==========================
+   RESPONSIVE - MOBILE (<=560px)
+========================== */
+@media (max-width: 560px) {
+    .notif-page {
+        margin: 24px auto;
+    }
+
+    .notif-page-header h1 {
+        font-size: 20px;
+    }
+
+    .notif-mark-all-btn {
+        width: 100%;
+        justify-content: center;
+    }
+}

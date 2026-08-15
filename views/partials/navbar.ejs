@@ -36,7 +36,7 @@
                     <% } %>
                 </button>
 
-                <div class="notification-menu">
+                <div class="notification-menu" id="notificationMenu">
                     <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:12px;">
                         <h4 style="margin:0;">
                             🔔 Thông báo
@@ -44,7 +44,7 @@
                         <% if(notifications.length > 0){ %>
                         <button
                             onclick="markAllRead()"
-                            style="border:none;background:#5865F2;color:#fff;padding:6px 12px;border-radius:6px;cursor:pointer;">
+                            class="notif-action-btn">
                             Đọc tất cả
                         </button>
                         <% } %>
@@ -86,6 +86,12 @@
                                 Chưa có thông báo.
                             </div>
                         <% } %>
+                    </div>
+
+                    <div class="notification-footer" id="notificationFooter">
+                        <a href="/notifications" class="notif-action-btn">
+                            Xem tất cả thông báo
+                        </a>
                     </div>
                 </div>
             </div>
@@ -226,6 +232,19 @@
 
         .notification-message {
             margin: 0;
+        }
+
+        .notification-footer {
+            padding: 12px 18px;
+            border-top: 1px solid #2f3442;
+            position: sticky;
+            bottom: 0;
+            background: #232631;
+        }
+
+        .notification-footer a {
+            display: block;
+            text-decoration: none;
         }
     </style>
 
@@ -407,10 +426,22 @@
         const notifDropdown = document.querySelector('.notification-dropdown');
         const notifBtn = document.querySelector('.notification-btn');
         const userDropdown = document.querySelector('.user-dropdown');
+        const notifMenu = document.getElementById('notificationMenu');
+        const notifFooter = document.getElementById('notificationFooter');
 
         function closeAll(except){
             if(notifDropdown && notifDropdown !== except) notifDropdown.classList.remove('active');
             if(userDropdown && userDropdown !== except) userDropdown.classList.remove('active');
+        }
+
+        function checkNotifScrollEnd(){
+            if(!notifMenu || !notifFooter) return;
+            const atBottom = notifMenu.scrollTop + notifMenu.clientHeight >= notifMenu.scrollHeight - 10;
+            notifFooter.classList.toggle('show', atBottom);
+        }
+
+        if(notifMenu){
+            notifMenu.addEventListener('scroll', checkNotifScrollEnd);
         }
 
         if(notifBtn){
@@ -418,7 +449,10 @@
                 e.stopPropagation();
                 const isActive = notifDropdown.classList.contains('active');
                 closeAll();
-                if(!isActive) notifDropdown.classList.add('active');
+                if(!isActive){
+                    notifDropdown.classList.add('active');
+                    setTimeout(checkNotifScrollEnd, 50);
+                }
             });
         }
 
