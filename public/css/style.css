@@ -2183,3 +2183,14 @@ body.comment-lock-scroll {
     opacity: .6;
     cursor: not-allowed;
 }
+
+/* =========================
+   SweetAlert2 (popup xác nhận/thông báo) — luôn phải nổi trên MỌI
+   lớp phủ khác trong site (panel bình luận z-index 9998, overlay
+   9997, v.v...). Mặc định SweetAlert2 chỉ dùng z-index 1060 nên
+   trước đây bị các lớp phủ trên đè lên, khiến người dùng phải đóng
+   panel bình luận lại mới bấm được nút "Xóa"/"Hủy".
+   ========================= */
+.swal2-container {
+    z-index: 100000 !important;
+}

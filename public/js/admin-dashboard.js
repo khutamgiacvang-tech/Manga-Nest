@@ -6,11 +6,56 @@ const modalImage = document.getElementById("modalImage");
 const closeImage = document.getElementById("closeImage");
 
 // ==========================
+// Khoá/mở cuộn trang nền khi mở popup (đơn / ảnh)
+// Dùng position:fixed trên body (kèm lưu lại đúng vị trí đang cuộn)
+// thay vì chỉ overflow:hidden đơn thuần — overflow:hidden một mình
+// làm mất vị trí cuộn hiện tại (trang tự nhảy về đầu khi mở popup).
+// Cùng cách đang dùng cho panel bình luận ở trang đọc chapter.
+// ==========================
+
+let lockedScrollY = 0;
+
+function lockBodyScroll() {
+  // Đã bị khóa từ 1 popup khác rồi (VD: mở ảnh trong lúc popup đơn
+  // đang mở) -> không lưu lại scrollY lần nữa, vì lúc này body đang
+  // position:fixed nên window.scrollY luôn = 0.
+  if (document.body.classList.contains("modal-open")) {
+    return;
+  }
+
+  lockedScrollY = window.scrollY || window.pageYOffset || 0;
+
+  document.body.style.top = `-${lockedScrollY}px`;
+
+  document.documentElement.classList.add("modal-open");
+  document.body.classList.add("modal-open");
+}
+
+function unlockBodyScroll() {
+  const anyModalStillOpen =
+    modal.style.display === "flex" || imageModal.style.display === "flex";
+
+  if (anyModalStillOpen) {
+    return;
+  }
+
+  document.documentElement.classList.remove("modal-open");
+  document.body.classList.remove("modal-open");
+
+  document.body.style.top = "";
+
+  // Trả lại đúng vị trí đang đọc trước khi mở popup, thay vì để trang
+  // nhảy về đầu.
+  window.scrollTo(0, lockedScrollY);
+}
+
+// ==========================
 // Mở popup đơn
 // ==========================
 
 async function openApplication(id) {
   modal.style.display = "flex";
+  lockBodyScroll();
 
   content.innerHTML = `<div class="loading">⏳ Đang tải dữ liệu...</div>`;
 
@@ -220,6 +265,7 @@ onclick="reject('${app._id}')">
 
 async function openManga(id) {
   modal.style.display = "flex";
+  lockBodyScroll();
 
   content.innerHTML = `
         <div class="loading">
@@ -358,6 +404,7 @@ async function openManga(id) {
 
 function closeApplication() {
   modal.style.display = "none";
+  unlockBodyScroll();
 }
 
 // ==========================
@@ -547,10 +594,12 @@ function showImage(src) {
   modalImage.src = src.replace(/\\/g, "/");
 
   imageModal.style.display = "flex";
+  lockBodyScroll();
 }
 
 function closeImageModal() {
   imageModal.style.display = "none";
+  unlockBodyScroll();
 }
 
 closeImage.addEventListener("click", closeImageModal);

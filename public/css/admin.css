@@ -1,3 +1,30 @@
+/* Khoá cuộn trang nền khi đang mở popup đơn / popup ảnh (xem
+   admin-dashboard.js -> lockBodyScroll/unlockBodyScroll). Dùng
+   position:fixed (kèm lưu top = -scrollY bằng JS) thay vì chỉ
+   overflow:hidden đơn thuần, vì overflow:hidden một mình làm mất vị
+   trí cuộn hiện tại -> trang tự nhảy về đầu mỗi khi mở popup. Thêm
+   cả html để chặn triệt để trên mobile/tablet (Safari iOS đôi khi vẫn
+   cuộn được visual viewport nếu chỉ khoá body). */
+html.modal-open {
+
+    overflow: hidden;
+
+}
+
+body.modal-open {
+
+    position: fixed;
+
+    left: 0;
+
+    right: 0;
+
+    width: 100%;
+
+    overflow: hidden;
+
+}
+
 .admin-page {
 
     width: 100%;
