@@ -19,9 +19,7 @@ const passport = require("./config/passport");
 const Notification = require("./models/Notification");
 const timeAgo = require("./utils/timeAgo");
 const checkBan = require("./middleware/checkBan");
-const {
-  startViewsResetScheduler,
-} = require("./utils/viewsResetScheduler");
+const { startViewsResetScheduler } = require("./utils/viewsResetScheduler");
 
 // =====================
 // INIT APP
@@ -120,7 +118,7 @@ app.use(async (req, res, next) => {
       .sort({ createdAt: -1 })
       .limit(8)
       .select("title message link image isRead createdAt")
-      .lean();
+      .lean(); // .lean() -> trả plain object, bỏ overhead tạo Mongoose document (chạy trên MỌI request nên càng cần nhẹ nhất có thể)
 
     res.locals.notifications = notifications;
 

@@ -1437,40 +1437,121 @@ exports.updateChapter = async (req, res) => {
 
 exports.showManga = async (req, res) => {
   try {
+    // .lean() vì bên dưới không còn gọi manga.save() trong hàm này nữa
+    // (view chỉ cần đọc dữ liệu để render) -> bỏ overhead tạo Mongoose
+    // document, nhanh hơn đáng kể.
     const manga = await Manga.findOne({
       slug: req.params.slug,
       status: "approved",
-    }).populate(
-      "translator",
-      "username displayName avatar followedManga facebook",
-    );
+    })
+      .populate(
+        "translator",
+        "username displayName avatar followedManga facebook",
+      )
+      .lean();
 
     if (!manga) {
       return res.redirect("/");
     }
 
     // =========================
-    // Đếm số truyện của translator
+    // Các query độc lập với nhau -> chạy song song bằng Promise.all
+    // thay vì await tuần tự từng cái một. Trước đây mỗi query phải đợi
+    // xong query trước mới bắt đầu, cộng dồn latency lại (đặc biệt là
+    // network round-trip tới MongoDB Atlas) -> đây là nguyên nhân chính
+    // khiến trang chi tiết truyện load chậm.
     // =========================
 
-    if (manga.translator) {
-      const mangaCount = await Manga.countDocuments({
-        translator: manga.translator._id,
-        status: "approved",
-      });
+    let [
+      chapters,
+      mangaCount,
+      chapterCommentCounts,
+      totalComments,
+      history,
+      similarManga,
+    ] = await Promise.all([
+      Chapter.find({
+        manga: manga._id,
+        isHidden: { $ne: true },
+      }).lean(),
 
-      manga.translator = manga.translator.toObject();
+      manga.translator
+        ? Manga.countDocuments({
+            translator: manga.translator._id,
+            status: "approved",
+          })
+        : Promise.resolve(0),
+
+      // Match theo manga (đã có index) thay vì đợi danh sách chapter
+      // xong rồi mới match theo mảng chapter._id -> bỏ được 1 tầng
+      // phụ thuộc, chạy song song được với chapters ở trên.
+      Comment.aggregate([
+        {
+          $match: {
+            manga: manga._id,
+            isHidden: { $ne: true },
+          },
+        },
+        {
+          $group: {
+            _id: "$chapter",
+            count: { $sum: 1 },
+          },
+        },
+      ]),
+
+      Comment.countDocuments({
+        manga: manga._id,
+        isHidden: { $ne: true },
+      }),
+
+      req.isAuthenticated()
+        ? ReadingHistory.find({
+            user: req.user._id,
+            manga: manga._id,
+          }).lean()
+        : Promise.resolve([]),
+
+      Manga.aggregate([
+        {
+          $match: {
+            _id: { $ne: manga._id },
+            status: "approved",
+            genres: { $in: manga.genres },
+          },
+        },
+        {
+          $addFields: {
+            commonTags: {
+              $size: {
+                $setIntersection: ["$genres", manga.genres],
+              },
+            },
+          },
+        },
+        {
+          $sort: {
+            commonTags: -1,
+            follows: -1,
+            views: -1,
+            updatedAt: -1,
+          },
+        },
+        {
+          $limit: 20,
+        },
+      ]),
+    ]);
+
+    manga.comments = totalComments;
+
+    if (manga.translator) {
       manga.translator.mangaCount = mangaCount;
     }
 
     // =========================
-    // Lấy danh sách chapter (sắp xếp đúng)
+    // Sắp xếp danh sách chapter
     // =========================
-
-    let chapters = await Chapter.find({
-      manga: manga._id,
-      isHidden: { $ne: true },
-    }).lean();
 
     const getChapterValue = (value) => {
       const text = String(value).trim();
@@ -1498,24 +1579,11 @@ exports.showManga = async (req, res) => {
     // Số bình luận riêng của từng chương
     // =========================
 
-    const chapterCommentCounts = await Comment.aggregate([
-      {
-        $match: {
-          chapter: { $in: chapters.map((c) => c._id) },
-          isHidden: { $ne: true },
-        },
-      },
-      {
-        $group: {
-          _id: "$chapter",
-          count: { $sum: 1 },
-        },
-      },
-    ]);
-
     const commentCountMap = {};
     chapterCommentCounts.forEach((item) => {
-      commentCountMap[item._id.toString()] = item.count;
+      if (item._id) {
+        commentCountMap[item._id.toString()] = item.count;
+      }
     });
 
     chapters.forEach((c) => {
@@ -1527,11 +1595,6 @@ exports.showManga = async (req, res) => {
     // =========================
 
     if (req.isAuthenticated()) {
-      const history = await ReadingHistory.find({
-        user: req.user._id,
-        manga: manga._id,
-      }).lean();
-
       const progressMap = {};
       history.forEach((h) => {
         progressMap[String(h.chapterNumber)] = h.progress || 0;
@@ -1552,40 +1615,12 @@ exports.showManga = async (req, res) => {
     }
 
     // =========================
-    // Truyện tương tự
+    // Truyện tương tự (đã lấy ở khối Promise.all phía trên)
+    // Lấy chapter mới nhất của toàn bộ truyện tương tự bằng 1 aggregate
+    // query (chỉ chạy được sau khi đã có similarManga nên vẫn phải
+    // await tuần tự ở đây).
     // =========================
 
-    let similarManga = await Manga.aggregate([
-      {
-        $match: {
-          _id: { $ne: manga._id },
-          status: "approved",
-          genres: { $in: manga.genres },
-        },
-      },
-      {
-        $addFields: {
-          commonTags: {
-            $size: {
-              $setIntersection: ["$genres", manga.genres],
-            },
-          },
-        },
-      },
-      {
-        $sort: {
-          commonTags: -1,
-          follows: -1,
-          views: -1,
-          updatedAt: -1,
-        },
-      },
-      {
-        $limit: 20,
-      },
-    ]);
-
-    // Lấy chapter mới nhất của toàn bộ truyện tương tự bằng 1 aggregate query.
     if (similarManga.length > 0) {
       const latestChapters = await Chapter.aggregate([
         { $match: { manga: { $in: similarManga.map((item) => item._id) } } },
@@ -1643,16 +1678,9 @@ exports.showManga = async (req, res) => {
 
     // =========================
     // Render
+    // (số bình luận thực tế đã lấy ở khối Promise.all phía trên -
+    // biến totalComments -> gán vào manga.comments)
     // =========================
-
-    // =========================
-    // Số bình luận thực tế (không dùng số lưu sẵn vì có thể bị lệch)
-    // =========================
-
-    manga.comments = await Comment.countDocuments({
-      manga: manga._id,
-      isHidden: { $ne: true },
-    });
 
     res.render("manga/detail", {
       title: manga.title,
@@ -1744,19 +1772,43 @@ exports.toggleFollow = async (req, res) => {
 
 exports.readChapter = async (req, res) => {
   try {
+    // .lean() vì phần tăng view bên dưới sẽ chuyển sang dùng
+    // Manga.updateOne({$inc}) thay vì manga.save() (atomic hơn, và
+    // không cần load full Mongoose document).
     const manga = await Manga.findOne({
       slug: req.params.slug,
       status: "approved",
-    });
+    }).lean();
 
     if (!manga) {
       return res.redirect("/");
     }
 
-    const chapter = await Chapter.findOne({
-      manga: manga._id,
-      chapterNumber: String(req.params.number),
-    }).lean();
+    const chapterNumber = String(req.params.number);
+
+    // 3 query này đều chỉ phụ thuộc vào manga._id (không phụ thuộc lẫn
+    // nhau) -> chạy song song thay vì tuần tự từng cái một.
+    const [chapter, allChapters, historyDoc] = await Promise.all([
+      Chapter.findOne({
+        manga: manga._id,
+        chapterNumber,
+      }).lean(),
+
+      Chapter.find({
+        manga: manga._id,
+        isHidden: { $ne: true },
+      })
+        .sort({ chapterOrder: 1 })
+        .lean(),
+
+      req.user
+        ? ReadingHistory.findOne({
+            user: req.user._id,
+            manga: manga._id,
+            chapterNumber,
+          }).lean()
+        : Promise.resolve(null),
+    ]);
 
     if (!chapter) {
       return res.redirect("/manga/" + manga.slug);
@@ -1791,13 +1843,6 @@ exports.readChapter = async (req, res) => {
     }
 
     // =========================
-
-    const allChapters = await Chapter.find({
-      manga: manga._id,
-      isHidden: { $ne: true },
-    })
-      .sort({ chapterOrder: 1 })
-      .lean();
 
     const currentIndex = allChapters.findIndex(
       (c) => c._id.toString() === chapter._id.toString(),
@@ -1847,30 +1892,27 @@ exports.readChapter = async (req, res) => {
     }
 
     if (shouldCountView) {
-      manga.views += 1;
-      manga.weeklyViews += 1;
-      manga.monthlyViews += 1;
+      // Dùng $inc atomic trực tiếp trên DB thay vì load cả document rồi
+      // .save() lại -> nhanh hơn và tránh mất dữ liệu nếu có 2 request
+      // ghi đè lên nhau cùng lúc (race condition). 2 lệnh update độc
+      // lập -> chạy song song.
+      await Promise.all([
+        Manga.updateOne(
+          { _id: manga._id },
+          { $inc: { views: 1, weeklyViews: 1, monthlyViews: 1 } },
+        ),
+        Chapter.updateOne({ _id: chapter._id }, { $inc: { views: 1 } }),
+      ]);
 
-      await manga.save();
-
-      await Chapter.updateOne({ _id: chapter._id }, { $inc: { views: 1 } });
+      // manga là object lean (không tự đồng bộ với DB) -> cộng thêm ở
+      // local để trang render ra vẫn thấy số view mới nhất ngay lập tức.
+      manga.views = (manga.views || 0) + 1;
+      manga.weeklyViews = (manga.weeklyViews || 0) + 1;
+      manga.monthlyViews = (manga.monthlyViews || 0) + 1;
     }
 
-    let savedScroll = 0;
-    let savedProgress = 0;
-
-    if (req.user) {
-      const history = await ReadingHistory.findOne({
-        user: req.user._id,
-        manga: manga._id,
-        chapterNumber: chapter.chapterNumber,
-      });
-
-      if (history) {
-        savedScroll = history.scrollPosition || 0;
-        savedProgress = history.progress || 0;
-      }
-    }
+    const savedScroll = historyDoc?.scrollPosition || 0;
+    const savedProgress = historyDoc?.progress || 0;
 
     res.render("manga/read", {
       title: `${manga.title} - Chapter ${chapter.chapterNumber}`,

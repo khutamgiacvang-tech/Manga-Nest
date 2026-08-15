@@ -179,18 +179,6 @@ const mangaSchema = new mongoose.Schema(
       default: 0,
     },
 
-    rating: {
-      type: Number,
-
-      default: 0,
-    },
-
-    totalRatings: {
-      type: Number,
-
-      default: 0,
-    },
-
     comments: {
       type: Number,
       default: 0,
@@ -232,5 +220,28 @@ mangaSchema.pre("save", function () {
     this.titleNormalized = removeVietnameseTones(this.title);
   }
 });
+
+// =========================
+// Index tối ưu hiệu suất
+// =========================
+// Hầu hết query đều lọc status:"approved" trước rồi mới sort theo 1
+// trong các field views/weeklyViews/monthlyViews/lastUpdated (trang chủ,
+// trang chi tiết truyện, bảng xếp hạng translator...). Không có các
+// compound index này thì MỖI query đều phải quét toàn bộ collection
+// rồi sort trong RAM -> đây là nguyên nhân lớn khiến trang chủ và
+// trang chi tiết truyện load chậm khi số lượng manga tăng lên.
+mangaSchema.index({ status: 1, lastUpdated: -1 });
+mangaSchema.index({ status: 1, views: -1 });
+mangaSchema.index({ status: 1, weeklyViews: -1 });
+mangaSchema.index({ status: 1, monthlyViews: -1 });
+mangaSchema.index({ status: 1, follows: -1 });
+
+// Phục vụ query lọc theo thể loại (romcom, đời thường ở trang chủ,
+// và "truyện tương tự" ở trang chi tiết).
+mangaSchema.index({ status: 1, genres: 1 });
+
+// Phục vụ đếm/liệt kê truyện theo dịch giả (trang "Truyện của tôi",
+// trang quản lý của translator).
+mangaSchema.index({ translator: 1, status: 1 });
 
 module.exports = mongoose.model("Manga", mangaSchema);

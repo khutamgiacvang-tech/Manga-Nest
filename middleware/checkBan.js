@@ -1,5 +1,3 @@
-const User = require("../models/User");
-
 module.exports = async (req, res, next) => {
   try {
     // Chưa đăng nhập
@@ -7,25 +5,17 @@ module.exports = async (req, res, next) => {
       return next();
     }
 
-    const user = await User.findById(req.user._id);
-
-    if (!user) {
-      return next();
-    }
-
-    console.log("CHECKBAN user.status:", user.status, "| path:", req.path);
+    // Passport (deserializeUser) đã load user đầy đủ từ DB cho request
+    // này rồi -> KHÔNG query lại User.findById() ở đây nữa. Trước đây
+    // mỗi request của user đã đăng nhập phải cõng thêm 1 round-trip DB
+    // hoàn toàn thừa (mỗi lần click là thêm 1 lần gọi DB), đây là 1
+    // trong những nguyên nhân chính khiến trang load chậm.
+    const user = req.user;
 
     // Không bị ban
     if (user.status !== "banned") {
       return next();
     }
-
-    console.log(
-      "CHECKBAN user IS banned, isPermanentBan:",
-      user.isPermanentBan,
-      "banUntil:",
-      user.banUntil,
-    );
 
     // =========================
     // Ban còn hiệu lực
@@ -57,8 +47,6 @@ module.exports = async (req, res, next) => {
     user.isPermanentBan = false;
 
     await user.save();
-
-    console.log("CHECKBAN: Auto unban", user.email);
 
     next();
   } catch (err) {
