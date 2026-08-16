@@ -201,7 +201,7 @@
 
                 <div class="policy-accordion-panel">
 
-                    <p>Nếu bạn muốn liên hệ với chúng tôi để hiểu thêm về Điều khoản này hoặc muốn liên hệ với chúng tôi về bất kỳ vấn đề nào liên quan, bạn có thể gửi email tới <a href="mailto:ad.manganest@gmail.com">ad.manganest@gmail.com</a>.</p>
+                    <p>Nếu bạn muốn liên hệ với chúng tôi để hiểu thêm về Điều khoản này hoặc muốn liên hệ với chúng tôi về bất kỳ vấn đề nào liên quan, bạn có thể gửi email tới <span class="contact-email"><a href="mailto:ad.manganest@gmail.com">ad.manganest@gmail.com</a><button type="button" class="copy-email-btn" data-email="ad.manganest@gmail.com" title="Sao chép địa chỉ email" aria-label="Sao chép địa chỉ email"><i class="fa-regular fa-copy"></i></button></span>.</p>
 
                 </div>
 
@@ -288,7 +288,7 @@
 
                 <div class="policy-accordion-panel">
 
-                    <p>Nếu bạn muốn liên hệ với chúng tôi để hiểu thêm về Chính sách này hoặc muốn liên hệ với chúng tôi về bất kỳ vấn đề nào liên quan đến quyền cá nhân và Thông tin cá nhân của bạn, bạn có thể gửi email tới <a href="mailto:ad.manganest@gmail.com">ad.manganest@gmail.com</a>.</p>
+                    <p>Nếu bạn muốn liên hệ với chúng tôi để hiểu thêm về Chính sách này hoặc muốn liên hệ với chúng tôi về bất kỳ vấn đề nào liên quan đến quyền cá nhân và Thông tin cá nhân của bạn, bạn có thể gửi email tới <span class="contact-email"><a href="mailto:ad.manganest@gmail.com">ad.manganest@gmail.com</a><button type="button" class="copy-email-btn" data-email="ad.manganest@gmail.com" title="Sao chép địa chỉ email" aria-label="Sao chép địa chỉ email"><i class="fa-regular fa-copy"></i></button></span>.</p>
 
                 </div>
 
@@ -334,6 +334,82 @@
 
     });
 
+    // Nút copy email dự phòng: nhiều máy (đặc biệt trên Windows/Chrome)
+    // không có sẵn ứng dụng email mặc định, nên bấm link mailto: sẽ
+    // không có gì xảy ra. Nút này cho phép copy email ngay cả khi đó.
+    const copyBtns = document.querySelectorAll(".copy-email-btn");
+
+    copyBtns.forEach(btn => {
+
+        btn.addEventListener("click", async () => {
+
+            const email = btn.dataset.email;
+
+            try {
+                await navigator.clipboard.writeText(email);
+            } catch (err) {
+                // Fallback cho trình duyệt cũ không hỗ trợ Clipboard API
+                const tempInput = document.createElement("input");
+                tempInput.value = email;
+                document.body.appendChild(tempInput);
+                tempInput.select();
+                document.execCommand("copy");
+                document.body.removeChild(tempInput);
+            }
+
+            const icon = btn.querySelector("i");
+            icon.classList.remove("fa-copy");
+            icon.classList.add("fa-check");
+
+            if (typeof Swal !== "undefined") {
+                Swal.fire({
+                    toast: true,
+                    position: "bottom",
+                    icon: "success",
+                    title: "Đã copy email!",
+                    showConfirmButton: false,
+                    timer: 1800
+                });
+            }
+
+            setTimeout(() => {
+                icon.classList.remove("fa-check");
+                icon.classList.add("fa-copy");
+            }, 1800);
+
+        });
+
+    });
+
 })();
 
 </script>
+
+<style>
+
+    .contact-email {
+        display: inline-flex;
+        align-items: center;
+        gap: 6px;
+    }
+
+    .copy-email-btn {
+        border: none;
+        background: transparent;
+        color: #94a3b8;
+        cursor: pointer;
+        padding: 2px 4px;
+        font-size: 13px;
+        line-height: 1;
+        transition: color .2s;
+    }
+
+    .copy-email-btn:hover {
+        color: #5865F2;
+    }
+
+    .copy-email-btn .fa-check {
+        color: #22c55e;
+    }
+
+</style>
