@@ -32,48 +32,57 @@ exports.dashboard = async (req, res) => {
     }
 
     // ==========================
-    // Đơn Translator
+    // Chạy song song toàn bộ các query độc lập với nhau bằng Promise.all
+    // thay vì await tuần tự từng cái một. Trước đây dashboard có ~15
+    // round-trip DB nối tiếp nhau (mỗi round-trip vài chục-vài trăm ms)
+    // -> cộng dồn thành 2-5s mỗi lần load. Query nào không phụ thuộc kết
+    // quả của query khác thì cho chạy cùng lúc, tổng thời gian chỉ còn
+    // bằng query chậm nhất thay vì tổng tất cả.
+    //
+    // Đồng thời thêm .lean() (view chỉ đọc, không gọi method của Mongoose
+    // document) và .select() trên populate (chỉ lấy field thật sự dùng ở
+    // danh sách; bấm vào từng đơn/truyện sẽ gọi getApplication/getManga
+    // fetch lại đầy đủ riêng) để giảm tải dữ liệu + thời gian dựng document.
     // ==========================
 
-    const pendingApplications = await TranslatorApplication.find({
-      status: "pending",
-    })
-      .populate("user")
-      .sort({ createdAt: -1 });
+    const [
+      pendingApplications,
+      approvedApplications,
+      rejectedApplications,
+      pendingMangas,
+      approvedMangas,
+      rejectedMangas,
+    ] = await Promise.all([
+      TranslatorApplication.find({ status: "pending" })
+        .populate("user", "username email avatar role")
+        .sort({ createdAt: -1 })
+        .lean(),
 
-    const approvedApplications = await TranslatorApplication.find({
-      status: "approved",
-    })
-      .populate("user")
-      .sort({ updatedAt: -1 });
+      TranslatorApplication.find({ status: "approved" })
+        .populate("user", "username email avatar role")
+        .sort({ updatedAt: -1 })
+        .lean(),
 
-    const rejectedApplications = await TranslatorApplication.find({
-      status: "rejected",
-    })
-      .populate("user")
-      .sort({ updatedAt: -1 });
+      TranslatorApplication.find({ status: "rejected" })
+        .populate("user", "username email avatar role")
+        .sort({ updatedAt: -1 })
+        .lean(),
 
-    // ==========================
-    // Manga
-    // ==========================
+      Manga.find({ status: "pending" })
+        .populate("translator", "username")
+        .sort({ createdAt: -1 })
+        .lean(),
 
-    const pendingMangas = await Manga.find({
-      status: "pending",
-    })
-      .populate("translator")
-      .sort({ createdAt: -1 });
+      Manga.find({ status: "approved" })
+        .populate("translator", "username")
+        .sort({ updatedAt: -1 })
+        .lean(),
 
-    const approvedMangas = await Manga.find({
-      status: "approved",
-    })
-      .populate("translator")
-      .sort({ updatedAt: -1 });
-
-    const rejectedMangas = await Manga.find({
-      status: "rejected",
-    })
-      .populate("translator")
-      .sort({ updatedAt: -1 });
+      Manga.find({ status: "rejected" })
+        .populate("translator", "username")
+        .sort({ updatedAt: -1 })
+        .lean(),
+    ]);
 
     // ==========================
     // Gộp dữ liệu
@@ -116,10 +125,6 @@ exports.dashboard = async (req, res) => {
     // Biểu đồ 1: Tổng tài khoản
     // ==========================
 
-    const totalUsers = await User.countDocuments({ role: "user" });
-    const totalTranslators = await User.countDocuments({ role: "translator" });
-    const totalAdmins = await User.countDocuments({ role: "admin" });
-
     // ==========================
     // Biểu đồ 2: Truyện theo thể loại
     // ==========================
@@ -130,53 +135,56 @@ exports.dashboard = async (req, res) => {
     // gây cảm giác "không đồng nhất" với danh sách ở mục Quản lý thể loại.
     // Đổi sang: tính luôn cả truyện đang chờ duyệt (chỉ loại truyện đã bị
     // từ chối), và bỏ giới hạn limit 8 để không bị cắt bớt thể loại.
+    //
+    // Toàn bộ khối bên dưới (đếm user, biểu đồ thể loại, danh sách
+    // user/translator, nhật ký bình luận/chương, danh sách thể loại) đều
+    // độc lập với nhau -> chạy chung 1 Promise.all thay vì await tuần tự.
 
-    const genreAgg = await Manga.aggregate([
-      { $match: { status: { $ne: "rejected" } } },
-      { $unwind: "$genres" },
-      { $group: { _id: "$genres", count: { $sum: 1 } } },
-      { $sort: { count: -1 } },
+    const [
+      totalUsers,
+      totalTranslators,
+      totalAdmins,
+      genreAgg,
+      allUsers,
+      allTranslators,
+      recentComments,
+      recentChapters,
+      categories,
+    ] = await Promise.all([
+      User.countDocuments({ role: "user" }),
+      User.countDocuments({ role: "translator" }),
+      User.countDocuments({ role: "admin" }),
+
+      Manga.aggregate([
+        { $match: { status: { $ne: "rejected" } } },
+        { $unwind: "$genres" },
+        { $group: { _id: "$genres", count: { $sum: 1 } } },
+        { $sort: { count: -1 } },
+      ]),
+
+      User.find({ role: "user" }).sort({ createdAt: -1 }).lean(),
+      User.find({ role: "translator" }).sort({ createdAt: -1 }).lean(),
+
+      Comment.find({})
+        .populate("user", "username displayName avatar")
+        .populate("manga", "title slug")
+        .populate("chapter", "chapterNumber")
+        .sort({ createdAt: -1 })
+        .limit(750)
+        .lean(),
+
+      Chapter.find({})
+        .populate("manga", "title slug cover")
+        .populate("uploadedBy", "username displayName")
+        .sort({ createdAt: -1 })
+        .limit(500)
+        .lean(),
+
+      Category.find().sort({ name: 1 }).lean(),
     ]);
 
     const genreLabels = genreAgg.map((g) => g._id);
     const genreCounts = genreAgg.map((g) => g.count);
-
-    // ==========================
-    // Khu quản lý User / Translator
-    // ==========================
-
-    const allUsers = await User.find({ role: "user" })
-      .sort({ createdAt: -1 })
-      .lean();
-
-    const allTranslators = await User.find({ role: "translator" })
-      .sort({ createdAt: -1 })
-      .lean();
-
-    // ==========================
-    // Nhật ký bình luận (quản lý / kiểm duyệt)
-    // ==========================
-
-    const recentComments = await Comment.find({})
-      .populate("user", "username displayName avatar")
-      .populate("manga", "title slug")
-      .populate("chapter", "chapterNumber")
-      .sort({ createdAt: -1 })
-      .limit(750)
-      .lean();
-
-    // ==========================
-    // Nhật ký chương truyện (quản lý / kiểm duyệt)
-    // ==========================
-
-    const recentChapters = await Chapter.find({})
-      .populate("manga", "title slug cover")
-      .populate("uploadedBy", "username displayName")
-      .sort({ createdAt: -1 })
-      .limit(500)
-      .lean();
-
-    const categories = await Category.find().sort({ name: 1 }).lean();
 
     res.render("admin/dashboard", {
       title: "Admin Dashboard",

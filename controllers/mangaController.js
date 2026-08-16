@@ -2060,9 +2060,20 @@ exports.history = async (req, res) => {
       .sort({
         updatedAt: -1,
       })
+      .select(
+        "manga mangaTitle mangaSlug cover chapterNumber chapterTitle progress updatedAt",
+      )
       .lean();
 
+    // Gom nhóm theo manga trước (không query gì trong bước này), đồng
+    // thời gom lại danh sách (manga, chapterNumber) còn thiếu chapterTitle
+    // (bản ghi cũ lưu trước khi có field chapterTitle) để bù 1 lần duy
+    // nhất bằng $or, thay vì await Chapter.findOne() cho từng chương
+    // trong vòng lặp (N+1 query -> đây là nguyên nhân chính khiến trang
+    // "Lịch sử đọc" load chậm 2-5s khi user đọc nhiều chương/nhiều truyện).
     const grouped = {};
+    const missingTitleKeys = [];
+    const missingTitlePairs = [];
 
     for (const item of histories) {
       const mangaId = item.manga.toString();
@@ -2079,24 +2090,52 @@ exports.history = async (req, res) => {
       }
 
       if (grouped[mangaId].chapters.length < 3) {
-        let chapterTitle = item.chapterTitle || "";
+        const entry = {
+          chapterNumber: item.chapterNumber,
+          title: item.chapterTitle || "",
+          progress: item.progress || 0,
+        };
 
-        if (!chapterTitle) {
-          const found = await Chapter.findOne({
-            manga: item.manga,
-            chapterNumber: item.chapterNumber,
-          }).lean();
+        grouped[mangaId].chapters.push(entry);
 
-          if (found && found.title && found.title !== "Không có tiêu đề") {
-            chapterTitle = found.title;
+        if (!entry.title) {
+          const key = `${mangaId}_${item.chapterNumber}`;
+
+          if (!missingTitleKeys.includes(key)) {
+            missingTitleKeys.push(key);
+
+            missingTitlePairs.push({
+              manga: item.manga,
+              chapterNumber: item.chapterNumber,
+              _entry: entry,
+            });
           }
         }
+      }
+    }
 
-        grouped[mangaId].chapters.push({
-          chapterNumber: item.chapterNumber,
-          title: chapterTitle,
-          progress: item.progress || 0,
-        });
+    if (missingTitlePairs.length) {
+      const foundChapters = await Chapter.find({
+        $or: missingTitlePairs.map((p) => ({
+          manga: p.manga,
+          chapterNumber: p.chapterNumber,
+        })),
+      })
+        .select("manga chapterNumber title")
+        .lean();
+
+      const titleMap = new Map(
+        foundChapters.map((c) => [`${c.manga.toString()}_${c.chapterNumber}`, c.title]),
+      );
+
+      for (const pair of missingTitlePairs) {
+        const title = titleMap.get(
+          `${pair.manga.toString()}_${pair.chapterNumber}`,
+        );
+
+        if (title && title !== "Không có tiêu đề") {
+          pair._entry.title = title;
+        }
       }
     }
 

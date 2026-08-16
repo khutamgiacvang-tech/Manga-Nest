@@ -5,6 +5,12 @@ const imageModal = document.getElementById("imageModal");
 const modalImage = document.getElementById("modalImage");
 const closeImage = document.getElementById("closeImage");
 
+const confirmModal = document.getElementById("confirmModal");
+const confirmModalTitle = document.getElementById("confirmModalTitle");
+const confirmModalMessage = document.getElementById("confirmModalMessage");
+const confirmModalOk = document.getElementById("confirmModalOk");
+const confirmModalCancel = document.getElementById("confirmModalCancel");
+
 // ==========================
 // Khoá/mở cuộn trang nền khi mở popup (đơn / ảnh)
 // Dùng position:fixed trên body (kèm lưu lại đúng vị trí đang cuộn)
@@ -33,7 +39,9 @@ function lockBodyScroll() {
 
 function unlockBodyScroll() {
   const anyModalStillOpen =
-    modal.style.display === "flex" || imageModal.style.display === "flex";
+    modal.style.display === "flex" ||
+    imageModal.style.display === "flex" ||
+    confirmModal.style.display === "flex";
 
   if (anyModalStillOpen) {
     return;
@@ -615,6 +623,93 @@ window.addEventListener("click", function (e) {
 
   if (e.target === imageModal) {
     closeImageModal();
+  }
+
+  if (e.target === confirmModal) {
+    closeConfirmModal();
+  }
+});
+
+// ==========================
+// Popup xác nhận dùng chung (thay confirm() mặc định của trình duyệt)
+// ==========================
+//
+// Cách dùng: gắn class "js-confirm-form" vào <form>, kèm 2 attribute
+// data-confirm-title / data-confirm-message. Khi bấm nút submit trong
+// form đó, thay vì submit ngay (hoặc hiện popup xám của trình duyệt),
+// script sẽ chặn submit lại, hiện modal đúng theme tối của trang, và
+// chỉ submit thật (form.requestSubmit()) khi bấm nút "Xoá".
+//
+// Dùng biến pendingConfirmForm để nhớ form nào đang chờ xác nhận, vì
+// modal xác nhận là 1 modal dùng chung cho mọi form có class này trên
+// trang (hiện tại là các form xoá thể loại), không tạo 1 modal riêng
+// cho từng thể loại.
+
+let pendingConfirmForm = null;
+
+function openConfirmModal(form) {
+  pendingConfirmForm = form;
+
+  confirmModalTitle.textContent =
+    form.dataset.confirmTitle || "Xác nhận";
+
+  confirmModalMessage.textContent = form.dataset.confirmMessage || "";
+
+  confirmModal.style.display = "flex";
+  lockBodyScroll();
+}
+
+function closeConfirmModal() {
+  pendingConfirmForm = null;
+
+  confirmModal.style.display = "none";
+  unlockBodyScroll();
+}
+
+confirmModalCancel.addEventListener("click", closeConfirmModal);
+
+confirmModalOk.addEventListener("click", function () {
+  const form = pendingConfirmForm;
+
+  // Đóng modal trước, rồi mới submit, để tránh trường hợp submit chậm
+  // (mất mạng chẳng hạn) khiến modal đứng nguyên không phản hồi.
+  closeConfirmModal();
+
+  if (form) {
+    // Đánh dấu đã xác nhận để listener "submit" bên dưới không chặn lại
+    // lần này nữa (nếu không sẽ bị chặn vô hạn, không submit được).
+    form.dataset.confirmed = "true";
+
+    // requestSubmit() thay vì form.submit() để trình duyệt vẫn kích hoạt
+    // event "submit" bình thường (giữ tương thích nếu sau này có thêm
+    // logic khác lắng nghe sự kiện submit của form này).
+    form.requestSubmit();
+  }
+});
+
+document.addEventListener("submit", function (e) {
+  const form = e.target;
+
+  if (!form.classList || !form.classList.contains("js-confirm-form")) {
+    return;
+  }
+
+  // Form này đã được xác nhận xong (đang submit thật do confirmModalOk
+  // gọi requestSubmit) -> để nó đi tiếp, không chặn lại nữa.
+  if (form.dataset.confirmed === "true") {
+    delete form.dataset.confirmed;
+    return;
+  }
+
+  e.preventDefault();
+  openConfirmModal(form);
+});
+
+// Cho phép đóng bằng phím Esc, giống thao tác quen thuộc với confirm()
+// mặc định của trình duyệt.
+document.addEventListener("keydown", function (e) {
+  if (e.key === "Escape" && confirmModal.style.display === "flex") {
+    closeConfirmModal();
   }
 });
 

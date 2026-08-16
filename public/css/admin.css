@@ -535,6 +535,115 @@ Buttons
     z-index: 9999;
 }
 
+/* ================= Popup xác nhận (thay confirm() mặc định của trình
+   duyệt) — cùng phong cách dark với .application-modal ở trên, chỉ nhỏ
+   gọn hơn vì chỉ hiển thị 1 câu hỏi + 2 nút. ================= */
+
+.confirm-modal {
+
+    display: none;
+
+    position: fixed;
+
+    inset: 0;
+
+    background: rgba(0, 0, 0, .75);
+
+    justify-content: center;
+
+    align-items: center;
+
+    z-index: 999999;
+}
+
+.confirm-modal-content {
+
+    width: 420px;
+
+    max-width: 90vw;
+
+    padding: 26px;
+
+    background: #1d2230;
+
+    border-radius: 14px;
+
+    border: 1px solid rgba(255, 255, 255, .08);
+
+    box-shadow: 0 0 40px rgba(0, 0, 0, .55);
+
+    animation: popup .18s ease;
+}
+
+.confirm-modal-content h3 {
+
+    margin: 0 0 12px;
+
+    font-size: 18px;
+
+    color: #fff;
+}
+
+.confirm-modal-content p {
+
+    margin: 0 0 22px;
+
+    color: #b8bcc8;
+
+    font-size: 14.5px;
+
+    line-height: 1.5;
+}
+
+.confirm-modal-actions {
+
+    display: flex;
+
+    justify-content: flex-end;
+
+    gap: 10px;
+}
+
+.btn-confirm-cancel,
+.btn-confirm-ok {
+
+    padding: 10px 18px;
+
+    border: none;
+
+    border-radius: 8px;
+
+    cursor: pointer;
+
+    font-size: 14px;
+
+    white-space: nowrap;
+}
+
+.btn-confirm-cancel {
+
+    background: #2a2f3c;
+
+    color: #fff;
+}
+
+.btn-confirm-cancel:hover {
+
+    background: #363c4c;
+}
+
+.btn-confirm-ok {
+
+    background: #ef4444;
+
+    color: #fff;
+}
+
+.btn-confirm-ok:hover {
+
+    background: #dc2626;
+}
+
 .application-modal-content {
 
     width: 900px;

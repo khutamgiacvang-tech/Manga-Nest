@@ -835,7 +835,9 @@
                     <form
                         action="/admin/category/<%= c._id %>/delete"
                         method="POST"
-                        onsubmit="return confirm('Xóa thể loại &quot;<%= c.name %>&quot;? Các truyện đã gắn thể loại này vẫn giữ nguyên, chỉ không còn xuất hiện trong danh sách chọn khi đăng truyện mới.');">
+                        class="js-confirm-form"
+                        data-confirm-title="Xóa thể loại &quot;<%= c.name %>&quot;?"
+                        data-confirm-message="Các truyện đã gắn thể loại này vẫn giữ nguyên, chỉ không còn xuất hiện trong danh sách chọn khi đăng truyện mới.">
 
                         <button type="submit" class="btn-remove-category" title="Xóa thể loại">
                             ✕
@@ -860,6 +862,32 @@
     <span id="closeImage">&times;</span>
 
     <img id="modalImage">
+
+</div>
+
+<!-- ================= Popup xác nhận (thay cho confirm() mặc định của trình duyệt) ================= -->
+
+<div id="confirmModal" class="confirm-modal">
+
+    <div class="confirm-modal-content">
+
+        <h3 id="confirmModalTitle">Xác nhận</h3>
+
+        <p id="confirmModalMessage"></p>
+
+        <div class="confirm-modal-actions">
+
+            <button type="button" id="confirmModalCancel" class="btn-confirm-cancel">
+                Huỷ
+            </button>
+
+            <button type="button" id="confirmModalOk" class="btn-confirm-ok">
+                Xoá
+            </button>
+
+        </div>
+
+    </div>
 
 </div>
 

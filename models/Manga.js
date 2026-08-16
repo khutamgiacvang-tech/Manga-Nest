@@ -230,6 +230,14 @@ mangaSchema.pre("save", function () {
 // compound index này thì MỖI query đều phải quét toàn bộ collection
 // rồi sort trong RAM -> đây là nguyên nhân lớn khiến trang chủ và
 // trang chi tiết truyện load chậm khi số lượng manga tăng lên.
+// Phục vụ trang Admin Dashboard: lọc theo status ("pending"/"approved"/
+// "rejected") rồi sort theo createdAt (tab "Đang chờ") hoặc updatedAt
+// (tab "Đã duyệt"/"Đã từ chối"). Đây là field khác với "lastUpdated" ở
+// dưới (lastUpdated dùng cho trang chủ khi có chương mới), nên cần
+// index riêng, không dùng chung được.
+mangaSchema.index({ status: 1, createdAt: -1 });
+mangaSchema.index({ status: 1, updatedAt: -1 });
+
 mangaSchema.index({ status: 1, lastUpdated: -1 });
 mangaSchema.index({ status: 1, views: -1 });
 mangaSchema.index({ status: 1, weeklyViews: -1 });

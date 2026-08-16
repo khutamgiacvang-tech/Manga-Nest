@@ -179,4 +179,11 @@ userSchema.methods.comparePassword = function (password) {
   return bcrypt.compare(password, this.password);
 };
 
+// Phục vụ trang Admin Dashboard: đếm + liệt kê user theo role, sort theo
+// ngày tạo mới nhất (User.countDocuments({role}) và User.find({role})
+// .sort({createdAt:-1})). Trước đây không có index nào trên role/createdAt
+// -> mỗi lần load trang admin đều quét toàn bộ collection user rồi sort
+// trong RAM, là một trong các nguyên nhân chính khiến trang admin chậm.
+userSchema.index({ role: 1, createdAt: -1 });
+
 module.exports = mongoose.model("User", userSchema);

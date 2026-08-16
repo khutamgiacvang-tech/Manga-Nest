@@ -20,6 +20,17 @@ const readingHistorySchema = new mongoose.Schema({
 
   chapterNumber: Number,
 
+  // Cache sẵn tên chương lúc lưu lịch sử, để trang "Lịch sử đọc" không
+  // phải query lại Chapter cho từng dòng khi hiển thị (xem history()
+  // trong mangaController.js). Field này trước đây bị thiếu trong schema
+  // nên dù saveHistory() có gửi chapterTitle lên, Mongoose vẫn âm thầm
+  // loại bỏ field lạ (strict mode) -> mọi bản ghi cũ đều rỗng, khiến
+  // trang lịch sử luôn phải query bù cho từng chương.
+  chapterTitle: {
+    type: String,
+    default: "",
+  },
+
   progress: {
     type: Number,
     default: 0,

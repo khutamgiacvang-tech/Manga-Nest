@@ -173,26 +173,44 @@ exports.followLibrary = async (req, res) => {
 
     let page = parseInt(req.query.page) || 1;
 
-    const totalItems = await Manga.countDocuments({
-      _id: { $in: followedIds },
-    });
+    // totalItems và trang dữ liệu hiện tại không phụ thuộc nhau -> chạy
+    // song song thay vì 2 round-trip DB nối tiếp (trước đây phải đợi có
+    // totalItems xong mới bắt đầu query mangas). .lean() vì trang này chỉ
+    // hiển thị, không gọi method của Mongoose document -> đỡ thời gian
+    // dựng document.
+    const [totalItems, mangas] = await Promise.all([
+      Manga.countDocuments({ _id: { $in: followedIds } }),
+
+      Manga.find({ _id: { $in: followedIds } })
+        .populate("translator", "username displayName avatar")
+        .sort({ lastUpdated: -1 })
+        .skip((page - 1) * limit)
+        .limit(limit)
+        .lean(),
+    ]);
 
     const totalPages = Math.max(Math.ceil(totalItems / limit), 1);
 
-    // tránh page vượt quá số trang
-    if (page > totalPages) page = totalPages;
+    // Trường hợp hiếm (page trên URL vượt quá tổng số trang, ví dụ user
+    // bỏ theo dõi bớt truyện rồi bấm Back): trang vừa lấy ở trên rỗng/lệch,
+    // truy vấn lại đúng trang cuối. Chỉ tốn thêm 1 query trong trường hợp
+    // hiếm này thay vì luôn phải đợi totalItems trước khi query như cũ.
+    let finalMangas = mangas;
 
-    const mangas = await Manga.find({
-      _id: { $in: followedIds },
-    })
-      .populate("translator", "username displayName avatar")
-      .sort({ lastUpdated: -1 })
-      .skip((page - 1) * limit)
-      .limit(limit);
+    if (page > totalPages) {
+      page = totalPages;
+
+      finalMangas = await Manga.find({ _id: { $in: followedIds } })
+        .populate("translator", "username displayName avatar")
+        .sort({ lastUpdated: -1 })
+        .skip((page - 1) * limit)
+        .limit(limit)
+        .lean();
+    }
 
     res.render("profile/library", {
       title: "Danh sách theo dõi",
-      mangas,
+      mangas: finalMangas,
       currentPage: page,
       totalPages,
       totalItems,

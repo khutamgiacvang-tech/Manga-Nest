@@ -64,6 +64,13 @@ const translatorApplicationSchema = new mongoose.Schema(
   },
 );
 
+// Phục vụ trang Admin Dashboard: lọc theo status rồi sort theo createdAt
+// (tab "Đang chờ") hoặc updatedAt (tab "Đã duyệt"/"Đã từ chối"). Thiếu
+// các index compound này khiến mỗi query đều quét toàn bộ collection rồi
+// sort trong RAM.
+translatorApplicationSchema.index({ status: 1, createdAt: -1 });
+translatorApplicationSchema.index({ status: 1, updatedAt: -1 });
+
 module.exports = mongoose.model(
   "TranslatorApplication",
   translatorApplicationSchema,
