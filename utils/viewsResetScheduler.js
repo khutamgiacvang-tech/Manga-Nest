@@ -1,12 +1,17 @@
 const Manga = require("../models/Manga");
 const AppState = require("../models/AppState");
 
-// Reset weeklyViews vào đầu mỗi tuần (thứ 2) và monthlyViews vào đầu mỗi
-// tháng (ngày 1). Trước đây weeklyViews/monthlyViews chỉ được CỘNG dồn mỗi
-// khi có lượt đọc mới (xem mangaController.js), nhưng chưa từng có ai reset
-// chúng về 0 -> weeklyViews/monthlyViews luôn bằng views (tăng cùng lúc,
-// cùng tốc độ) -> xếp hạng theo TUẦN/THÁNG/MỌI LÚC luôn ra kết quả giống
-// hệt nhau. Đây là nơi sửa gốc vấn đề đó.
+// Đầu mỗi tuần (thứ 2) và đầu mỗi tháng (ngày 1), KHÔNG set weeklyViews/
+// monthlyViews về 0 nữa (làm vậy sẽ xoá luôn cả views tổng nếu chẳng may
+// đụng nhầm field, và khiến toàn bộ manga rớt về 0 cùng lúc -> BXH tuần/
+// tháng ngay sau reset bị xáo trộn lung tung vì tất cả hoà nhau ở mức 0).
+//
+// Thay vào đó: mỗi manga có views (tổng, KHÔNG BAO GIỜ bị đụng tới) và
+// weeklyViewsBaseline/monthlyViewsBaseline (giá trị của views tại thời
+// điểm bắt đầu tuần/tháng hiện tại). weeklyViews/monthlyViews luôn được
+// TÍNH LẠI = views - baseline (xem mangaController.js). Việc "reset" ở
+// đây thực chất chỉ là chốt lại baseline = views hiện tại của từng manga,
+// dữ liệu views gốc không hề mất đi.
 
 const CHECK_INTERVAL_MS = 30 * 60 * 1000; // kiểm tra mỗi 30 phút là đủ
 
@@ -63,19 +68,31 @@ async function checkAndResetViews() {
       getMonthKey(state.lastMonthlyViewsReset) !== getMonthKey(now);
 
     if (needWeeklyReset) {
-      await Manga.updateMany({}, { $set: { weeklyViews: 0 } });
+      // Pipeline update: baseline mới = views hiện tại của CHÍNH manga đó
+      // (mỗi document tự tham chiếu "$views" của nó), nên weeklyViews sau
+      // đó = views - baseline = 0, y hệt kết quả cũ, nhưng views tổng vẫn
+      // nguyên vẹn và có thể tính lại bất cứ lúc nào nếu cần.
+      await Manga.updateMany({}, [
+        { $set: { weeklyViewsBaseline: "$views", weeklyViews: 0 } },
+      ]);
 
       state.lastWeeklyViewsReset = now;
 
-      console.log("[viewsResetScheduler] Đã reset weeklyViews.");
+      console.log(
+        "[viewsResetScheduler] Đã chốt mốc tuần mới (weeklyViewsBaseline).",
+      );
     }
 
     if (needMonthlyReset) {
-      await Manga.updateMany({}, { $set: { monthlyViews: 0 } });
+      await Manga.updateMany({}, [
+        { $set: { monthlyViewsBaseline: "$views", monthlyViews: 0 } },
+      ]);
 
       state.lastMonthlyViewsReset = now;
 
-      console.log("[viewsResetScheduler] Đã reset monthlyViews.");
+      console.log(
+        "[viewsResetScheduler] Đã chốt mốc tháng mới (monthlyViewsBaseline).",
+      );
     }
 
     if (needWeeklyReset || needMonthlyReset) {

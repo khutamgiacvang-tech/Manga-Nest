@@ -163,12 +163,28 @@ const mangaSchema = new mongoose.Schema(
       default: 0,
     },
 
+    // weeklyViews/monthlyViews KHÔNG còn là bộ đếm bị set về 0 mỗi khi hết
+    // tuần/tháng nữa. Chúng luôn được TÍNH LẠI = views (tổng, không bao giờ
+    // đụng tới) trừ đi *ViewsBaseline (giá trị của views tại thời điểm bắt
+    // đầu tuần/tháng hiện tại). Nhờ vậy toàn bộ lịch sử views vẫn còn
+    // nguyên, và nếu logic tính có lỗi/lệch thì chỉ cần tính lại từ
+    // views - baseline là đúng ngay, không lo mất dữ liệu gốc.
     weeklyViews: {
       type: Number,
       default: 0,
     },
 
+    weeklyViewsBaseline: {
+      type: Number,
+      default: 0,
+    },
+
     monthlyViews: {
+      type: Number,
+      default: 0,
+    },
+
+    monthlyViewsBaseline: {
       type: Number,
       default: 0,
     },
@@ -230,14 +246,6 @@ mangaSchema.pre("save", function () {
 // compound index này thì MỖI query đều phải quét toàn bộ collection
 // rồi sort trong RAM -> đây là nguyên nhân lớn khiến trang chủ và
 // trang chi tiết truyện load chậm khi số lượng manga tăng lên.
-// Phục vụ trang Admin Dashboard: lọc theo status ("pending"/"approved"/
-// "rejected") rồi sort theo createdAt (tab "Đang chờ") hoặc updatedAt
-// (tab "Đã duyệt"/"Đã từ chối"). Đây là field khác với "lastUpdated" ở
-// dưới (lastUpdated dùng cho trang chủ khi có chương mới), nên cần
-// index riêng, không dùng chung được.
-mangaSchema.index({ status: 1, createdAt: -1 });
-mangaSchema.index({ status: 1, updatedAt: -1 });
-
 mangaSchema.index({ status: 1, lastUpdated: -1 });
 mangaSchema.index({ status: 1, views: -1 });
 mangaSchema.index({ status: 1, weeklyViews: -1 });

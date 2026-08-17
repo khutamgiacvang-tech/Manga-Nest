@@ -140,7 +140,7 @@ exports.showCreate = async (req, res) => {
 
 exports.create = async (req, res) => {
   try {
-    let { title, alternativeTitles, author, description, status } = req.body;
+    const { title, alternativeTitles, author, description, status } = req.body;
 
     let slug = slugify(title, {
       lower: true,
@@ -1896,11 +1896,28 @@ exports.readChapter = async (req, res) => {
       // .save() lại -> nhanh hơn và tránh mất dữ liệu nếu có 2 request
       // ghi đè lên nhau cùng lúc (race condition). 2 lệnh update độc
       // lập -> chạy song song.
+      // Không $inc trực tiếp weeklyViews/monthlyViews nữa. Thay vào đó:
+      // +1 vào views (tổng, không bao giờ reset), rồi TÍNH LẠI
+      // weeklyViews/monthlyViews = views - baseline ngay trong cùng 1
+      // update pipeline (vẫn atomic, vẫn 1 round-trip, không cần load
+      // document lên trước nên không có race condition).
       await Promise.all([
-        Manga.updateOne(
-          { _id: manga._id },
-          { $inc: { views: 1, weeklyViews: 1, monthlyViews: 1 } },
-        ),
+        Manga.updateOne({ _id: manga._id }, [
+          { $set: { views: { $add: ["$views", 1] } } },
+          {
+            $set: {
+              weeklyViews: {
+                $subtract: ["$views", { $ifNull: ["$weeklyViewsBaseline", 0] }],
+              },
+              monthlyViews: {
+                $subtract: [
+                  "$views",
+                  { $ifNull: ["$monthlyViewsBaseline", 0] },
+                ],
+              },
+            },
+          },
+        ]),
         Chapter.updateOne({ _id: chapter._id }, { $inc: { views: 1 } }),
       ]);
 
@@ -2053,20 +2070,9 @@ exports.history = async (req, res) => {
       .sort({
         updatedAt: -1,
       })
-      .select(
-        "manga mangaTitle mangaSlug cover chapterNumber chapterTitle progress updatedAt",
-      )
       .lean();
 
-    // Gom nhóm theo manga trước (không query gì trong bước này), đồng
-    // thời gom lại danh sách (manga, chapterNumber) còn thiếu chapterTitle
-    // (bản ghi cũ lưu trước khi có field chapterTitle) để bù 1 lần duy
-    // nhất bằng $or, thay vì await Chapter.findOne() cho từng chương
-    // trong vòng lặp (N+1 query -> đây là nguyên nhân chính khiến trang
-    // "Lịch sử đọc" load chậm 2-5s khi user đọc nhiều chương/nhiều truyện).
     const grouped = {};
-    const missingTitleKeys = [];
-    const missingTitlePairs = [];
 
     for (const item of histories) {
       const mangaId = item.manga.toString();
@@ -2083,52 +2089,24 @@ exports.history = async (req, res) => {
       }
 
       if (grouped[mangaId].chapters.length < 3) {
-        const entry = {
-          chapterNumber: item.chapterNumber,
-          title: item.chapterTitle || "",
-          progress: item.progress || 0,
-        };
+        let chapterTitle = item.chapterTitle || "";
 
-        grouped[mangaId].chapters.push(entry);
+        if (!chapterTitle) {
+          const found = await Chapter.findOne({
+            manga: item.manga,
+            chapterNumber: item.chapterNumber,
+          }).lean();
 
-        if (!entry.title) {
-          const key = `${mangaId}_${item.chapterNumber}`;
-
-          if (!missingTitleKeys.includes(key)) {
-            missingTitleKeys.push(key);
-
-            missingTitlePairs.push({
-              manga: item.manga,
-              chapterNumber: item.chapterNumber,
-              _entry: entry,
-            });
+          if (found && found.title && found.title !== "Không có tiêu đề") {
+            chapterTitle = found.title;
           }
         }
-      }
-    }
 
-    if (missingTitlePairs.length) {
-      const foundChapters = await Chapter.find({
-        $or: missingTitlePairs.map((p) => ({
-          manga: p.manga,
-          chapterNumber: p.chapterNumber,
-        })),
-      })
-        .select("manga chapterNumber title")
-        .lean();
-
-      const titleMap = new Map(
-        foundChapters.map((c) => [`${c.manga.toString()}_${c.chapterNumber}`, c.title]),
-      );
-
-      for (const pair of missingTitlePairs) {
-        const title = titleMap.get(
-          `${pair.manga.toString()}_${pair.chapterNumber}`,
-        );
-
-        if (title && title !== "Không có tiêu đề") {
-          pair._entry.title = title;
-        }
+        grouped[mangaId].chapters.push({
+          chapterNumber: item.chapterNumber,
+          title: chapterTitle,
+          progress: item.progress || 0,
+        });
       }
     }
 
