@@ -11,7 +11,6 @@ const ChapterView = require("../models/ChapterView");
 const Comment = require("../models/Comment");
 const Category = require("../models/Category");
 const removeVietnameseTones = require("../utils/removeVietnameseTones");
-const decodeHtmlEntities = require("../utils/decodeHtmlEntities");
 const webpush = require("web-push");
 const uploadImage = require("../utils/cloudinaryUpload");
 const cloudinary = require("../config/cloudinary");
@@ -142,11 +141,6 @@ exports.showCreate = async (req, res) => {
 exports.create = async (req, res) => {
   try {
     let { title, alternativeTitles, author, description, status } = req.body;
-
-    title = decodeHtmlEntities(title);
-    author = decodeHtmlEntities(author);
-    description = decodeHtmlEntities(description);
-    alternativeTitles = decodeHtmlEntities(alternativeTitles);
 
     let slug = slugify(title, {
       lower: true,
@@ -324,8 +318,7 @@ exports.uploadChapter = async (req, res) => {
     console.log("2. Đã tìm thấy manga:", manga.title);
 
     const rawChapterInput = req.body.chapterNumber?.trim();
-    const title =
-      decodeHtmlEntities(req.body.title?.trim()) || "Không có tiêu đề";
+    const title = req.body.title?.trim() || "Không có tiêu đề";
 
     if (!rawChapterInput) {
       req.flash("error", "Số chapter không hợp lệ.");
@@ -696,16 +689,16 @@ exports.updateManga = async (req, res) => {
       return res.redirect("/my-manga");
     }
 
-    manga.title = decodeHtmlEntities(req.body.title);
+    manga.title = req.body.title;
     manga.alternativeTitles = req.body.alternativeTitles
-      ? decodeHtmlEntities(req.body.alternativeTitles)
+      ? req.body.alternativeTitles
           .split(",")
           .map((i) => i.trim())
           .filter((i) => i !== "")
       : [];
-    manga.author = decodeHtmlEntities(req.body.author);
+    manga.author = req.body.author;
     manga.description = req.body.description
-      ? decodeHtmlEntities(req.body.description.trim())
+      ? req.body.description.trim()
       : req.body.description;
     manga.publishStatus = req.body.publishStatus;
     manga.genres = req.body.genres
@@ -1205,7 +1198,7 @@ exports.updateChapter = async (req, res) => {
     // "" là falsy -> nếu người dùng xóa hết tiêu đề để lưu rỗng thì code
     // cũ sẽ bỏ qua, không cập nhật được, khiến title cũ bị giữ nguyên.
     if (req.body.title !== undefined) {
-      chapter.title = decodeHtmlEntities(req.body.title.trim());
+      chapter.title = req.body.title.trim();
     }
 
     // =========================

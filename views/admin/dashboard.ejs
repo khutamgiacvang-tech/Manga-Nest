@@ -837,7 +837,7 @@
                         method="POST"
                         class="js-confirm-form"
                         data-confirm-title="Xóa thể loại &quot;<%= c.name %>&quot;?"
-                        data-confirm-message="Các truyện đã gắn thể loại này vẫn giữ nguyên, chỉ không còn xuất hiện trong danh sách chọn khi đăng truyện mới.">
+                        data-confirm-message="Nếu đang có truyện sử dụng thể loại này, hệ thống sẽ từ chối xóa. Chỉ xóa được khi không còn truyện nào gắn thể loại này.">
 
                         <button type="submit" class="btn-remove-category" title="Xóa thể loại">
                             ✕
@@ -857,7 +857,7 @@
 
 <!-- ================= Popup ảnh (giữ nguyên) ================= -->
 
-<div id="imageModal" class="image-modal">
+<div id="imageModal" class="image-modal" style="display:none;">
 
     <span id="closeImage">&times;</span>
 
@@ -867,7 +867,7 @@
 
 <!-- ================= Popup xác nhận (thay cho confirm() mặc định của trình duyệt) ================= -->
 
-<div id="confirmModal" class="confirm-modal">
+<div id="confirmModal" class="confirm-modal" style="display:none;">
 
     <div class="confirm-modal-content">
 
@@ -892,7 +892,7 @@
 </div>
 
 <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
-<script src="/js/admin-dashboard.js"></script>
+<script src="/js/admin-dashboard.js?v=2"></script>
 
 <style>
 

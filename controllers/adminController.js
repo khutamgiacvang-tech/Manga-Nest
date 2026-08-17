@@ -706,6 +706,23 @@ exports.deleteUser = async (req, res) => {
       });
     }
 
+    // Không cho xóa tài khoản translator nếu vẫn còn truyện đã đăng.
+    // Tương tự "Xóa truyện" (translator không thể tự xóa truyện còn
+    // Chapter), tránh việc xóa account làm mồ côi các truyện/Chapter
+    // đang tồn tại.
+    if (targetUser.role === "translator") {
+      const mangaCount = await Manga.countDocuments({
+        translator: targetUser._id,
+      });
+
+      if (mangaCount > 0) {
+        return res.json({
+          success: false,
+          message: `Không thể xóa tài khoản này vì đang có ${mangaCount} truyện đã đăng.`,
+        });
+      }
+    }
+
     await User.findByIdAndDelete(req.params.id);
 
     res.json({

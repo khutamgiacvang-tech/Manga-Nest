@@ -1,4 +1,5 @@
 const Category = require("../models/Category");
+const Manga = require("../models/Manga");
 
 function checkAdmin(req) {
   return req.isAuthenticated() && req.user.role === "admin";
@@ -58,11 +59,21 @@ exports.deleteCategory = async (req, res) => {
       return res.redirect("/admin#category-section");
     }
 
+    // Không cho xóa nếu vẫn còn truyện đang gắn thể loại này.
+    // (genres của Manga lưu bằng string trùng với tên Category, không
+    // phải reference, nên phải so theo tên.)
+    const mangaCount = await Manga.countDocuments({ genres: category.name });
+
+    if (mangaCount > 0) {
+      req.flash(
+        "error",
+        `Không thể xóa thể loại "${category.name}" vì đang có ${mangaCount} truyện sử dụng.`,
+      );
+      return res.redirect("/admin#category-section");
+    }
+
     await Category.findByIdAndDelete(req.params.id);
 
-    // LƯU Ý: chỉ xóa khỏi danh sách để chọn khi đăng/sửa truyện mới.
-    // Các truyện đã gắn thể loại này trước đó vẫn giữ nguyên tag cũ
-    // (genres của Manga lưu bằng string, không phải reference tới Category).
     req.flash("success", `Đã xóa thể loại "${category.name}".`);
     res.redirect("/admin#category-section");
   } catch (err) {
