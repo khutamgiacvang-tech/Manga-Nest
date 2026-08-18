@@ -1896,50 +1896,24 @@ exports.readChapter = async (req, res) => {
       // .save() lại -> nhanh hơn và tránh mất dữ liệu nếu có 2 request
       // ghi đè lên nhau cùng lúc (race condition). 2 lệnh update độc
       // lập -> chạy song song.
-      // Không $inc trực tiếp weeklyViews/monthlyViews nữa. Thay vào đó:
-      // +1 vào views (tổng, không bao giờ reset), rồi TÍNH LẠI
-      // weeklyViews/monthlyViews = views - baseline ngay trong cùng 1
-      // update pipeline (vẫn atomic, vẫn 1 round-trip, không cần load
-      // document lên trước nên không có race condition).
+      // weeklyViews/monthlyViews KHÔNG còn được cộng ở đây nữa -> chúng
+      // được tính định kỳ bởi utils/viewsRollupScheduler.js dựa trên
+      // ChapterView (xem giải thích ở models/Manga.js). Ở đây chỉ cần
+      // cộng views tổng (đơn giản, không còn phụ thuộc dạng update mảng
+      // /pipeline nữa -> không còn dính lỗi "Cannot pass an array to
+      // query updates..." như trước).
       let viewCountFailed = false;
 
       try {
         await Promise.all([
-          Manga.updateOne(
-            { _id: manga._id },
-            [
-              { $set: { views: { $add: ["$views", 1] } } },
-              {
-                $set: {
-                  weeklyViews: {
-                    $subtract: [
-                      "$views",
-                      { $ifNull: ["$weeklyViewsBaseline", 0] },
-                    ],
-                  },
-                  monthlyViews: {
-                    $subtract: [
-                      "$views",
-                      { $ifNull: ["$monthlyViewsBaseline", 0] },
-                    ],
-                  },
-                },
-              },
-            ],
-            // Bản Mongoose trên server yêu cầu khai báo rõ option này thì
-            // mới cho phép truyền MẢNG (aggregation pipeline) vào update,
-            // nếu không sẽ throw "Cannot pass an array to query updates
-            // unless the `updatePipeline` option is set."
-            { updatePipeline: true },
-          ),
+          Manga.updateOne({ _id: manga._id }, { $inc: { views: 1 } }),
           Chapter.updateOne({ _id: chapter._id }, { $inc: { views: 1 } }),
         ]);
       } catch (viewErr) {
         // Tự phục hồi: nếu bước cộng view bị lỗi (bất kể lý do gì), xoá
         // luôn bản ghi ChapterView vừa tạo ở trên -> lần đọc kế tiếp của
         // tài khoản này sẽ được tính lại, thay vì bị coi là "đã tính
-        // rồi" mãi mãi trong khi thực tế view chưa từng được cộng
-        // (chính là nguyên nhân view không tăng dù đã sửa lỗi pipeline).
+        // rồi" mãi mãi trong khi thực tế view chưa từng được cộng.
         console.error(
           `[readChapter] Lỗi khi cộng view, đang hoàn tác ChapterView. slug=${req.params.slug} chapter=${req.params.number}`,
           viewErr,
@@ -1955,10 +1929,12 @@ exports.readChapter = async (req, res) => {
 
       if (!viewCountFailed) {
         // manga là object lean (không tự đồng bộ với DB) -> cộng thêm ở
-        // local để trang render ra vẫn thấy số view mới nhất ngay lập tức.
+        // local để trang render ra vẫn thấy số view mới nhất ngay lập
+        // tức. weeklyViews/monthlyViews không cộng local ở đây vì
+        // chúng chỉ được cập nhật đúng khi scheduler tính lại định kỳ
+        // (tối đa lệch vài phút, không cần chính xác tuyệt đối ngay
+        // tại thời điểm này).
         manga.views = (manga.views || 0) + 1;
-        manga.weeklyViews = (manga.weeklyViews || 0) + 1;
-        manga.monthlyViews = (manga.monthlyViews || 0) + 1;
       }
     }
 

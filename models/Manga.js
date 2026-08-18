@@ -163,28 +163,19 @@ const mangaSchema = new mongoose.Schema(
       default: 0,
     },
 
-    // weeklyViews/monthlyViews KHÔNG còn là bộ đếm bị set về 0 mỗi khi hết
-    // tuần/tháng nữa. Chúng luôn được TÍNH LẠI = views (tổng, không bao giờ
-    // đụng tới) trừ đi *ViewsBaseline (giá trị của views tại thời điểm bắt
-    // đầu tuần/tháng hiện tại). Nhờ vậy toàn bộ lịch sử views vẫn còn
-    // nguyên, và nếu logic tính có lỗi/lệch thì chỉ cần tính lại từ
-    // views - baseline là đúng ngay, không lo mất dữ liệu gốc.
+    // weeklyViews/monthlyViews KHÔNG được cộng trực tiếp mỗi khi có 1 view
+    // mới nữa. Chúng được TÍNH LẠI ĐỊNH KỲ (xem utils/viewsRollupScheduler.js)
+    // bằng cách đếm số bản ghi ChapterView có createdAt nằm trong 7 ngày /
+    // 30 ngày gần nhất, group theo manga. Đây là cách tính kiểu "cửa sổ
+    // trượt" (rolling window) -> số liệu luôn đúng với ĐÚNG khoảng thời
+    // gian gần nhất, không cần "reset" ở 1 mốc cố định (đầu tuần/đầu
+    // tháng) nên không bao giờ bị nhảy cục về 0 khi sang tuần/tháng mới.
     weeklyViews: {
       type: Number,
       default: 0,
     },
 
-    weeklyViewsBaseline: {
-      type: Number,
-      default: 0,
-    },
-
     monthlyViews: {
-      type: Number,
-      default: 0,
-    },
-
-    monthlyViewsBaseline: {
       type: Number,
       default: 0,
     },
