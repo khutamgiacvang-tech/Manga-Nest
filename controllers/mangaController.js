@@ -12,8 +12,15 @@ const Comment = require("../models/Comment");
 const Category = require("../models/Category");
 const removeVietnameseTones = require("../utils/removeVietnameseTones");
 const webpush = require("web-push");
-const uploadImage = require("../utils/cloudinaryUpload");
+// Cover / Banner của manga -> storage mới (iDrive e2 / CloudStorage.io)
+const uploadImage = require("../utils/storageManager");
+
+// Ảnh trang chapter vẫn giữ nguyên trên Cloudinary như cũ (KHÔNG đổi sang
+// storage mới), dùng chung logic upload gốc (cloudinaryUpload.js) dưới
+// tên riêng để tránh nhầm với uploadImage (cover/banner) ở trên.
+const uploadChapterPageImage = require("../utils/cloudinaryUpload");
 const cloudinary = require("../config/cloudinary");
+const deleteUploadedImage = require("../utils/deleteUploadedImage");
 const timeAgo = require("../utils/timeAgo");
 const sharp = require("sharp");
 
@@ -400,7 +407,7 @@ exports.uploadChapter = async (req, res) => {
           entry.entryName,
         );
 
-        const imageUrl = await uploadImage(
+        const imageUrl = await uploadChapterPageImage(
           finalImagePath,
           `manganest/chapters/${manga.slug}/${chapterNumber}`,
         );
@@ -767,15 +774,11 @@ exports.changeCover = async (req, res) => {
     }
 
     // =========================
-    // Xóa cover cũ trên Cloudinary
+    // Xóa cover cũ (Cloudinary hoặc storage mới)
     // =========================
 
     if (manga.coverPublicId) {
-      try {
-        await cloudinary.uploader.destroy(manga.coverPublicId);
-      } catch (err) {
-        console.log("Không thể xóa cover cũ:", err.message);
-      }
+      await deleteUploadedImage(manga.coverPublicId);
     }
 
     // =========================
@@ -859,15 +862,11 @@ exports.changeBanner = async (req, res) => {
     }
 
     // =========================
-    // Xóa Banner cũ trên Cloudinary
+    // Xóa Banner cũ (Cloudinary hoặc storage mới)
     // =========================
 
     if (manga.bannerPublicId) {
-      try {
-        await cloudinary.uploader.destroy(manga.bannerPublicId);
-      } catch (err) {
-        console.log("Không thể xóa banner cũ:", err.message);
-      }
+      await deleteUploadedImage(manga.bannerPublicId);
     }
 
     // =========================
@@ -930,27 +929,15 @@ exports.deleteManga = async (req, res) => {
     }
 
     // =========================
-    // Xóa Cover
+    // Xóa Cover + Banner (Cloudinary hoặc storage mới)
     // =========================
 
-    try {
-      if (manga.coverPublicId) {
-        await cloudinary.uploader.destroy(manga.coverPublicId);
-      }
-    } catch (err) {
-      console.log("Không xóa được cover:", err.message);
+    if (manga.coverPublicId) {
+      await deleteUploadedImage(manga.coverPublicId);
     }
 
-    // =========================
-    // Xóa Banner
-    // =========================
-
-    try {
-      if (manga.bannerPublicId) {
-        await cloudinary.uploader.destroy(manga.bannerPublicId);
-      }
-    } catch (err) {
-      console.log("Không xóa được banner:", err.message);
+    if (manga.bannerPublicId) {
+      await deleteUploadedImage(manga.bannerPublicId);
     }
 
     // =========================
@@ -1302,7 +1289,10 @@ exports.updateChapter = async (req, res) => {
               entry.entryName,
             );
 
-            const imageUrl = await uploadImage(finalImagePath, tempFolder);
+            const imageUrl = await uploadChapterPageImage(
+              finalImagePath,
+              tempFolder,
+            );
 
             if (fs.existsSync(finalImagePath)) {
               fs.unlinkSync(finalImagePath);

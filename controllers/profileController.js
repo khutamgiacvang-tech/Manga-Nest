@@ -1,8 +1,9 @@
 const User = require("../models/User");
 const fs = require("fs");
 const path = require("path");
-const uploadImage = require("../utils/cloudinaryUpload");
+const uploadImage = require("../utils/storageManager");
 const cloudinary = require("../config/cloudinary");
+const storageManager = require("../utils/storageManager");
 
 // Hiển thị hồ sơ
 exports.showProfile = (req, res) => {
@@ -48,21 +49,30 @@ exports.updateProfile = async (req, res) => {
     }
 
     // =========================
-    // Upload Avatar Cloudinary
+    // Upload Avatar (iDrive e2 / CloudStorage.io)
     // =========================
 
     if (req.file) {
-      // Xóa avatar cũ trên Cloudinary
-      if (user.avatar && user.avatar.includes("cloudinary.com")) {
-        try {
-          const publicId = user.avatar
-            .split("/upload/")[1]
-            .replace(/^v\d+\//, "")
-            .replace(/\.[^/.]+$/, "");
+      // Xóa avatar cũ — hỗ trợ cả avatar cũ còn trên Cloudinary lẫn avatar
+      // mới trên storage hiện tại (iDrive e2 / CloudStorage.io).
+      if (user.avatar) {
+        if (user.avatar.includes("cloudinary.com")) {
+          try {
+            const publicId = user.avatar
+              .split("/upload/")[1]
+              .replace(/^v\d+\//, "")
+              .replace(/\.[^/.]+$/, "");
 
-          await cloudinary.uploader.destroy(publicId);
-        } catch (err) {
-          console.log("Không xóa được avatar cũ:", err.message);
+            await cloudinary.uploader.destroy(publicId);
+          } catch (err) {
+            console.log("Không xóa được avatar cũ:", err.message);
+          }
+        } else {
+          try {
+            await storageManager.deleteByUrl(user.avatar);
+          } catch (err) {
+            console.log("Không xóa được avatar cũ:", err.message);
+          }
         }
       }
 

@@ -2,7 +2,7 @@ const TranslatorApplication = require("../models/TranslatorApplication");
 const User = require("../models/User");
 const Notification = require("../models/Notification");
 const Manga = require("../models/Manga");
-const { uploadBuffer } = require("../utils/cloudinaryUpload");
+const { uploadBuffer } = require("../utils/storageManager");
 
 const MANGAS_PER_PAGE = 24;
 const PREVIEW_COUNT = 6;
@@ -170,6 +170,7 @@ exports.submitApplication = async (req, res) => {
         const uploaded = await uploadBuffer(
           file.buffer,
           "manganest/translator-applications",
+          file.originalname,
         );
 
         // Đảm bảo chỉ push string URL, tránh lưu object vào DB
