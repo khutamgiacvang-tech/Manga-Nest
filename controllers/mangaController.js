@@ -1901,44 +1901,65 @@ exports.readChapter = async (req, res) => {
       // weeklyViews/monthlyViews = views - baseline ngay trong cùng 1
       // update pipeline (vẫn atomic, vẫn 1 round-trip, không cần load
       // document lên trước nên không có race condition).
-      await Promise.all([
-        Manga.updateOne(
-          { _id: manga._id },
-          [
-            { $set: { views: { $add: ["$views", 1] } } },
-            {
-              $set: {
-                weeklyViews: {
-                  $subtract: [
-                    "$views",
-                    { $ifNull: ["$weeklyViewsBaseline", 0] },
-                  ],
-                },
-                monthlyViews: {
-                  $subtract: [
-                    "$views",
-                    { $ifNull: ["$monthlyViewsBaseline", 0] },
-                  ],
+      let viewCountFailed = false;
+
+      try {
+        await Promise.all([
+          Manga.updateOne(
+            { _id: manga._id },
+            [
+              { $set: { views: { $add: ["$views", 1] } } },
+              {
+                $set: {
+                  weeklyViews: {
+                    $subtract: [
+                      "$views",
+                      { $ifNull: ["$weeklyViewsBaseline", 0] },
+                    ],
+                  },
+                  monthlyViews: {
+                    $subtract: [
+                      "$views",
+                      { $ifNull: ["$monthlyViewsBaseline", 0] },
+                    ],
+                  },
                 },
               },
-            },
-          ],
-          // Bản Mongoose trên server yêu cầu khai báo rõ option này thì
-          // mới cho phép truyền MẢNG (aggregation pipeline) vào update,
-          // nếu không sẽ throw "Cannot pass an array to query updates
-          // unless the `updatePipeline` option is set." -> readChapter
-          // rơi vào catch -> văng user về trang chủ mỗi lần có user đã
-          // đăng nhập đọc chương (đây chính là nguyên nhân bug này).
-          { updatePipeline: true },
-        ),
-        Chapter.updateOne({ _id: chapter._id }, { $inc: { views: 1 } }),
-      ]);
+            ],
+            // Bản Mongoose trên server yêu cầu khai báo rõ option này thì
+            // mới cho phép truyền MẢNG (aggregation pipeline) vào update,
+            // nếu không sẽ throw "Cannot pass an array to query updates
+            // unless the `updatePipeline` option is set."
+            { updatePipeline: true },
+          ),
+          Chapter.updateOne({ _id: chapter._id }, { $inc: { views: 1 } }),
+        ]);
+      } catch (viewErr) {
+        // Tự phục hồi: nếu bước cộng view bị lỗi (bất kể lý do gì), xoá
+        // luôn bản ghi ChapterView vừa tạo ở trên -> lần đọc kế tiếp của
+        // tài khoản này sẽ được tính lại, thay vì bị coi là "đã tính
+        // rồi" mãi mãi trong khi thực tế view chưa từng được cộng
+        // (chính là nguyên nhân view không tăng dù đã sửa lỗi pipeline).
+        console.error(
+          `[readChapter] Lỗi khi cộng view, đang hoàn tác ChapterView. slug=${req.params.slug} chapter=${req.params.number}`,
+          viewErr,
+        );
 
-      // manga là object lean (không tự đồng bộ với DB) -> cộng thêm ở
-      // local để trang render ra vẫn thấy số view mới nhất ngay lập tức.
-      manga.views = (manga.views || 0) + 1;
-      manga.weeklyViews = (manga.weeklyViews || 0) + 1;
-      manga.monthlyViews = (manga.monthlyViews || 0) + 1;
+        await ChapterView.deleteOne({
+          user: req.user._id,
+          chapter: chapter._id,
+        }).catch(() => {});
+
+        viewCountFailed = true;
+      }
+
+      if (!viewCountFailed) {
+        // manga là object lean (không tự đồng bộ với DB) -> cộng thêm ở
+        // local để trang render ra vẫn thấy số view mới nhất ngay lập tức.
+        manga.views = (manga.views || 0) + 1;
+        manga.weeklyViews = (manga.weeklyViews || 0) + 1;
+        manga.monthlyViews = (manga.monthlyViews || 0) + 1;
+      }
     }
 
     const savedScroll = historyDoc?.scrollPosition || 0;
@@ -2034,7 +2055,7 @@ exports.saveHistory = async (req, res) => {
       },
       {
         upsert: true,
-        new: true,
+        returnDocument: "after",
       },
     );
 
