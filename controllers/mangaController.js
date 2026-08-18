@@ -1902,22 +1902,35 @@ exports.readChapter = async (req, res) => {
       // update pipeline (vẫn atomic, vẫn 1 round-trip, không cần load
       // document lên trước nên không có race condition).
       await Promise.all([
-        Manga.updateOne({ _id: manga._id }, [
-          { $set: { views: { $add: ["$views", 1] } } },
-          {
-            $set: {
-              weeklyViews: {
-                $subtract: ["$views", { $ifNull: ["$weeklyViewsBaseline", 0] }],
-              },
-              monthlyViews: {
-                $subtract: [
-                  "$views",
-                  { $ifNull: ["$monthlyViewsBaseline", 0] },
-                ],
+        Manga.updateOne(
+          { _id: manga._id },
+          [
+            { $set: { views: { $add: ["$views", 1] } } },
+            {
+              $set: {
+                weeklyViews: {
+                  $subtract: [
+                    "$views",
+                    { $ifNull: ["$weeklyViewsBaseline", 0] },
+                  ],
+                },
+                monthlyViews: {
+                  $subtract: [
+                    "$views",
+                    { $ifNull: ["$monthlyViewsBaseline", 0] },
+                  ],
+                },
               },
             },
-          },
-        ]),
+          ],
+          // Bản Mongoose trên server yêu cầu khai báo rõ option này thì
+          // mới cho phép truyền MẢNG (aggregation pipeline) vào update,
+          // nếu không sẽ throw "Cannot pass an array to query updates
+          // unless the `updatePipeline` option is set." -> readChapter
+          // rơi vào catch -> văng user về trang chủ mỗi lần có user đã
+          // đăng nhập đọc chương (đây chính là nguyên nhân bug này).
+          { updatePipeline: true },
+        ),
         Chapter.updateOne({ _id: chapter._id }, { $inc: { views: 1 } }),
       ]);
 
