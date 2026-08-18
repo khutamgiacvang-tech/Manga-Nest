@@ -7,25 +7,25 @@ const {
   HeadObjectCommand,
 } = require("@aws-sdk/client-s3");
 
-const idrive = require("../config/idrive");
 const cloudstorage = require("../config/cloudstorage");
+const cloudinaryProvider = require("../config/cloudinaryStorage");
 const StorageUsage = require("../models/StorageUsage");
 
 // =========================
 // Cover / Banner / Avatar / Sample-images (đơn dịch giả) storage manager
 // =========================
-// Thay thế Cloudinary cho các loại ảnh này (KHÔNG áp dụng cho ảnh trang
-// chapter — chapter vẫn upload qua utils/uploadChapter.js -> Cloudinary
-// như cũ, ảnh chapter cũ trên Cloudinary vẫn đọc bình thường).
+// Ảnh chapter vẫn upload qua utils/cloudinaryUpload.js -> Cloudinary như cũ,
+// KHÔNG liên quan tới file này.
 //
 // Cơ chế chuyển storage: mỗi provider có giới hạn STORAGE_LIMIT_BYTES
 // (mặc định 9GB). Mỗi lần upload thành công sẽ cộng dồn size vào
 // StorageUsage (Mongo). Khi provider đang active đã dùng >= giới hạn,
 // lần upload tiếp theo tự động chuyển sang provider còn lại.
 //
-// Thứ tự ưu tiên: CloudStorage.io trước, hết chỗ mới qua iDrive e2.
+// Thứ tự ưu tiên: CloudStorage.io trước, hết chỗ mới qua Cloudinary.
+// (Đã bỏ iDrive e2, không upload lên iDrive nữa.)
 
-const PROVIDERS = [cloudstorage, idrive];
+const PROVIDERS = [cloudstorage, cloudinaryProvider];
 
 const STORAGE_LIMIT_BYTES =
   Number(process.env.STORAGE_LIMIT_BYTES) || 9 * 1024 * 1024 * 1024; // 9GB
@@ -67,7 +67,7 @@ async function getActiveProvider() {
 
   if (configuredProviders.length === 0) {
     throw new Error(
-      "Chưa cấu hình storage provider nào (iDrive e2 / CloudStorage.io). Kiểm tra lại biến môi trường.",
+      "Chưa cấu hình storage provider nào (CloudStorage.io / Cloudinary). Kiểm tra lại biến môi trường.",
     );
   }
 
@@ -115,51 +115,66 @@ async function subUsage(providerKey, bytes) {
 }
 
 // =========================
-// Upload
+// Upload — S3-compatible (CloudStorage.io)
+// =========================
+
+async function uploadToS3Provider(provider, buffer, folder, ext) {
+  const key = `${folder}/${uniqueFileName(ext)}`;
+  const contentType = guessMime(ext);
+
+  await provider.client.send(
+    new PutObjectCommand({
+      Bucket: provider.bucket,
+      Key: key,
+      Body: buffer,
+      ContentType: contentType,
+    }),
+  );
+
+  return {
+    url: `${provider.publicBaseUrl}/${key}`,
+    key,
+    bytes: buffer.length,
+  };
+}
+
+// =========================
+// Upload — Cloudinary
+// =========================
+
+async function uploadToCloudinaryProvider(provider, buffer, folder) {
+  const dataUri = `data:image/octet-stream;base64,${buffer.toString("base64")}`;
+
+  const result = await provider.client.uploader.upload(dataUri, {
+    folder,
+    resource_type: "image",
+  });
+
+  return {
+    url: result.secure_url,
+    key: result.public_id,
+    bytes: result.bytes || buffer.length,
+  };
+}
+
+// =========================
+// Upload (chung, tự route theo type của provider)
 // =========================
 
 async function uploadToActiveProvider(buffer, folder, ext) {
   const provider = await getActiveProvider();
-  const key = `${folder}/${uniqueFileName(ext)}`;
-  const contentType = guessMime(ext);
 
-  try {
-    await provider.client.send(
-      new PutObjectCommand({
-        Bucket: provider.bucket,
-        Key: key,
-        Body: buffer,
-        ContentType: contentType,
-        ACL: "public-read",
-      }),
-    );
-  } catch (err) {
-    // Một số provider S3-compatible không hỗ trợ header ACL trên PutObject
-    // (bucket phải để public sẵn từ dashboard). Thử lại không kèm ACL.
-    const message = String(err && err.message).toLowerCase();
+  const { url, key, bytes } =
+    provider.type === "cloudinary"
+      ? await uploadToCloudinaryProvider(provider, buffer, folder)
+      : await uploadToS3Provider(provider, buffer, folder, ext);
 
-    if (message.includes("acl")) {
-      await provider.client.send(
-        new PutObjectCommand({
-          Bucket: provider.bucket,
-          Key: key,
-          Body: buffer,
-          ContentType: contentType,
-        }),
-      );
-    } else {
-      throw err;
-    }
-  }
-
-  await addUsage(provider.key, buffer.length);
-
-  const url = `${provider.publicBaseUrl}/${key}`;
+  await addUsage(provider.key, bytes);
 
   return {
     url,
     // public_id dạng "<provider>:<key>" để nhận biết đây là ảnh thuộc
-    // storage mới (khác hẳn public_id kiểu Cloudinary không có dấu ":"),
+    // storage được quản lý (S3-compatible hoặc Cloudinary qua storageManager),
     // dùng để xóa đúng provider sau này.
     public_id: `${provider.key}:${key}`,
     provider: provider.key,
@@ -178,9 +193,7 @@ async function uploadImage(filePath, folder) {
 
 // Upload thẳng từ buffer trong RAM (multer.memoryStorage)
 async function uploadBuffer(buffer, folder, originalName) {
-  const ext = originalName
-    ? path.extname(originalName).toLowerCase()
-    : ".jpg";
+  const ext = originalName ? path.extname(originalName).toLowerCase() : ".jpg";
 
   return uploadToActiveProvider(buffer, folder, ext || ".jpg");
 }
@@ -191,8 +204,9 @@ async function uploadBuffer(buffer, folder, originalName) {
 
 // Nhận vào public_id dạng "<provider>:<key>" (do uploadImage/uploadBuffer ở
 // trên trả về). Trả về true nếu đã xóa, false nếu publicId không thuộc
-// storage mới (ví dụ vẫn là public_id kiểu Cloudinary cũ) -> để caller tự
-// fallback qua cloudinary.uploader.destroy như cũ.
+// storage được quản lý (ví dụ vẫn là public_id kiểu Cloudinary cũ, upload
+// trực tiếp qua cloudinary.uploader chứ không qua storageManager) -> để
+// caller tự fallback qua cloudinary.uploader.destroy như cũ.
 function isManagedPublicId(publicId) {
   return (
     typeof publicId === "string" &&
@@ -211,25 +225,56 @@ async function deleteByPublicId(publicId) {
 
   let size = 0;
 
-  try {
-    const head = await provider.client.send(
-      new HeadObjectCommand({ Bucket: provider.bucket, Key: key }),
+  if (provider.type === "cloudinary") {
+    try {
+      const resource = await provider.client.api.resource(key, {
+        resource_type: "image",
+      });
+
+      size = resource.bytes || 0;
+    } catch (err) {
+      console.log(
+        "[storageManager] Không lấy được size (Cloudinary) để trừ usage:",
+        err.message,
+      );
+    }
+
+    await provider.client.uploader.destroy(key, { resource_type: "image" });
+  } else {
+    try {
+      const head = await provider.client.send(
+        new HeadObjectCommand({ Bucket: provider.bucket, Key: key }),
+      );
+
+      size = head.ContentLength || 0;
+    } catch (err) {
+      // Không lấy được size (có thể file đã bị xóa trước đó) -> vẫn tiếp tục
+      // xóa, chỉ là không trừ được usage chính xác.
+      console.log(
+        "[storageManager] Không lấy được size để trừ usage:",
+        err.message,
+      );
+    }
+
+    await provider.client.send(
+      new DeleteObjectCommand({ Bucket: provider.bucket, Key: key }),
     );
-
-    size = head.ContentLength || 0;
-  } catch (err) {
-    // Không lấy được size (có thể file đã bị xóa trước đó) -> vẫn tiếp tục
-    // xóa, chỉ là không trừ được usage chính xác.
-    console.log("[storageManager] Không lấy được size để trừ usage:", err.message);
   }
-
-  await provider.client.send(
-    new DeleteObjectCommand({ Bucket: provider.bucket, Key: key }),
-  );
 
   await subUsage(providerKey, size);
 
   return true;
+}
+
+// Trích public_id từ URL Cloudinary dạng:
+//   https://res.cloudinary.com/<cloud>/image/upload/v169.../manganest/avatar/abc123.jpg
+// -> "manganest/avatar/abc123"
+function extractCloudinaryPublicId(url) {
+  const afterUpload = url.split("/upload/")[1];
+
+  if (!afterUpload) return null;
+
+  return afterUpload.replace(/^v\d+\//, "").replace(/\.[^/.]+$/, "");
 }
 
 // Xóa dựa theo URL công khai (dùng cho các chỗ chỉ lưu URL, không lưu
@@ -237,8 +282,23 @@ async function deleteByPublicId(publicId) {
 async function deleteByUrl(url) {
   if (!url) return false;
 
+  if (
+    cloudinaryProvider.configured &&
+    url.includes("res.cloudinary.com") &&
+    url.includes(`/${process.env.CLOUDINARY_CLOUD_NAME}/`)
+  ) {
+    const publicId = extractCloudinaryPublicId(url);
+
+    if (!publicId) return false;
+
+    return deleteByPublicId(`${cloudinaryProvider.key}:${publicId}`);
+  }
+
   const provider = PROVIDERS.find(
-    (p) => p.configured && url.startsWith(`${p.publicBaseUrl}/`),
+    (p) =>
+      p.type !== "cloudinary" &&
+      p.configured &&
+      url.startsWith(`${p.publicBaseUrl}/`),
   );
 
   if (!provider) return false;
