@@ -1896,17 +1896,22 @@ exports.readChapter = async (req, res) => {
       // .save() lại -> nhanh hơn và tránh mất dữ liệu nếu có 2 request
       // ghi đè lên nhau cùng lúc (race condition). 2 lệnh update độc
       // lập -> chạy song song.
-      // weeklyViews/monthlyViews KHÔNG còn được cộng ở đây nữa -> chúng
-      // được tính định kỳ bởi utils/viewsRollupScheduler.js dựa trên
-      // ChapterView (xem giải thích ở models/Manga.js). Ở đây chỉ cần
-      // cộng views tổng (đơn giản, không còn phụ thuộc dạng update mảng
-      // /pipeline nữa -> không còn dính lỗi "Cannot pass an array to
-      // query updates..." như trước).
+      // weeklyViews/monthlyViews vẫn được cộng NGAY ở đây (+1, optimistic)
+      // để người dùng thấy cập nhật tức thì trên "Truyện nổi bật", KHÔNG
+      // phải chờ tới chu kỳ tính lại của scheduler (tối đa 15 phút).
+      // utils/viewsRollupScheduler.js vẫn chạy định kỳ để TÍNH LẠI CHÍNH
+      // XÁC theo đúng cửa sổ 7 ngày/30 ngày (xử lý việc "rớt" các view
+      // cũ ra khỏi cửa sổ theo thời gian mà +1 ở đây không tự làm được)
+      // -> +1 ở đây chỉ để hiển thị mượt/tức thì, còn số đúng tuyệt đối
+      // vẫn do scheduler chốt lại theo chu kỳ.
       let viewCountFailed = false;
 
       try {
         await Promise.all([
-          Manga.updateOne({ _id: manga._id }, { $inc: { views: 1 } }),
+          Manga.updateOne(
+            { _id: manga._id },
+            { $inc: { views: 1, weeklyViews: 1, monthlyViews: 1 } },
+          ),
           Chapter.updateOne({ _id: chapter._id }, { $inc: { views: 1 } }),
         ]);
       } catch (viewErr) {
@@ -1929,12 +1934,10 @@ exports.readChapter = async (req, res) => {
 
       if (!viewCountFailed) {
         // manga là object lean (không tự đồng bộ với DB) -> cộng thêm ở
-        // local để trang render ra vẫn thấy số view mới nhất ngay lập
-        // tức. weeklyViews/monthlyViews không cộng local ở đây vì
-        // chúng chỉ được cập nhật đúng khi scheduler tính lại định kỳ
-        // (tối đa lệch vài phút, không cần chính xác tuyệt đối ngay
-        // tại thời điểm này).
+        // local để trang render ra vẫn thấy số view mới nhất ngay lập tức.
         manga.views = (manga.views || 0) + 1;
+        manga.weeklyViews = (manga.weeklyViews || 0) + 1;
+        manga.monthlyViews = (manga.monthlyViews || 0) + 1;
       }
     }
 

@@ -2,20 +2,22 @@ const Manga = require("../models/Manga");
 const ChapterView = require("../models/ChapterView");
 
 // =========================
-// Tính weeklyViews/monthlyViews kiểu "cửa sổ trượt" (rolling window):
-// đếm số ChapterView có createdAt nằm trong 7 ngày / 30 ngày GẦN NHẤT
-// tính từ thời điểm chạy, group theo manga, rồi ghi lại vào Manga.
+// Tính LẠI (đối chiếu, sửa lệch) weeklyViews/monthlyViews kiểu "cửa sổ
+// trượt" (rolling window): đếm số ChapterView có createdAt nằm trong 7
+// ngày / 30 ngày GẦN NHẤT tính từ thời điểm chạy, group theo manga,
+// rồi ghi lại vào Manga.
 //
-// Vì sao chọn cách này thay vì "reset về 0 mỗi đầu tuần/đầu tháng"
-// (cách cũ): cách cũ khiến số hiển thị nhảy cục về 0 ngay lúc reset dù
-// tuần/tháng trước vẫn có nhiều view. Cách này không có khái niệm
-// "reset" ở 1 mốc cố định nào cả -> số liệu luôn là "view thật trong N
-// ngày gần nhất", tự nhiên trôi mượt theo thời gian, không bao giờ bị
-// nhảy cục.
+// weeklyViews/monthlyViews ĐÃ được +1 ngay lập tức mỗi khi có view mới
+// (xem mangaController.js -> readChapter) để hiển thị mượt/tức thì.
+// Nhưng chỉ +1 thôi thì KHÔNG tự "rớt" được các view cũ ra khỏi cửa sổ
+// 7 ngày/30 ngày khi thời gian trôi qua (ví dụ 1 view của 8 ngày trước
+// cần tự động không còn được tính vào "TUẦN" nữa). Scheduler này chạy
+// định kỳ để tính lại CHÍNH XÁC theo đúng cửa sổ thời gian, sửa lại
+// đúng số cho toàn bộ manga -> kết hợp cả 2: tăng tức thì lúc có view
+// mới + tự sửa lệch/decay định kỳ theo thời gian.
 //
-// Chạy định kỳ (không cần chạy mỗi lần có view mới, vì BXH tuần/tháng
-// không cần chính xác tới từng giây) -> đủ để không tốn tài nguyên mà
-// vẫn gần như real-time.
+// Chạy định kỳ (không cần chạy mỗi lần có view mới) -> đủ để không tốn
+// tài nguyên mà vẫn gần như real-time.
 // =========================
 
 const ROLLUP_INTERVAL_MS = 15 * 60 * 1000; // 15 phút / lần
