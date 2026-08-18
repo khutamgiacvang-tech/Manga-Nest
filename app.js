@@ -159,7 +159,13 @@ app.use("/", require("./routes/comment"));
 app.use((err, req, res, next) => {
   if (!err) return next();
 
-  console.error("Lỗi middleware/upload:", err.message);
+  // Log kèm URL gốc + user-agent để biết chính xác request nào, thiết
+  // bị/trình duyệt nào gây lỗi (trước đây chỉ log err.message, không
+  // biết lỗi xảy ra ở đâu -> không debug được các bug "chập chờn").
+  console.error(
+    `Lỗi middleware/upload tại ${req.method} ${req.originalUrl} | UA: ${req.headers["user-agent"]}`,
+    err,
+  );
 
   if (req.flash) {
     req.flash("error", err.message || "Có lỗi xảy ra, vui lòng thử lại.");

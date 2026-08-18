@@ -1943,8 +1943,24 @@ exports.readChapter = async (req, res) => {
       savedProgress,
     });
   } catch (err) {
-    console.error(err);
-    res.redirect("/");
+    // Log đầy đủ context để biết CHÍNH XÁC bộ/chương nào và
+    // thiết bị/trình duyệt nào gây lỗi, thay vì chỉ log mỗi err
+    // chung chung như trước (không biết lỗi xảy ra ở request nào).
+    console.error(
+      `[readChapter] Lỗi khi đọc chương. slug=${req.params.slug} chapter=${req.params.number} UA=${req.headers["user-agent"]}`,
+      err,
+    );
+
+    // Trước đây redirect thẳng về "/" mà không có thông báo gì -> người
+    // dùng thấy như site tự nhiên "văng" về trang chủ, không rõ lý do.
+    // Giờ hiện flash message rõ ràng + quay lại đúng trang truyện (gần
+    // với ngữ cảnh đang đọc hơn là bay hẳn về trang chủ).
+    req.flash(
+      "error",
+      "Đã có lỗi khi tải chương này. Vui lòng thử lại, nếu vẫn lỗi hãy báo cho admin kèm tên truyện + số chương.",
+    );
+
+    return res.redirect("/manga/" + req.params.slug);
   }
 };
 
