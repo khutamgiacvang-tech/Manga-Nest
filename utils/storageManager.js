@@ -23,9 +23,9 @@ const StorageUsage = require("../models/StorageUsage");
 // StorageUsage (Mongo). Khi provider đang active đã dùng >= giới hạn,
 // lần upload tiếp theo tự động chuyển sang provider còn lại.
 //
-// Thứ tự ưu tiên: iDrive e2 trước, hết chỗ mới qua CloudStorage.io.
+// Thứ tự ưu tiên: CloudStorage.io trước, hết chỗ mới qua iDrive e2.
 
-const PROVIDERS = [idrive, cloudstorage];
+const PROVIDERS = [cloudstorage, idrive];
 
 const STORAGE_LIMIT_BYTES =
   Number(process.env.STORAGE_LIMIT_BYTES) || 9 * 1024 * 1024 * 1024; // 9GB
