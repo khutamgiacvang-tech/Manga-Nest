@@ -7,8 +7,7 @@ const {
   HeadObjectCommand,
 } = require("@aws-sdk/client-s3");
 
-const idrive = require("../config/idrive");
-const cloudstorage = require("../config/cloudstorage");
+const supabase = require("../config/supabase");
 const StorageUsage = require("../models/StorageUsage");
 
 // =========================
@@ -18,14 +17,12 @@ const StorageUsage = require("../models/StorageUsage");
 // chapter — chapter vẫn upload qua utils/uploadChapter.js -> Cloudinary
 // như cũ, ảnh chapter cũ trên Cloudinary vẫn đọc bình thường).
 //
-// Cơ chế chuyển storage: mỗi provider có giới hạn STORAGE_LIMIT_BYTES
-// (mặc định 9GB). Mỗi lần upload thành công sẽ cộng dồn size vào
-// StorageUsage (Mongo). Khi provider đang active đã dùng >= giới hạn,
-// lần upload tiếp theo tự động chuyển sang provider còn lại.
-//
-// Thứ tự ưu tiên: CloudStorage.io trước, hết chỗ mới qua iDrive e2.
+// Storage provider: Supabase Storage (S3-compatible), xem chi tiết ENV cần
+// thiết trong config/supabase.js. STORAGE_LIMIT_BYTES vẫn được giữ lại để
+// theo dõi dung lượng đã dùng (StorageUsage / Mongo) và cảnh báo qua log
+// khi gần/đã vượt ngưỡng, để chủ động nâng cấp gói Supabase.
 
-const PROVIDERS = [cloudstorage, idrive];
+const PROVIDERS = [supabase];
 
 const STORAGE_LIMIT_BYTES =
   Number(process.env.STORAGE_LIMIT_BYTES) || 9 * 1024 * 1024 * 1024; // 9GB
@@ -67,7 +64,7 @@ async function getActiveProvider() {
 
   if (configuredProviders.length === 0) {
     throw new Error(
-      "Chưa cấu hình storage provider nào (iDrive e2 / CloudStorage.io). Kiểm tra lại biến môi trường.",
+      "Chưa cấu hình storage provider nào (Supabase Storage). Kiểm tra lại biến môi trường.",
     );
   }
 
@@ -80,10 +77,10 @@ async function getActiveProvider() {
     }
   }
 
-  // Cả 2 provider đều đã đầy -> vẫn cố upload vào provider cuối cùng
-  // (best-effort), đồng thời cảnh báo ra log để chủ động nâng cấp dung lượng.
+  // Provider đã đầy -> vẫn cố upload (best-effort), đồng thời cảnh báo ra
+  // log để chủ động nâng cấp dung lượng gói Supabase.
   console.warn(
-    "[storageManager] Tất cả storage provider đã đạt giới hạn " +
+    "[storageManager] Storage provider đã đạt giới hạn " +
       `${(STORAGE_LIMIT_BYTES / (1024 * 1024 * 1024)).toFixed(1)}GB. ` +
       "Đang upload tạm vào provider cuối cùng, cân nhắc nâng cấp dung lượng.",
   );

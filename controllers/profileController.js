@@ -49,12 +49,12 @@ exports.updateProfile = async (req, res) => {
     }
 
     // =========================
-    // Upload Avatar (iDrive e2 / CloudStorage.io)
+    // Upload Avatar (Supabase Storage)
     // =========================
 
     if (req.file) {
       // Xóa avatar cũ — hỗ trợ cả avatar cũ còn trên Cloudinary lẫn avatar
-      // mới trên storage hiện tại (iDrive e2 / CloudStorage.io).
+      // mới trên storage hiện tại (Supabase Storage).
       if (user.avatar) {
         if (user.avatar.includes("cloudinary.com")) {
           try {
