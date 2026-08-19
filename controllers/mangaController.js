@@ -12,7 +12,7 @@ const Comment = require("../models/Comment");
 const Category = require("../models/Category");
 const removeVietnameseTones = require("../utils/removeVietnameseTones");
 const webpush = require("web-push");
-// Cover / Banner của manga -> storage mới (CloudStorage.io / Cloudinary)
+// Cover / Banner của manga -> storage mới (iDrive e2 / CloudStorage.io)
 const uploadImage = require("../utils/storageManager");
 
 // Ảnh trang chapter vẫn giữ nguyên trên Cloudinary như cũ (KHÔNG đổi sang
