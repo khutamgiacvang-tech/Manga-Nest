@@ -230,3 +230,157 @@ exports.sendResetPasswordEmail = async ({ to, username, resetUrl }) => {
     html,
   });
 };
+
+// =====================
+// Gửi mail xác minh tài khoản (đăng ký)
+// =====================
+
+exports.sendVerifyEmail = async ({ to, username, verifyUrl }) => {
+  const subject = "MangaNest - Xác minh địa chỉ Gmail của bạn";
+
+  const html = `
+<!DOCTYPE html>
+<html lang="vi">
+
+<head>
+  <meta charset="UTF-8">
+  <meta
+    name="viewport"
+    content="width=device-width, initial-scale=1.0"
+  >
+
+  <title>MangaNest - Xác minh tài khoản</title>
+</head>
+
+<body
+  style="
+    margin:0;
+    padding:0;
+    background:#f4f5f7;
+    font-family:Arial, Helvetica, sans-serif;
+  "
+>
+
+  <div
+    style="
+      max-width:520px;
+      margin:40px auto;
+      background:#17181f;
+      color:#ffffff;
+      padding:32px;
+      border-radius:16px;
+    "
+  >
+
+    <h2
+      style="
+        color:#ff4d4f;
+        margin:0 0 20px 0;
+      "
+    >
+      MangaNest
+    </h2>
+
+    <p>
+      Xin chào
+      <strong>${username || "bạn"}</strong>,
+    </p>
+
+    <p style="line-height:1.6;">
+      Cảm ơn bạn đã đăng ký tài khoản tại MangaNest. Để hoàn tất
+      đăng ký và có thể đăng nhập, vui lòng xác minh địa chỉ Gmail
+      này là của bạn bằng cách nhấn nút bên dưới:
+    </p>
+
+    <div
+      style="
+        text-align:center;
+        margin:30px 0;
+      "
+    >
+
+      <a
+        href="${verifyUrl}"
+        style="
+          display:inline-block;
+          background:#ff4d4f;
+          color:#ffffff;
+          padding:13px 28px;
+          border-radius:10px;
+          text-decoration:none;
+          font-weight:bold;
+        "
+      >
+        Xác minh Gmail của tôi
+      </a>
+
+    </div>
+
+    <p>
+      Nếu nút phía trên không hoạt động,
+      bạn có thể copy đường dẫn sau vào trình duyệt:
+    </p>
+
+    <p
+      style="
+        word-break:break-all;
+        color:#9aa0ac;
+        font-size:13px;
+      "
+    >
+      ${verifyUrl}
+    </p>
+
+    <p
+      style="
+        color:#9aa0ac;
+        font-size:13px;
+        line-height:1.6;
+        margin-top:25px;
+      "
+    >
+      Link xác minh sẽ hết hạn sau
+      <strong>24 giờ</strong>.
+    </p>
+
+    <p
+      style="
+        color:#9aa0ac;
+        font-size:13px;
+        line-height:1.6;
+      "
+    >
+      Nếu bạn không tạo tài khoản này, vui lòng bỏ qua email này.
+    </p>
+
+    <hr
+      style="
+        border:0;
+        border-top:1px solid #2b2d35;
+        margin:25px 0;
+      "
+    >
+
+    <p
+      style="
+        color:#777b86;
+        font-size:12px;
+        text-align:center;
+      "
+    >
+      © MangaNest
+    </p>
+
+  </div>
+
+</body>
+
+</html>
+  `;
+
+  return await sendViaResend({
+    to,
+    subject,
+    html,
+  });
+};

@@ -16,6 +16,14 @@ router.post("/register", authController.register);
 router.get("/logout", authController.logout);
 
 // =====================
+// Xác minh Gmail
+// =====================
+
+router.get("/verify-email/:token", authController.verifyEmail);
+
+router.post("/resend-verification", authController.resendVerifyEmail);
+
+// =====================
 // Quên mật khẩu / Reset mật khẩu
 // =====================
 

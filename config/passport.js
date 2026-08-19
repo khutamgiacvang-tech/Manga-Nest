@@ -33,6 +33,13 @@ passport.use(
           });
         }
 
+        if (user.provider === "local" && !user.isVerified) {
+          return done(null, false, {
+            message:
+              "Tài khoản chưa xác minh Gmail. Vui lòng kiểm tra hộp thư Gmail để kích hoạt tài khoản.",
+          });
+        }
+
         return done(null, user);
       } catch (err) {
         return done(err);
@@ -92,6 +99,9 @@ passport.use(
               googleId: profile.id,
 
               role: "user",
+
+              // Email đã được Google xác thực sẵn
+              isVerified: true,
             });
           }
         }
@@ -158,6 +168,9 @@ passport.use(
               discordId: profile.id,
 
               role: "user",
+
+              // Email đã được Discord xác thực sẵn
+              isVerified: true,
             });
           }
         }

@@ -167,6 +167,7 @@ exports.changePassword = async (req, res) => {
 };
 
 const Manga = require("../models/Manga");
+const Chapter = require("../models/Chapter");
 
 exports.followLibrary = async (req, res) => {
   try {
@@ -216,6 +217,33 @@ exports.followLibrary = async (req, res) => {
         .skip((page - 1) * limit)
         .limit(limit)
         .lean();
+    }
+
+    // Lấy chapter mới nhất của cả trang bằng 1 aggregate query, giống hệt
+    // cách trang "Danh sách truyện" (/manga) đang làm, để 2 giao diện
+    // hiển thị cùng 1 kiểu thông tin (C. X - x phút trước).
+    if (finalMangas.length > 0) {
+      const latestChapters = await Chapter.aggregate([
+        { $match: { manga: { $in: finalMangas.map((manga) => manga._id) } } },
+        { $sort: { manga: 1, chapterOrder: -1, createdAt: -1 } },
+        {
+          $group: {
+            _id: "$manga",
+            chapterNumber: { $first: "$chapterNumber" },
+            createdAt: { $first: "$createdAt" },
+          },
+        },
+      ]);
+
+      const latestMap = new Map(
+        latestChapters.map((chapter) => [String(chapter._id), chapter]),
+      );
+
+      for (const manga of finalMangas) {
+        const latest = latestMap.get(String(manga._id));
+        manga.lastChapter = latest?.chapterNumber || manga.lastChapter || 0;
+        manga.lastChapterDate = latest?.createdAt || manga.createdAt;
+      }
     }
 
     res.render("profile/library", {

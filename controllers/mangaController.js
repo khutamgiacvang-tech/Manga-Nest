@@ -15,28 +15,35 @@ const webpush = require("web-push");
 // Cover / Banner của manga -> storage mới (Supabase Storage)
 const uploadImage = require("../utils/storageManager");
 
-// Ảnh trang chapter vẫn giữ nguyên trên Cloudinary như cũ (KHÔNG đổi sang
-// storage mới), dùng chung logic upload gốc (cloudinaryUpload.js) dưới
-// tên riêng để tránh nhầm với uploadImage (cover/banner) ở trên.
-const uploadChapterPageImage = require("../utils/cloudinaryUpload");
+// Ảnh trang chapter: upload MỚI cũng chuyển sang storage mới (Supabase)
+// vì Cloudinary free tier đã đạt giới hạn dung lượng. Dùng chung
+// storageManager.js (đặt tên riêng uploadChapterPageImage để tránh nhầm
+// với uploadImage cover/banner ở trên, dù thực chất cùng 1 module).
+// Ảnh chapter CŨ vẫn còn trên Cloudinary và vẫn đọc bình thường qua URL đã
+// lưu sẵn trong DB — chỉ có chiều upload/xóa/sửa chapter là đổi sang dùng
+// storageManager (deleteByPrefix/moveObject), có kèm fallback dọn dẹp trên
+// Cloudinary (best-effort) cho các chapter cũ upload từ trước khi đổi.
+const uploadChapterPageImage = require("../utils/storageManager");
 const cloudinary = require("../config/cloudinary");
 const deleteUploadedImage = require("../utils/deleteUploadedImage");
 const timeAgo = require("../utils/timeAgo");
 const sharp = require("sharp");
 
 // =========================
-// Giới hạn dung lượng ảnh khi upload lên Cloudinary
+// Giới hạn dung lượng ảnh khi upload ảnh trang chapter (nén trước bằng
+// sharp nếu vượt quá, dùng chung cho cả Supabase lẫn ảnh chapter cũ còn
+// upload lại trên Cloudinary)
 // =========================
 const MAX_IMAGE_SIZE = 10 * 1024 * 1024; // 10MB
 
 // =========================
-// Số lượng ảnh upload SONG SONG cùng lúc lên Cloudinary khi xử lý 1
-// chapter. Trước đây code upload TUẦN TỰ từng trang một (for...await),
+// Số lượng ảnh upload SONG SONG cùng lúc lên storage (Supabase) khi xử lý
+// 1 chapter. Trước đây code upload TUẦN TỰ từng trang một (for...await),
 // khiến 1 chapter 20-30 trang mất rất lâu vì phải chờ trang trước
 // xong mới upload trang sau. Giờ upload song song tối đa
 // UPLOAD_CONCURRENCY trang cùng lúc để rút ngắn thời gian, nhưng vẫn
 // giới hạn số lượng để tránh bắn quá nhiều request cùng lúc gây lỗi
-// rate limit (429) từ Cloudinary, đặc biệt là các gói free.
+// rate limit từ storage provider.
 // =========================
 const UPLOAD_CONCURRENCY = 5;
 
@@ -985,19 +992,26 @@ exports.deleteChapter = async (req, res) => {
     }
 
     // =========================
-    // Xóa ảnh trên Cloudinary
+    // Xóa ảnh chapter (Supabase và/hoặc Cloudinary)
     // =========================
+    // Chapter có thể được upload từ TRƯỚC (ảnh nằm trên Cloudinary) hoặc
+    // SAU (ảnh nằm trên Supabase) khi đổi storage, nên dọn dẹp best-effort
+    // trên cả 2 provider cho chắc — provider nào không có ảnh thì coi như
+    // không có gì để xóa.
+
+    const chapterFolder = `manganest/chapters/${manga.slug}/${chapter.chapterNumber}`;
 
     try {
-      await cloudinary.api.delete_resources_by_prefix(
-        `manganest/chapters/${manga.slug}/${chapter.chapterNumber}`,
-      );
-
-      await cloudinary.api.delete_folder(
-        `manganest/chapters/${manga.slug}/${chapter.chapterNumber}`,
-      );
+      await cloudinary.api.delete_resources_by_prefix(chapterFolder);
+      await cloudinary.api.delete_folder(chapterFolder);
     } catch (err) {
       console.log("Cloudinary:", err.message);
+    }
+
+    try {
+      await uploadChapterPageImage.deleteByPrefix(chapterFolder);
+    } catch (err) {
+      console.log("Supabase:", err.message);
     }
 
     // =========================
@@ -1140,18 +1154,20 @@ exports.chapterStatus = async (req, res) => {
 // LƯU Ý: cũng bọc trong try/finally để file zip tạm luôn được xóa,
 // kể cả khi có lỗi xảy ra trong lúc giải nén / ghi file / lưu DB.
 //
-// FIX QUAN TRỌNG: upload ảnh MỚI xong hoàn tất rồi mới xóa ảnh CŨ trên
-// Cloudinary. Trước đây xóa ảnh cũ trước, nếu upload ảnh mới lỗi giữa
-// chừng thì DB vẫn giữ URL cũ nhưng ảnh thật đã bị xóa → chapter mất
-// ảnh vĩnh viễn. Ảnh mới được upload lên một folder tạm, chỉ sau khi
-// TOÀN BỘ ảnh upload thành công mới xóa folder cũ và gán pages mới.
+// FIX QUAN TRỌNG: upload ảnh MỚI xong hoàn tất rồi mới xóa ảnh CŨ. Trước
+// đây xóa ảnh cũ trước, nếu upload ảnh mới lỗi giữa chừng thì DB vẫn giữ
+// URL cũ nhưng ảnh thật đã bị xóa → chapter mất ảnh vĩnh viễn. Ảnh mới
+// được upload lên Supabase vào một folder tạm, chỉ sau khi TOÀN BỘ ảnh
+// upload thành công mới xóa folder cũ và gán pages mới. Ảnh cũ có thể còn
+// nằm trên Cloudinary (chapter upload từ trước khi đổi sang Supabase) nên
+// bước xóa ảnh cũ dọn dẹp best-effort trên cả 2 provider.
 //
 // Đồng thời tự động nén ảnh nào vượt quá 10MB bằng sharp trước khi
 // upload, thay vì throw lỗi ngay.
 //
-// SAU KHI xóa ảnh cũ xong, rename từng ảnh từ folder TẠM về lại folder
-// chuẩn (đúng tên chapterNumber) rồi xóa folder tạm rỗng, để Cloudinary
-// không bị tồn folder rác dạng "1_temp_1784773678600".
+// SAU KHI xóa ảnh cũ xong, move từng ảnh từ folder TẠM về lại folder
+// chuẩn (đúng tên chapterNumber) rồi trên Supabase, để không bị tồn folder
+// rác dạng "1_temp_1784773678600".
 //
 // TỐI ƯU TỐC ĐỘ: upload ảnh mới lên folder tạm SONG SONG (tối đa
 // UPLOAD_CONCURRENCY cùng lúc) giống hệt uploadChapter, thay vì tuần
@@ -1302,11 +1318,11 @@ exports.updateChapter = async (req, res) => {
           },
         );
       } catch (uploadErr) {
-        // Upload ảnh mới thất bại giữa chừng -> dọn rác ở folder tạm,
-        // KHÔNG đụng tới ảnh cũ, để chapter vẫn còn nguyên như trước
+        // Upload ảnh mới thất bại giữa chừng -> dọn rác ở folder tạm trên
+        // Supabase, KHÔNG đụng tới ảnh cũ, để chapter vẫn còn nguyên như
+        // trước
         try {
-          await cloudinary.api.delete_resources_by_prefix(`${tempFolder}/`);
-          await cloudinary.api.delete_folder(tempFolder);
+          await uploadChapterPageImage.deleteByPrefix(tempFolder);
         } catch (cleanupErr) {
           console.log("Không dọn được folder tạm:", cleanupErr.message);
         }
@@ -1315,71 +1331,60 @@ exports.updateChapter = async (req, res) => {
       }
 
       // Upload ảnh mới đã THÀNH CÔNG hoàn toàn -> giờ mới xóa ảnh cũ.
+      // Ảnh cũ có thể nằm trên Cloudinary (chapter upload từ trước khi đổi
+      // storage) hoặc trên Supabase (chapter đã từng sửa sau khi đổi
+      // storage) -> dọn best-effort trên cả 2 provider.
       //
-      // QUAN TRỌNG: bắt buộc thêm dấu "/" vào cuối prefix. Cloudinary so
-      // khớp "delete_resources_by_prefix" theo kiểu string prefix thông
-      // thường, KHÔNG hiểu ranh giới folder. Nếu không có dấu "/", prefix
-      // "manganest/chapters/slug/7" sẽ khớp luôn cả
-      // "manganest/chapters/slug/7_temp_169..." (vì chuỗi đó cũng "bắt
+      // QUAN TRỌNG: bắt buộc thêm dấu "/" vào cuối prefix khi gọi
+      // Cloudinary. Cloudinary so khớp "delete_resources_by_prefix" theo
+      // kiểu string prefix thông thường, KHÔNG hiểu ranh giới folder. Nếu
+      // không có dấu "/", prefix "manganest/chapters/slug/7" sẽ khớp luôn
+      // cả "manganest/chapters/slug/7_temp_169..." (vì chuỗi đó cũng "bắt
       // đầu bằng" "...7"), khiến ảnh MỚI vừa upload lên folder tạm bị xóa
-      // nhầm ngay sau khi upload xong -> gây lỗi "Resource not found" khi
-      // rename ở bước tiếp theo. Đây chính là nguyên nhân lỗi cũ.
+      // nhầm ngay sau khi upload xong. deleteByPrefix (Supabase) tự thêm
+      // dấu "/" nên không bị lỗi này.
       try {
         await cloudinary.api.delete_resources_by_prefix(`${oldFolder}/`);
         await cloudinary.api.delete_folder(oldFolder);
       } catch (err) {
         // Folder có thể không tồn tại (chapter mới chưa từng có ảnh)
-        console.log("Không xóa được ảnh cũ:", err?.message || err);
+        console.log("Không xóa được ảnh cũ trên Cloudinary:", err?.message || err);
+      }
+
+      try {
+        await uploadChapterPageImage.deleteByPrefix(oldFolder);
+      } catch (err) {
+        console.log("Không xóa được ảnh cũ trên Supabase:", err?.message || err);
       }
 
       // =========================
-      // Rename ảnh từ folder TẠM về lại folder chuẩn, để không tồn
-      // folder rác "_temp_..." trên Cloudinary
+      // Move ảnh từ folder TẠM về lại folder chuẩn, để không tồn folder
+      // rác "_temp_..." trên Supabase (thay cho cloudinary.uploader.rename
+      // trước đây)
       // =========================
       try {
-        const renamedPages = [];
+        const movedPages = [];
 
         for (const page of pages) {
-          const newPublicId = page.public_id.replace(tempFolder, finalFolder);
-
-          const renamed = await cloudinary.uploader.rename(
+          const moved = await uploadChapterPageImage.moveObject(
             page.public_id,
-            newPublicId,
+            finalFolder,
           );
 
-          renamedPages.push({
-            url: renamed.secure_url,
-            public_id: renamed.public_id,
+          movedPages.push({
+            url: moved.url,
+            public_id: moved.public_id,
           });
         }
 
-        pages = renamedPages;
-
-        // tempFolder giờ đã rỗng, xóa nốt cho sạch
-        try {
-          await cloudinary.api.delete_folder(tempFolder);
-        } catch (err) {
-          // Cloudinary đôi khi có độ trễ vài trăm ms để cập nhật index sau
-          // khi rename xong, nên lần xóa đầu có thể vẫn thấy folder "chưa
-          // rỗng" dù thực tế đã rỗng. Đợi 1.5s rồi thử lại 1 lần nữa.
-          await new Promise((resolve) => setTimeout(resolve, 1500));
-
-          try {
-            await cloudinary.api.delete_folder(tempFolder);
-          } catch (err2) {
-            console.log(
-              "Không xóa được folder tạm rỗng:",
-              err2?.message || err2,
-            );
-          }
-        }
-      } catch (renameErr) {
-        // Rename lỗi thì KHÔNG throw làm hỏng cả request - ảnh vẫn
-        // đang tồn tại và dùng được bình thường ở tempFolder, chỉ là
-        // tên folder không đẹp. Giữ nguyên pages (chưa rename) để lưu.
+        pages = movedPages;
+      } catch (moveErr) {
+        // Move lỗi thì KHÔNG throw làm hỏng cả request - ảnh vẫn đang
+        // tồn tại và dùng được bình thường ở tempFolder, chỉ là tên
+        // folder không đẹp. Giữ nguyên pages (chưa move) để lưu.
         console.log(
-          "Không rename được ảnh về folder chuẩn (ảnh vẫn hoạt động bình thường ở folder tạm):",
-          renameErr?.message || renameErr,
+          "Không move được ảnh về folder chuẩn (ảnh vẫn hoạt động bình thường ở folder tạm):",
+          moveErr?.message || moveErr,
         );
       }
 

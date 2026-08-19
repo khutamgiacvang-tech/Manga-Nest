@@ -179,8 +179,15 @@
                 <input
                     type="email"
                     name="email"
-                    placeholder="Email"
+                    placeholder="Gmail của bạn (vd: yourname@gmail.com)"
+                    pattern="^[a-zA-Z0-9][a-zA-Z0-9.]{4,28}[a-zA-Z0-9]@(gmail|googlemail)\.com$"
+                    title="Vui lòng nhập một địa chỉ Gmail hợp lệ (@gmail.com)"
                     required>
+
+                <small class="auth-hint">
+                    Chúng tôi sẽ gửi email xác minh đến Gmail này,
+                    bạn cần bấm vào link trong email để kích hoạt tài khoản.
+                </small>
 
                 <div class="password-group">
 

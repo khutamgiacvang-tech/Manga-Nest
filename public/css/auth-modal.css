@@ -204,6 +204,20 @@
 
 }
 
+.auth-hint {
+
+    display: block;
+
+    margin: -10px 0 16px;
+
+    color: #9aa0ac;
+
+    font-size: 12px;
+
+    line-height: 1.5;
+
+}
+
 .submit-btn {
 
     width: 100%;

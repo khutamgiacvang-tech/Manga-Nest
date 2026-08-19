@@ -1,6 +1,32 @@
-<div class="library-page">
+<%
+// Helper hiển thị thời gian tương đối kiểu "12 phút trước"
+function timeAgo(date){
 
-    <h1>
+    if(!date) return "";
+
+    const diff = Date.now() - new Date(date).getTime();
+
+    const mins = Math.floor(diff / 60000);
+
+    if(mins < 1) return "vừa xong";
+    if(mins < 60) return mins + " phút trước";
+
+    const hours = Math.floor(mins / 60);
+    if(hours < 24) return hours + " giờ trước";
+
+    const days = Math.floor(hours / 24);
+    if(days < 30) return days + " ngày trước";
+
+    const months = Math.floor(days / 30);
+    if(months < 12) return months + " tháng trước";
+
+    return Math.floor(months / 12) + " năm trước";
+}
+%>
+
+<div class="manga-list-page">
+
+    <h1 class="page-title">
         ❤️ Danh sách theo dõi
     </h1>
 
@@ -12,28 +38,25 @@
 
     <% } else { %>
 
-        <div class="library-grid">
+        <div class="list-grid">
 
             <% mangas.forEach(manga => { %>
 
-                <a href="/manga/<%= manga.slug %>" class="library-card">
+                <a href="/manga/<%= manga.slug %>" class="list-card">
 
-                    <img src="<%= manga.cover %>" alt="<%= manga.title %>">
+                    <img
+                        src="<%= manga.cover || '/images/no-cover.png' %>"
+                        alt="<%= manga.title %>"
+                    >
 
-                    <div class="library-info">
+                    <div class="list-card-body">
 
-                        <h3>
-                            <%= manga.title %>
-                        </h3>
+                        <h3><%= manga.title %></h3>
 
-                        <p>
-                            Nhóm dịch:
-                            <%= manga.translator?.displayName || manga.translator?.username %>
+                        <p class="list-card-meta">
+                            C. <%= manga.lastChapter || 0 %> -
+                            <%= timeAgo(manga.lastChapterDate) %>
                         </p>
-
-                        <small>
-                            <%= timeAgo(manga.lastUpdated) %>
-                        </small>
 
                     </div>
 
@@ -62,7 +85,7 @@
 
         <% } %>
 
-        <span class="page-info">
+        <span class="page-number">
             Trang <%= currentPage %> / <%= totalPages %>
         </span>
 

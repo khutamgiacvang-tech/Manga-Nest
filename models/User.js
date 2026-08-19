@@ -128,6 +128,27 @@ const userSchema = new mongoose.Schema(
       default: null,
     },
 
+    // =========================
+    // Xác minh Email (bắt buộc với tài khoản đăng ký bằng Gmail)
+    // =========================
+
+    // Google/Discord OAuth luôn coi là đã verified (email do Google/Discord
+    // xác nhận sẵn). Tài khoản "local" phải verify qua email mới được login.
+    isVerified: {
+      type: Boolean,
+      default: false,
+    },
+
+    emailVerifyToken: {
+      type: String,
+      default: null,
+    },
+
+    emailVerifyExpires: {
+      type: Date,
+      default: null,
+    },
+
     followedManga: [
       {
         type: mongoose.Schema.Types.ObjectId,

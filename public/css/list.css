@@ -77,6 +77,22 @@
 
 }
 
+.list-card-body {
+
+    padding-top: 4px;
+
+}
+
+.list-card-meta {
+
+    margin-top: 4px;
+
+    color: #9fa6b2;
+
+    font-size: 13px;
+
+}
+
 .pagination {
 
     margin-top: 50px;

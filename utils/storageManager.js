@@ -4,18 +4,25 @@ const path = require("path");
 const {
   PutObjectCommand,
   DeleteObjectCommand,
+  DeleteObjectsCommand,
   HeadObjectCommand,
+  ListObjectsV2Command,
+  CopyObjectCommand,
 } = require("@aws-sdk/client-s3");
 
 const supabase = require("../config/supabase");
 const StorageUsage = require("../models/StorageUsage");
 
 // =========================
-// Cover / Banner / Avatar / Sample-images (đơn dịch giả) storage manager
+// Cover / Banner / Avatar / Sample-images / Ảnh trang Chapter storage manager
 // =========================
-// Thay thế Cloudinary cho các loại ảnh này (KHÔNG áp dụng cho ảnh trang
-// chapter — chapter vẫn upload qua utils/uploadChapter.js -> Cloudinary
-// như cũ, ảnh chapter cũ trên Cloudinary vẫn đọc bình thường).
+// Provider duy nhất cho MỌI loại ảnh upload MỚI (cover, banner, avatar,
+// sample-images, và cả ảnh trang chapter) kể từ khi Cloudinary free tier
+// bị đạt giới hạn dung lượng. Ảnh chapter CŨ đã upload trước đó vẫn còn
+// nguyên trên Cloudinary và vẫn đọc được bình thường (KHÔNG bị migrate
+// ngược lại) — mangaController.js chỉ đổi chiều UPLOAD MỚI sang đây, các
+// URL Cloudinary cũ lưu sẵn trong DB (chapter.pages[].url) không hề bị đụng
+// tới nên vẫn hiển thị/đọc được như cũ.
 //
 // Storage provider: Supabase Storage (S3-compatible), xem chi tiết ENV cần
 // thiết trong config/supabase.js. STORAGE_LIMIT_BYTES vẫn được giữ lại để
@@ -229,6 +236,109 @@ async function deleteByPublicId(publicId) {
   return true;
 }
 
+// Xóa TOÀN BỘ object nằm trong 1 "folder" (prefix dạng key, không có dấu
+// "/" ở cuối) — dùng thay cho cặp cloudinary.api.delete_resources_by_prefix
+// + delete_folder khi xóa nguyên 1 chapter hoặc dọn folder tạm lúc sửa
+// chapter. S3/Supabase không có khái niệm folder thật nên không cần bước
+// "xóa folder rỗng" như Cloudinary, chỉ cần xóa hết object có Key bắt đầu
+// bằng "<prefix>/" là xong.
+//
+// Best-effort trên MỌI provider đã cấu hình (kể cả provider hiện không
+// active) để phòng trường hợp ảnh cũ từng nằm ở provider khác; provider
+// nào không tìm thấy object nào thì coi như không có gì để xóa, không
+// throw lỗi.
+async function deleteByPrefix(prefix) {
+  if (!prefix) return;
+
+  const keyPrefix = `${prefix}/`;
+
+  for (const provider of PROVIDERS.filter((p) => p.configured)) {
+    let continuationToken;
+    let bytesDeleted = 0;
+
+    try {
+      do {
+        const listed = await provider.client.send(
+          new ListObjectsV2Command({
+            Bucket: provider.bucket,
+            Prefix: keyPrefix,
+            ContinuationToken: continuationToken,
+          }),
+        );
+
+        const objects = listed.Contents || [];
+
+        if (objects.length > 0) {
+          await provider.client.send(
+            new DeleteObjectsCommand({
+              Bucket: provider.bucket,
+              Delete: {
+                Objects: objects.map((o) => ({ Key: o.Key })),
+              },
+            }),
+          );
+
+          bytesDeleted += objects.reduce((sum, o) => sum + (o.Size || 0), 0);
+        }
+
+        continuationToken = listed.IsTruncated
+          ? listed.NextContinuationToken
+          : undefined;
+      } while (continuationToken);
+
+      await subUsage(provider.key, bytesDeleted);
+    } catch (err) {
+      // Không chặn luồng chính (xóa chapter / dọn folder tạm) chỉ vì 1
+      // provider lỗi — log lại để biết mà kiểm tra thủ công nếu cần.
+      console.log(
+        `[storageManager] Không xóa được prefix "${prefix}" trên ${provider.key}:`,
+        err.message,
+      );
+    }
+  }
+}
+
+// "Di chuyển" 1 object đã upload (dùng thay cho cloudinary.uploader.rename)
+// — copy sang key mới trong newFolder (giữ nguyên tên file), rồi xóa key
+// cũ. Dùng khi sửa chapter: ảnh mới được upload vào 1 folder TẠM trước,
+// sau khi toàn bộ ảnh mới upload thành công mới move từng ảnh về folder
+// chuẩn (đúng tên chapterNumber) để không tồn folder rác "_temp_..." trên
+// Supabase. Nhận vào public_id dạng "<provider>:<key>", trả về
+// {url, public_id} giống format uploadImage/uploadBuffer.
+async function moveObject(publicId, newFolder) {
+  if (!isManagedPublicId(publicId)) {
+    throw new Error(
+      `moveObject: public_id không thuộc storage đang quản lý: ${publicId}`,
+    );
+  }
+
+  const [providerKey, ...rest] = publicId.split(":");
+  const oldKey = rest.join(":");
+  const provider = getProvider(providerKey);
+
+  const fileName = oldKey.split("/").pop();
+  const newKey = `${newFolder}/${fileName}`;
+
+  await provider.client.send(
+    new CopyObjectCommand({
+      Bucket: provider.bucket,
+      CopySource: `${provider.bucket}/${encodeURIComponent(oldKey)}`,
+      Key: newKey,
+    }),
+  );
+
+  await provider.client.send(
+    new DeleteObjectCommand({ Bucket: provider.bucket, Key: oldKey }),
+  );
+
+  return {
+    url: `${provider.publicBaseUrl}/${newKey}`,
+    public_id: `${provider.key}:${newKey}`,
+    provider: provider.key,
+    key: newKey,
+  };
+}
+
 // Xóa dựa theo URL công khai (dùng cho các chỗ chỉ lưu URL, không lưu
 // riêng public_id, ví dụ avatar). Trả về true nếu đã xóa.
 async function deleteByUrl(url) {
@@ -249,6 +359,8 @@ module.exports = uploadImage;
 module.exports.uploadImage = uploadImage;
 module.exports.uploadBuffer = uploadBuffer;
 module.exports.deleteByPublicId = deleteByPublicId;
+module.exports.deleteByPrefix = deleteByPrefix;
+module.exports.moveObject = moveObject;
 module.exports.deleteByUrl = deleteByUrl;
 module.exports.isManagedPublicId = isManagedPublicId;
 module.exports.STORAGE_LIMIT_BYTES = STORAGE_LIMIT_BYTES;
