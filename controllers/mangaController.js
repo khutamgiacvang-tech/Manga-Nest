@@ -1348,13 +1348,19 @@ exports.updateChapter = async (req, res) => {
         await cloudinary.api.delete_folder(oldFolder);
       } catch (err) {
         // Folder có thể không tồn tại (chapter mới chưa từng có ảnh)
-        console.log("Không xóa được ảnh cũ trên Cloudinary:", err?.message || err);
+        console.log(
+          "Không xóa được ảnh cũ trên Cloudinary:",
+          err?.message || err,
+        );
       }
 
       try {
         await uploadChapterPageImage.deleteByPrefix(oldFolder);
       } catch (err) {
-        console.log("Không xóa được ảnh cũ trên Supabase:", err?.message || err);
+        console.log(
+          "Không xóa được ảnh cũ trên Supabase:",
+          err?.message || err,
+        );
       }
 
       // =========================
@@ -2088,55 +2094,96 @@ exports.history = async (req, res) => {
       return res.redirect("/login");
     }
 
-    const histories = await ReadingHistory.find({
-      user: req.user._id,
-    })
-      .sort({
-        updatedAt: -1,
-      })
-      .lean();
+    // Giới hạn số truyện hiển thị trên trang lịch sử và số chương/truyện
+    // -> tránh việc tài khoản đọc hàng trăm/nghìn chương làm trang lịch
+    // sử phải xử lý toàn bộ dữ liệu mỗi lần mở.
+    const HISTORY_MANGA_LIMIT = 50;
+    const CHAPTERS_PER_MANGA = 3;
 
-    const grouped = {};
+    // Gom nhóm theo manga NGAY TRONG MongoDB (tận dụng index
+    // {user:1, updatedAt:-1} có sẵn) thay vì kéo toàn bộ lịch sử về
+    // Node rồi mới group bằng JS như code cũ -> đọc càng nhiều chương,
+    // càng nhiều bản ghi, code cũ càng chậm vì luôn quét hết collection.
+    //
+    // Lưu ý: $sort trước $group để MongoDB đảm bảo thứ tự các phần tử
+    // trong mảng $push đúng theo updatedAt giảm dần (hành vi này được
+    // MongoDB đảm bảo chính thức khi có $sort ngay trước $group).
+    const grouped = await ReadingHistory.aggregate([
+      { $match: { user: req.user._id } },
+      { $sort: { updatedAt: -1 } },
+      {
+        $group: {
+          _id: "$manga",
+          mangaTitle: { $first: "$mangaTitle" },
+          mangaSlug: { $first: "$mangaSlug" },
+          cover: { $first: "$cover" },
+          lastUpdatedAt: { $first: "$updatedAt" },
+          chapters: {
+            $push: {
+              chapterNumber: "$chapterNumber",
+              title: "$chapterTitle",
+              progress: "$progress",
+            },
+          },
+        },
+      },
+      { $sort: { lastUpdatedAt: -1 } },
+      { $limit: HISTORY_MANGA_LIMIT },
+      {
+        $project: {
+          _id: 0,
+          manga: "$_id",
+          mangaTitle: 1,
+          mangaSlug: 1,
+          cover: 1,
+          lastUpdatedAt: 1,
+          chapters: { $slice: ["$chapters", CHAPTERS_PER_MANGA] },
+        },
+      },
+    ]);
 
-    for (const item of histories) {
-      const mangaId = item.manga.toString();
-
-      if (!grouped[mangaId]) {
-        grouped[mangaId] = {
-          manga: item.manga,
-          mangaTitle: item.mangaTitle,
-          mangaSlug: item.mangaSlug,
-          cover: item.cover,
-          timeAgo: timeAgo(item.updatedAt),
-          chapters: [],
-        };
-      }
-
-      if (grouped[mangaId].chapters.length < 3) {
-        let chapterTitle = item.chapterTitle || "";
-
-        if (!chapterTitle) {
-          const found = await Chapter.findOne({
-            manga: item.manga,
-            chapterNumber: item.chapterNumber,
-          }).lean();
-
-          if (found && found.title && found.title !== "Không có tiêu đề") {
-            chapterTitle = found.title;
-          }
+    // Với các bản ghi lịch sử cũ (tạo trước khi có field chapterTitle)
+    // thì title sẽ rỗng. Thay vì gọi Chapter.findOne() riêng lẻ cho
+    // từng chương (N+1 query, nguyên nhân chính gây chậm), gom hết lại
+    // rồi tra bằng MỘT query duy nhất.
+    const missing = [];
+    grouped.forEach((g) => {
+      g.chapters.forEach((c) => {
+        if (!c.title) {
+          missing.push({ manga: g.manga, chapterNumber: c.chapterNumber });
         }
+      });
+    });
 
-        grouped[mangaId].chapters.push({
-          chapterNumber: item.chapterNumber,
-          title: chapterTitle,
-          progress: item.progress || 0,
+    if (missing.length > 0) {
+      const foundChapters = await Chapter.find({
+        $or: missing,
+      })
+        .select("manga chapterNumber title")
+        .lean();
+
+      const titleMap = new Map();
+      foundChapters.forEach((c) => {
+        titleMap.set(`${c.manga}_${c.chapterNumber}`, c.title);
+      });
+
+      grouped.forEach((g) => {
+        g.chapters.forEach((c) => {
+          if (!c.title) {
+            const found = titleMap.get(`${g.manga}_${c.chapterNumber}`);
+            c.title = found && found !== "Không có tiêu đề" ? found : "";
+          }
         });
-      }
+      });
     }
+
+    grouped.forEach((g) => {
+      g.timeAgo = timeAgo(g.lastUpdatedAt);
+    });
 
     res.render("manga/history", {
       title: "Lịch sử đọc",
-      histories: Object.values(grouped),
+      histories: grouped,
     });
   } catch (err) {
     console.error(err);
