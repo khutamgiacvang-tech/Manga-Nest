@@ -10,7 +10,7 @@ const connectDB = require("./config/database");
 const path = require("path");
 const expressLayouts = require("express-ejs-layouts");
 const session = require("express-session");
-const MongoStore = require("connect-mongo");
+const { MongoStore } = require("connect-mongo");
 const cookieParser = require("cookie-parser");
 const flash = require("connect-flash");
 
