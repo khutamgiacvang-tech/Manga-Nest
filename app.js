@@ -153,6 +153,9 @@ app.use("/", require("./routes/notification"));
 app.use("/api", require("./routes/push"));
 app.use("/", require("./routes/comment"));
 
+// API riêng cho Mobile App (React Native) - xác thực JWT, không dùng session
+app.use("/api/v1", require("./routes/api"));
+
 // =====================
 // ERROR HANDLER CHUNG (Multer, v.v.)
 // =====================
