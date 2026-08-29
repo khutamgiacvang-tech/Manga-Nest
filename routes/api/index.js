@@ -10,5 +10,6 @@ const router = express.Router();
 router.use("/auth", require("./auth"));
 router.use("/manga", require("./manga"));
 router.use("/comments", require("./comment"));
+router.use("/notifications", require("./notification"));
 
 module.exports = router;

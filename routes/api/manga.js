@@ -17,6 +17,12 @@ router.get("/home", mangaApi.home);
 // GET /api/v1/manga/search?q=...
 router.get("/search", mangaApi.search);
 
+// GET /api/v1/manga/list?genre=romance,comedy&page=1
+router.get("/list", mangaApi.list);
+
+// GET /api/v1/manga/genres
+router.get("/genres", mangaApi.genres);
+
 // GET /api/v1/manga/history/list  (cần đăng nhập)
 router.get("/history/list", requireAuth, mangaApi.historyList);
 

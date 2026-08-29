@@ -493,3 +493,85 @@ exports.historyList = async (req, res) => {
     return res.status(500).json({ success: false, histories: [] });
   }
 };
+
+// =========================
+// GET /api/v1/manga/list?genre=romance,comedy&page=1
+// (bản JSON của route GET /manga trong routes/manga.js - lọc theo thể
+// loại + phân trang, giữ đúng logic $all/regex như bản web)
+// =========================
+exports.list = async (req, res) => {
+  try {
+    const page = parseInt(req.query.page) || 1;
+    const limit = 24;
+
+    const filter = { status: "approved" };
+
+    if (req.query.genre) {
+      const genreList = String(req.query.genre)
+        .split(",")
+        .map((g) => g.trim())
+        .filter((g) => g !== "");
+
+      if (genreList.length > 0) {
+        filter.genres = {
+          $all: genreList.map((g) => new RegExp(`^${g}$`, "i")),
+        };
+      }
+    }
+
+    const [totalMangas, mangas] = await Promise.all([
+      Manga.countDocuments(filter),
+      Manga.find(filter)
+        .sort({ lastUpdated: -1 })
+        .skip((page - 1) * limit)
+        .limit(limit)
+        .lean(),
+    ]);
+
+    if (mangas.length > 0) {
+      const mangaIds = mangas.map((m) => m._id);
+      const latestChapters = await Chapter.aggregate([
+        { $match: { manga: { $in: mangaIds } } },
+        { $sort: { manga: 1, chapterOrder: -1, createdAt: -1 } },
+        {
+          $group: {
+            _id: "$manga",
+            chapterNumber: { $first: "$chapterNumber" },
+          },
+        },
+      ]);
+      const latestMap = new Map(
+        latestChapters.map((c) => [String(c._id), c.chapterNumber]),
+      );
+      for (const manga of mangas) {
+        manga.lastChapter = latestMap.get(String(manga._id)) || manga.lastChapter || "0";
+      }
+    }
+
+    return res.json({
+      success: true,
+      mangas,
+      page,
+      totalPages: Math.max(1, Math.ceil(totalMangas / limit)),
+      totalMangas,
+    });
+  } catch (err) {
+    console.error("[api/manga/list]", err);
+    return res.status(500).json({ success: false, mangas: [] });
+  }
+};
+
+// =========================
+// GET /api/v1/manga/genres
+// (danh sách thể loại có thật trong DB, dùng cho màn "Thể loại" trên app)
+// =========================
+exports.genres = async (req, res) => {
+  try {
+    const genres = await Manga.distinct("genres", { status: "approved" });
+    genres.sort((a, b) => a.localeCompare(b, "vi"));
+    return res.json({ success: true, genres });
+  } catch (err) {
+    console.error("[api/manga/genres]", err);
+    return res.status(500).json({ success: false, genres: [] });
+  }
+};
