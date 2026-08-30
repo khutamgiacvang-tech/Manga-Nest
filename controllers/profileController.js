@@ -76,8 +76,11 @@ exports.updateProfile = async (req, res) => {
         }
       }
 
-      // Upload avatar mới
-      const uploaded = await uploadImage(req.file.path, "manganest/avatar");
+      // Upload avatar mới — luôn lưu ở Supabase Storage (tách riêng khỏi
+      // Cloudinary, nơi chỉ dành cho ảnh trang chapter).
+      const uploaded = await uploadImage(req.file.path, "manganest/avatar", {
+        provider: "supabase",
+      });
 
       user.avatar = uploaded.url;
 

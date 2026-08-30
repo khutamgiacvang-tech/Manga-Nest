@@ -460,11 +460,67 @@
 
 }
 
+.login-options-row {
+
+    display: flex;
+
+    align-items: center;
+
+    justify-content: space-between;
+
+    margin: -5px 0 18px;
+
+}
+
+.remember-me {
+
+    display: flex;
+
+    align-items: center;
+
+    gap: 7px;
+
+    color: #bdbdbd;
+
+    font-size: 14px;
+
+    line-height: 1;
+
+    cursor: pointer;
+
+    user-select: none;
+
+}
+
+.remember-me input[type="checkbox"] {
+
+    width: 15px;
+
+    height: 15px;
+
+    margin: 0;
+
+    accent-color: #E63946;
+
+    cursor: pointer;
+
+    flex-shrink: 0;
+
+}
+
+.remember-me span {
+
+    line-height: 1;
+
+    position: relative;
+
+    top: 1px;
+
+}
+
 .forgot-password {
 
     text-align: right;
-
-    margin: -5px 0 18px;
 
 }
 
@@ -475,6 +531,8 @@
     text-decoration: none;
 
     font-size: 14px;
+
+    line-height: 1;
 
 }
 

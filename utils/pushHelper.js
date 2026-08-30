@@ -1,6 +1,6 @@
-const webpush = require("web-push");
 const Follow = require("../models/Follow"); 
 const Notification = require("../models/Notification");
+const sendPushNotification = require("./sendPushNotification");
 
 async function notifyNewChapter(mangaId, mangaTitle, chapterNumber) {
     try {
@@ -25,9 +25,7 @@ async function notifyNewChapter(mangaId, mangaTitle, chapterNumber) {
 
             // Gửi push notification nếu user đã đăng ký
             if (user.pushSubscription && user.pushSubscription.endpoint) {
-                webpush.sendNotification(user.pushSubscription, payload).catch(err => {
-                    console.error("Lỗi đẩy thông báo tới user:", user._id, err);
-                });
+                sendPushNotification(user._id, user.pushSubscription, payload);
             }
         }
     } catch (error) {

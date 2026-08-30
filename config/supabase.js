@@ -54,12 +54,21 @@ const client = new S3Client({
   forcePathStyle: true,
 });
 
+// SUPABASE_LIMIT_BYTES (tùy chọn) — ngưỡng dung lượng riêng cho Supabase.
+// Provider này giờ chỉ đóng vai trò DỰ PHÒNG (fallback) khi Cloudinary
+// chưa cấu hình hoặc đã đầy, nên mặc định để thấp hơn (1GB, gói free
+// Supabase) — xem thứ tự ưu tiên trong utils/storageManager.js (PROVIDERS).
+const limitBytes =
+  Number(process.env.SUPABASE_LIMIT_BYTES) || 1 * 1024 * 1024 * 1024;
+
 module.exports = {
   key: "supabase",
   label: "Supabase Storage",
+  type: "s3",
   client,
   bucket,
   publicBaseUrl,
+  limitBytes,
   configured: Boolean(
     SUPABASE_URL &&
       bucket &&

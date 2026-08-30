@@ -1,6 +1,6 @@
-const webpush = require("web-push");
 const Notification = require("../models/Notification");
 const User = require("../models/User");
+const sendPushNotification = require("./sendPushNotification");
 
 // =======================================================
 // Gửi thông báo kiểm duyệt (ẩn / xóa bình luận, chương...)
@@ -25,9 +25,7 @@ async function notifyUser({ userId, title, message, link, image }) {
         body: message,
       });
 
-      webpush.sendNotification(user.pushSubscription, payload).catch((err) => {
-        console.error("Lỗi gửi push kiểm duyệt tới user:", userId, err.message);
-      });
+      sendPushNotification(userId, user.pushSubscription, payload);
     }
 
     return notification;

@@ -25,6 +25,7 @@ const uploadImage = require("../utils/storageManager");
 // Cloudinary (best-effort) cho các chapter cũ upload từ trước khi đổi.
 const uploadChapterPageImage = require("../utils/storageManager");
 const cloudinary = require("../config/cloudinary");
+const sendPushNotification = require("../utils/sendPushNotification");
 const deleteUploadedImage = require("../utils/deleteUploadedImage");
 const timeAgo = require("../utils/timeAgo");
 const sharp = require("sharp");
@@ -183,9 +184,11 @@ exports.create = async (req, res) => {
     let bannerPublicId = "";
 
     if (req.files?.cover) {
+      // Cover/banner truyện -> luôn lưu ở Supabase Storage.
       const uploadedCover = await uploadImage(
         req.files.cover[0].path,
         "manganest/covers",
+        { provider: "supabase" },
       );
 
       cover = uploadedCover.url;
@@ -200,6 +203,7 @@ exports.create = async (req, res) => {
       const uploadedBanner = await uploadImage(
         req.files.banner[0].path,
         "manganest/banners",
+        { provider: "supabase" },
       );
 
       banner = uploadedBanner.url;
@@ -417,6 +421,7 @@ exports.uploadChapter = async (req, res) => {
         const imageUrl = await uploadChapterPageImage(
           finalImagePath,
           `manganest/chapters/${manga.slug}/${chapterNumber}`,
+          { provider: "cloudinary" },
         );
 
         if (fs.existsSync(finalImagePath)) {
@@ -520,9 +525,7 @@ exports.uploadChapter = async (req, res) => {
         url: `/manga/${manga.slug}/chapter/${rawChapterInput}`,
       });
 
-      webpush
-        .sendNotification(follower.pushSubscription, payload)
-        .catch((err) => console.error("Lỗi gửi push notification:", err));
+      sendPushNotification(follower._id, follower.pushSubscription, payload);
     }
 
     console.log("10. Thành công");
@@ -792,7 +795,9 @@ exports.changeCover = async (req, res) => {
     // Upload cover mới
     // =========================
 
-    const uploaded = await uploadImage(req.file.path, "manganest/covers");
+    const uploaded = await uploadImage(req.file.path, "manganest/covers", {
+      provider: "supabase",
+    });
 
     // Xóa file tạm
     fs.unlinkSync(req.file.path);
@@ -880,7 +885,9 @@ exports.changeBanner = async (req, res) => {
     // Upload Banner mới
     // =========================
 
-    const uploaded = await uploadImage(req.file.path, "manganest/banners");
+    const uploaded = await uploadImage(req.file.path, "manganest/banners", {
+      provider: "supabase",
+    });
 
     // Xóa file tạm
     fs.unlinkSync(req.file.path);
@@ -1308,6 +1315,7 @@ exports.updateChapter = async (req, res) => {
             const imageUrl = await uploadChapterPageImage(
               finalImagePath,
               tempFolder,
+              { provider: "cloudinary" },
             );
 
             if (fs.existsSync(finalImagePath)) {

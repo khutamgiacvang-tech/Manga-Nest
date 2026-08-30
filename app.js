@@ -6,6 +6,19 @@ const dotenv = require("dotenv");
 // =====================
 dotenv.config();
 
+// File .env lưu theo kiểu xuống dòng Windows (CRLF) sẽ khiến mỗi giá trị
+// bị dính thêm ký tự "\r" ở cuối (vd: CLOUDINARY_CLOUD_NAME="gmiacgy\r"),
+// nhìn qua console.log vẫn ra "gmiacgy" (vì \r không hiển thị được, chỉ
+// đưa con trỏ về đầu dòng) nhưng khi Cloudinary SDK validate cloud_name
+// bằng regex thì sẽ fail ngay với lỗi "Invalid cloud_name ...". Dọn sạch
+// \r/khoảng trắng thừa ở MỌI biến env ngay sau khi load để tránh lặp lại
+// lỗi tương tự với các biến khác trong tương lai.
+for (const key of Object.keys(process.env)) {
+  if (typeof process.env[key] === "string") {
+    process.env[key] = process.env[key].replace(/\r/g, "").trim();
+  }
+}
+
 const connectDB = require("./config/database");
 const path = require("path");
 const expressLayouts = require("express-ejs-layouts");
@@ -191,6 +204,8 @@ app.listen(PORT, "0.0.0.0", () => {
 // TEST PUSH ROUTE
 // =====================
 app.post("/api/test-push", async (req, res) => {
+  const User = require("./models/User");
+
   try {
     if (!req.user) {
       return res.status(401).json({ message: "Chưa đăng nhập!" });
@@ -227,6 +242,22 @@ app.post("/api/test-push", async (req, res) => {
     res.status(200).json({ message: "Gửi thông báo thành công!" });
   } catch (error) {
     console.error("Lỗi khi gửi push notification:", error);
+
+    // 410/404 -> subscription này đã hết hạn/hủy đăng ký (thường do gỡ web
+    // app, xóa cache trình duyệt, đổi thiết bị...) -> dọn luôn khỏi DB để
+    // các lần gửi thông báo sau (chương mới, kiểm duyệt...) không bị lặp
+    // lại lỗi này với cùng 1 user.
+    if (error.statusCode === 410 || error.statusCode === 404) {
+      await User.findByIdAndUpdate(req.user._id, {
+        $set: { pushSubscription: null },
+      }).catch(() => {});
+
+      return res.status(410).json({
+        message:
+          "Subscription thông báo của bạn đã hết hạn, hãy bật lại thông báo đẩy trong Cài đặt.",
+      });
+    }
+
     res
       .status(500)
       .json({ message: "Lỗi server khi gửi thông báo: " + error.message });

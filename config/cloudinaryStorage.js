@@ -12,11 +12,18 @@ const cloudinary = require("./cloudinary");
 //   CLOUDINARY_API_KEY
 //   CLOUDINARY_API_SECRET
 
+// CLOUDINARY_LIMIT_BYTES (tùy chọn) — ngưỡng dung lượng riêng cho
+// Cloudinary trước khi storageManager tự động chuyển sang provider kế
+// tiếp (Supabase). Mặc định 25GB (gói free Cloudinary hiện tại).
+const limitBytes =
+  Number(process.env.CLOUDINARY_LIMIT_BYTES) || 25 * 1024 * 1024 * 1024;
+
 module.exports = {
   key: "cloudinary",
   label: "Cloudinary",
   type: "cloudinary",
   client: cloudinary,
+  limitBytes,
   configured: Boolean(
     process.env.CLOUDINARY_CLOUD_NAME &&
       process.env.CLOUDINARY_API_KEY &&

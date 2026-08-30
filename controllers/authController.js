@@ -303,6 +303,18 @@ exports.login = (req, res, next) => {
         return next(err);
       }
 
+      // =======================
+      // Ghi nhớ mật khẩu (rememberMe) — checkbox ở popup đăng nhập
+      // =======================
+      // Có tích: giữ phiên đăng nhập 246 ngày, kể cả khi đóng trình duyệt.
+      // Không tích: dùng session cookie thông thường (mất khi đóng hẳn
+      // trình duyệt).
+      if (req.body.rememberMe) {
+        req.session.cookie.maxAge = 1000 * 60 * 60 * 24 * 246; // 246 ngày
+      } else {
+        req.session.cookie.expires = false;
+      }
+
       console.log("LOGIN SUCCESS:", user.email);
 
       req.flash("success", "Đăng nhập thành công.");

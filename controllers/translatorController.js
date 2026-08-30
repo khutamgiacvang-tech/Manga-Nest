@@ -167,10 +167,12 @@ exports.submitApplication = async (req, res) => {
 
     if (req.files && req.files.length > 0) {
       for (const file of req.files) {
+        // Ảnh mẫu đơn xin quyền translator -> luôn lưu ở Supabase Storage.
         const uploaded = await uploadBuffer(
           file.buffer,
           "manganest/translator-applications",
           file.originalname,
+          { provider: "supabase" },
         );
 
         // Đảm bảo chỉ push string URL, tránh lưu object vào DB

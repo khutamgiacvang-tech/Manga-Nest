@@ -485,10 +485,13 @@
         font-size: 20px;
     }
 
-    .login-btn span,
     .login-btn {
-        padding: 8px 12px;
-        font-size: 13px;
+        width: 36px;
+        height: 36px;
+    }
+
+    .login-btn i {
+        font-size: 16px;
     }
 
     .notification-menu {
