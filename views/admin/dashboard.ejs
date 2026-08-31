@@ -799,16 +799,18 @@
 
     <div class="management-col full-width">
 
-        <h2>🏷️ Quản lý thể loại (<%= categories.length %>)</h2>
+        <h2>🏷️ Quản lý thể loại (<span id="categoryCount"><%= categories.length %></span>)</h2>
 
         <form
             action="/admin/category"
             method="POST"
-            class="category-add-form">
+            class="category-add-form"
+            id="categoryAddForm">
 
             <input
                 type="text"
                 name="name"
+                id="categoryNameInput"
                 placeholder="Tên thể loại mới, ví dụ: Isekai"
                 required>
 
@@ -818,24 +820,24 @@
 
         </form>
 
-        <div class="category-list">
+        <div class="category-list" id="categoryList">
 
             <% if(categories.length === 0){ %>
-                <div class="management-empty">
+                <div class="management-empty" id="categoryEmptyState">
                     Chưa có thể loại nào.
                 </div>
             <% } %>
 
             <% categories.forEach(c => { %>
 
-                <div class="category-chip">
+                <div class="category-chip" data-category-id="<%= c._id %>">
 
                     <span><%= c.name %></span>
 
                     <form
                         action="/admin/category/<%= c._id %>/delete"
                         method="POST"
-                        class="js-confirm-form"
+                        class="js-confirm-form js-category-delete-form"
                         data-confirm-title="Xóa thể loại &quot;<%= c.name %>&quot;?"
                         data-confirm-message="Nếu đang có truyện sử dụng thể loại này, hệ thống sẽ từ chối xóa. Chỉ xóa được khi không còn truyện nào gắn thể loại này.">
 

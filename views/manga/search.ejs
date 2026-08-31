@@ -114,6 +114,8 @@ if (selectedGenres && selectedGenres.length) {
                         <img
                             src="<%= manga.cover || '/images/no-cover.png' %>"
                             alt="<%= manga.title %>"
+                            loading="lazy"
+                            decoding="async"
                         >
 
                         <div class="list-card-body">

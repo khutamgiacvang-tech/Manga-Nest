@@ -52,6 +52,8 @@ if (typeof query !== "undefined") {
                 <img
                     src="<%= manga.cover || '/images/no-cover.png' %>"
                     alt="<%= manga.title %>"
+                    loading="lazy"
+                    decoding="async"
                 >
 
                 <div class="list-card-body">
