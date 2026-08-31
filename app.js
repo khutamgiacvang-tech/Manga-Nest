@@ -26,7 +26,6 @@ const session = require("express-session");
 const MongoStore = require("connect-mongo");
 const cookieParser = require("cookie-parser");
 const flash = require("connect-flash");
-const compression = require("compression");
 
 const passport = require("./config/passport");
 
@@ -53,16 +52,6 @@ app.locals.timeAgo = timeAgo;
 // =====================
 connectDB();
 startViewsRollupScheduler();
-
-// =====================
-// NÉN GZIP TOÀN BỘ RESPONSE (HTML/CSS/JS/JSON)
-// =====================
-// Đặt LÊN ĐẦU TIÊN (trước cả static/session) để mọi response — kể cả
-// trang HTML render động lẫn file tĩnh — đều được nén trước khi gửi về
-// trình duyệt. Giảm dung lượng tải đáng kể (HTML/CSS/JS thường nén được
-// 60-80%), quan trọng nhất với người dùng mobile data. Ảnh (jpg/png/webp)
-// đã tự nén sẵn nên middleware này tự bỏ qua, không tốn CPU nén lại vô ích.
-app.use(compression());
 
 // =====================
 // MIDDLEWARE BODY
@@ -168,6 +157,7 @@ app.set("layout", "layouts/main");
 // ROUTES
 // =====================
 app.use("/", require("./routes/home"));
+app.use("/", require("./routes/mobileBridge"));
 app.use("/", require("./routes/auth"));
 app.use("/", require("./routes/profile"));
 app.use("/", require("./routes/translator"));

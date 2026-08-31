@@ -541,9 +541,9 @@ Toast
 
     position: fixed;
 
-    bottom: 30px;
+    top: 25px;
 
-    left: 50%;
+    right: 25px;
 
     min-width: 320px;
 
@@ -557,11 +557,9 @@ Toast
 
     font-weight: 600;
 
-    text-align: center;
-
     box-shadow: 0 15px 35px rgba(0, 0, 0, .35);
 
-    transform: translateX(-50%) translateY(150%);
+    transform: translateX(450px);
 
     transition: .35s;
 
@@ -571,7 +569,7 @@ Toast
 
 .toast.show {
 
-    transform: translateX(-50%) translateY(0);
+    transform: translateX(0);
 
 }
 

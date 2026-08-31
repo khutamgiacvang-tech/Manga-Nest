@@ -675,25 +675,16 @@ confirmModalOk.addEventListener("click", function () {
   // (mất mạng chẳng hạn) khiến modal đứng nguyên không phản hồi.
   closeConfirmModal();
 
-  if (!form) return;
+  if (form) {
+    // Đánh dấu đã xác nhận để listener "submit" bên dưới không chặn lại
+    // lần này nữa (nếu không sẽ bị chặn vô hạn, không submit được).
+    form.dataset.confirmed = "true";
 
-  // Form xóa thể loại -> xử lý bằng AJAX (không reload trang, xem hàm
-  // deleteCategoryViaAjax bên dưới), KHÔNG dùng requestSubmit() native
-  // nữa vì native submit = full page reload = giật/nháy toàn trang.
-  if (form.classList.contains("js-category-delete-form")) {
-    deleteCategoryViaAjax(form);
-    return;
+    // requestSubmit() thay vì form.submit() để trình duyệt vẫn kích hoạt
+    // event "submit" bình thường (giữ tương thích nếu sau này có thêm
+    // logic khác lắng nghe sự kiện submit của form này).
+    form.requestSubmit();
   }
-
-  // Các form js-confirm-form khác (nếu có sau này) vẫn submit kiểu cũ.
-  // Đánh dấu đã xác nhận để listener "submit" bên dưới không chặn lại
-  // lần này nữa (nếu không sẽ bị chặn vô hạn, không submit được).
-  form.dataset.confirmed = "true";
-
-  // requestSubmit() thay vì form.submit() để trình duyệt vẫn kích hoạt
-  // event "submit" bình thường (giữ tương thích nếu sau này có thêm
-  // logic khác lắng nghe sự kiện submit của form này).
-  form.requestSubmit();
 });
 
 document.addEventListener("submit", function (e) {
@@ -721,147 +712,6 @@ document.addEventListener("keydown", function (e) {
     closeConfirmModal();
   }
 });
-
-// ==========================
-// Quản lý thể loại — AJAX (không reload trang)
-// ==========================
-// Trước đây 2 form "Thêm thể loại" / "Xóa thể loại" là <form> submit
-// truyền thống -> mỗi lần thêm/xóa là trình duyệt RELOAD LẠI TOÀN BỘ
-// TRANG, gây giật/nháy màn hình. Giờ chuyển sang fetch() + cập nhật
-// thẳng vào DOM, không reload gì cả.
-
-const categoryAddForm = document.getElementById("categoryAddForm");
-const categoryNameInput = document.getElementById("categoryNameInput");
-const categoryList = document.getElementById("categoryList");
-const categoryCountEl = document.getElementById("categoryCount");
-
-// Tạo đúng cấu trúc HTML của 1 "chip" thể loại, giống hệt template EJS
-// (views/admin/dashboard.ejs) để CSS áp dụng đồng nhất và để form xóa
-// bên trong nó vẫn đi qua đúng cơ chế js-confirm-form có sẵn.
-function buildCategoryChip(category) {
-  const chip = document.createElement("div");
-  chip.className = "category-chip";
-  chip.dataset.categoryId = category._id;
-
-  const nameSpan = document.createElement("span");
-  nameSpan.textContent = category.name;
-
-  const deleteForm = document.createElement("form");
-  deleteForm.action = `/admin/category/${category._id}/delete`;
-  deleteForm.method = "POST";
-  deleteForm.className = "js-confirm-form js-category-delete-form";
-  deleteForm.dataset.confirmTitle = `Xóa thể loại "${category.name}"?`;
-  deleteForm.dataset.confirmMessage =
-    "Nếu đang có truyện sử dụng thể loại này, hệ thống sẽ từ chối xóa. Chỉ xóa được khi không còn truyện nào gắn thể loại này.";
-
-  const deleteBtn = document.createElement("button");
-  deleteBtn.type = "submit";
-  deleteBtn.className = "btn-remove-category";
-  deleteBtn.title = "Xóa thể loại";
-  deleteBtn.textContent = "✕";
-
-  deleteForm.appendChild(deleteBtn);
-  chip.appendChild(nameSpan);
-  chip.appendChild(deleteForm);
-
-  return chip;
-}
-
-function updateCategoryCount(totalCount) {
-  if (categoryCountEl && typeof totalCount === "number") {
-    categoryCountEl.textContent = totalCount;
-  }
-}
-
-if (categoryAddForm) {
-  categoryAddForm.addEventListener("submit", async function (e) {
-    e.preventDefault();
-
-    const name = categoryNameInput.value.trim();
-
-    if (!name) return;
-
-    const submitBtn = categoryAddForm.querySelector(".btn-add-category");
-    const originalBtnText = submitBtn.textContent;
-
-    submitBtn.disabled = true;
-    submitBtn.textContent = "Đang thêm...";
-
-    try {
-      const res = await fetch(categoryAddForm.action, {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/x-www-form-urlencoded",
-          Accept: "application/json",
-        },
-        body: new URLSearchParams({ name }),
-      });
-
-      const data = await res.json();
-
-      if (!res.ok || !data.success) {
-        showToast(data.message || "Có lỗi xảy ra.", "error");
-        return;
-      }
-
-      // Bỏ trạng thái "Chưa có thể loại nào." nếu đây là thể loại đầu
-      // tiên được thêm vào.
-      const emptyState = document.getElementById("categoryEmptyState");
-      if (emptyState) emptyState.remove();
-
-      categoryList.appendChild(buildCategoryChip(data.category));
-      updateCategoryCount(data.totalCount);
-
-      categoryNameInput.value = "";
-      categoryNameInput.focus();
-
-      showToast(data.message, "success");
-    } catch (err) {
-      console.error(err);
-      showToast("Không thể kết nối tới server.", "error");
-    } finally {
-      submitBtn.disabled = false;
-      submitBtn.textContent = originalBtnText;
-    }
-  });
-}
-
-async function deleteCategoryViaAjax(form) {
-  const chip = form.closest(".category-chip");
-
-  try {
-    const res = await fetch(form.action, {
-      method: "POST",
-      headers: {
-        Accept: "application/json",
-      },
-    });
-
-    const data = await res.json();
-
-    if (!res.ok || !data.success) {
-      showToast(data.message || "Có lỗi xảy ra.", "error");
-      return;
-    }
-
-    if (chip) chip.remove();
-    updateCategoryCount(data.totalCount);
-
-    // Nếu vừa xóa hết thể loại cuối cùng -> hiện lại trạng thái rỗng.
-    if (categoryList && data.totalCount === 0 && !categoryList.querySelector(".category-chip")) {
-      const emptyState = document.createElement("div");
-      emptyState.className = "management-empty";
-      emptyState.id = "categoryEmptyState";
-      emptyState.textContent = "Chưa có thể loại nào.";
-      categoryList.appendChild(emptyState);
-    }
-
-    showToast(data.message, "success");
-  } catch (err) {
-    console.error(err);
-    showToast("Không thể kết nối tới server.", "error");
-  }
-}
 
 // ==========================
 // Export cho onclick trong HTML
