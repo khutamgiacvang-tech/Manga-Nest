@@ -844,18 +844,43 @@ function saveReadingProgress(percentOverride, scrollPositionOverride){
 
     }else{
 
-        const totalHeight =
-            document.documentElement.scrollHeight -
-            window.innerHeight;
+        // Classic UI: chỉ đang đọc ở Classic UI mới tính theo cách này
+        // (Zen UI đã có saveZenProgress() riêng ở dưới lo việc lưu tiến độ).
+        if(classicReader.style.display === "none") return;
 
-        if(totalHeight <= 0) return;
+        // Tính % theo đúng phần ẢNH CỦA CHƯƠNG (#classicReader), KHÔNG
+        // tính luôn phần header/nav chuyển chương/footer/bình luận bên
+        // dưới nữa — trước đây dùng document.documentElement.scrollHeight
+        // nên phải kéo hết xuống tận footer mới ra 100%.
+        const containerRect = classicReader.getBoundingClientRect();
+        const containerTop = containerRect.top + window.scrollY;
+        const containerHeight = classicReader.scrollHeight;
+
+        // Khoảng cách cần cuộn để đi từ "đỉnh ảnh đầu chương chạm mép trên
+        // màn hình" tới "đáy ảnh cuối chương chạm mép dưới màn hình".
+        const readableDistance = containerHeight - window.innerHeight;
 
         currentScroll = window.scrollY;
 
-        percent = Math.min(
-            100,
-            Math.round((currentScroll / totalHeight) * 100)
-        );
+        if(readableDistance <= 0){
+
+            // Toàn bộ ảnh của chương đã vừa/ngắn hơn 1 màn hình -> hễ đã
+            // cuộn tới khu vực ảnh là coi như đọc xong luôn.
+            percent = 100;
+
+        }else{
+
+            const scrolledWithinContainer = currentScroll - containerTop;
+
+            percent = Math.min(
+                100,
+                Math.max(
+                    0,
+                    Math.round((scrolledWithinContainer / readableDistance) * 100)
+                )
+            );
+
+        }
 
     }
 

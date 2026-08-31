@@ -6,7 +6,7 @@
 
     <div class="hero-track" id="heroTrack">
 
-        <% mangas.slice(0,5).forEach(manga => { %>
+        <% mangas.slice(0,5).forEach((manga, heroIndex) => { %>
 
         <a href="/manga/<%= manga.slug %>" class="hero-slide">
 
@@ -14,6 +14,12 @@
                 src="<%= manga.banner || manga.cover %>"
                 alt="<%= manga.title %>"
                 class="hero-banner"
+                <% if(heroIndex === 0){ %>
+                    fetchpriority="high"
+                <% } else { %>
+                    loading="lazy"
+                <% } %>
+                decoding="async"
             >
 
             <div class="hero-overlay"></div>
@@ -87,6 +93,8 @@
                 <img
                     src="<%= manga.cover || '/images/no-cover.png' %>"
                     alt="<%= manga.title %>"
+                    loading="lazy"
+                    decoding="async"
                 >
 
                 <div class="home-card-body">
@@ -167,6 +175,8 @@
                 <img
                     src="<%= manga.cover || '/images/no-cover.png' %>"
                     alt="<%= manga.title %>"
+                    loading="lazy"
+                    decoding="async"
                 >
 
                 <div class="rank-body">
@@ -210,6 +220,8 @@
                 <img
                     src="<%= manga.cover || '/images/no-cover.png' %>"
                     alt="<%= manga.title %>"
+                    loading="lazy"
+                    decoding="async"
                 >
 
                 <div class="rank-body">
@@ -253,6 +265,8 @@
                 <img
                     src="<%= manga.cover || '/images/no-cover.png' %>"
                     alt="<%= manga.title %>"
+                    loading="lazy"
+                    decoding="async"
                 >
 
                 <div class="rank-body">
@@ -326,6 +340,8 @@
                 <img
                     src="<%= manga.cover || '/images/no-cover.png' %>"
                     alt="<%= manga.title %>"
+                    loading="lazy"
+                    decoding="async"
                 >
 
                 <div class="home-card-body">
@@ -404,6 +420,8 @@
                 <img
                     src="<%= manga.cover || '/images/no-cover.png' %>"
                     alt="<%= manga.title %>"
+                    loading="lazy"
+                    decoding="async"
                 >
 
                 <div class="home-card-body">
@@ -485,6 +503,8 @@
                 <img
                     src="<%= manga.cover || '/images/no-cover.png' %>"
                     alt="<%= manga.title %>"
+                    loading="lazy"
+                    decoding="async"
                 >
 
                 <div class="home-card-body">
