@@ -1,10 +1,10 @@
 const express = require("express");
+const multer = require("multer");
 const router = express.Router();
 const translatorApi = require("../../controllers/api/translatorApiController");
 const { requireAuth } = require("../../middleware/apiAuth");
-
+const upload = multer({ storage: multer.memoryStorage(), limits: { fileSize: 10 * 1024 * 1024, files: 5 } });
 router.use(requireAuth);
-router.get("/applications", translatorApi.myApplications);
 router.get("/application", translatorApi.myApplication);
-
+router.post("/application", upload.array("sampleImages", 5), translatorApi.submitApplication);
 module.exports = router;
