@@ -11,7 +11,6 @@ router.use("/auth", require("./auth"));
 router.use("/manga", require("./manga"));
 router.use("/comments", require("./comment"));
 router.use("/notifications", require("./notification"));
-router.use("/upload", require("./upload"));
-router.use("/translator", require("./translator"));
+router.use("/upload", require("./upload"));\nrouter.use("/translator", require("./translator"));
 
 module.exports = router;
