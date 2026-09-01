@@ -248,6 +248,54 @@ exports.refresh = async (req, res) => {
 };
 
 // =======================
+// Đổi mã OAuth mobile dùng 1 lần -> JWT
+// =======================
+exports.exchangeOAuthCode = async (req, res) => {
+  try {
+    const { code } = req.body;
+    const codes = req.app.locals.mobileOAuthCodes;
+
+    if (!code || !codes) {
+      return res.status(400).json({ success: false, message: "Thiếu mã OAuth." });
+    }
+
+    const entry = codes.get(code);
+    if (!entry) {
+      return res.status(401).json({ success: false, message: "Mã OAuth không hợp lệ hoặc đã được sử dụng." });
+    }
+
+    // One-time code: xoá ngay cả khi tài khoản không hợp lệ để không tái sử dụng.
+    codes.delete(code);
+
+    if (entry.expiresAt < Date.now()) {
+      return res.status(401).json({ success: false, message: "Mã OAuth đã hết hạn." });
+    }
+
+    const user = await User.findById(entry.userId);
+    if (!user) {
+      return res.status(401).json({ success: false, message: "Tài khoản không tồn tại." });
+    }
+
+    if (
+      user.status === "banned" &&
+      (user.isPermanentBan || (user.banUntil && user.banUntil > new Date()))
+    ) {
+      return res.status(403).json({ success: false, message: "Tài khoản đã bị khóa." });
+    }
+
+    return res.json({
+      success: true,
+      accessToken: signAccessToken(user),
+      refreshToken: signRefreshToken(user),
+      user: publicUser(user),
+    });
+  } catch (err) {
+    console.error("[api/oauth/exchange]", err);
+    return res.status(500).json({ success: false, message: "Lỗi máy chủ." });
+  }
+};
+
+// =======================
 // Thông tin user hiện tại (yêu cầu requireAuth)
 // =======================
 exports.me = async (req, res) => {

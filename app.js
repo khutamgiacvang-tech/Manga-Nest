@@ -38,6 +38,13 @@ const { startViewsRollupScheduler } = require("./utils/viewsRollupScheduler");
 // INIT APP
 // =====================
 const app = express();
+app.locals.mobileOAuthCodes = new Map();
+setInterval(() => {
+  const now = Date.now();
+  for (const [code, item] of app.locals.mobileOAuthCodes) {
+    if (!item || item.expiresAt <= now) app.locals.mobileOAuthCodes.delete(code);
+  }
+}, 60 * 1000).unref();
 
 // Render chạy sau reverse proxy; giữ đúng scheme HTTPS cho OAuth/URL.
 app.set("trust proxy", 1);

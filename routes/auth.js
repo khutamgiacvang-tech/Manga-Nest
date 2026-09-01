@@ -1,5 +1,6 @@
 const express = require("express");
 const passport = require("passport");
+const crypto = require("crypto");
 const { signAccessToken, signRefreshToken } = require("../config/jwt");
 
 const router = express.Router();
@@ -37,81 +38,77 @@ router.get("/reset-password/:token", authController.showResetPassword);
 router.post("/reset-password/:token", authController.resetPassword);
 
 // =====================
-// OAuth cho Mobile App
+// OAuth cho Mobile / Expo Go
 // =====================
-// App mở OAuth trong WebView. Các route này đánh dấu phiên hiện tại là
-// mobile rồi dùng callback Google/Discord hiện có. Sau khi Passport xác thực,
-// callback sẽ trả JWT về URL fragment để WebView của app đọc được.
-// Fragment (#...) không được gửi lên server nên token không xuất hiện trong
-// request URL/log server.
-function getMobileRedirectUri(req) {
-  const value = String(req.query.redirect_uri || "").trim();
-  if (!value) return null;
-
-  // Chỉ cho phép các redirect scheme dùng cho Expo/ứng dụng MangaNest.
-  // Không chấp nhận URL tùy ý để tránh biến endpoint này thành open redirect.
-  const allowed =
-    value.startsWith("exp://") ||
-    value.startsWith("manganest://") ||
-    value.startsWith("http://localhost") ||
-    value.startsWith("https://auth.expo.io/");
-
-  return allowed ? value : null;
+// Mobile dùng WebBrowser/AuthSession để chạy OAuth an toàn (Google không
+// cho phép đăng nhập trực tiếp trong WebView). Sau khi Passport xác thực
+// xong, web cấp một mã dùng 1 lần rồi app đổi mã đó lấy JWT.
+function isAllowedMobileRedirect(uri) {
+  if (!uri || typeof uri !== "string") return false;
+  return (
+    uri.startsWith("exp://") ||
+    uri.startsWith("manganest://") ||
+    uri.startsWith("http://localhost")
+  );
 }
 
-router.get("/auth/mobile/google", (req, res, next) => {
-  const redirectUri = getMobileRedirectUri(req);
-  if (!redirectUri) {
-    return res.status(400).send("Redirect URI của ứng dụng không hợp lệ.");
+function issueMobileOAuthCode(req, user) {
+  if (!req.app.locals.mobileOAuthCodes) {
+    req.app.locals.mobileOAuthCodes = new Map();
   }
 
-  req.session.mobileOAuth = { provider: "google", redirectUri };
-  req.session.save((saveErr) => {
-    if (saveErr) return next(saveErr);
-    passport.authenticate("google", {
-      scope: ["profile", "email"],
-    })(req, res, next);
+  const code = crypto.randomBytes(32).toString("hex");
+  req.app.locals.mobileOAuthCodes.set(code, {
+    userId: user._id.toString(),
+    expiresAt: Date.now() + 2 * 60 * 1000,
   });
-});
 
-router.get("/auth/mobile/discord", (req, res, next) => {
-  const redirectUri = getMobileRedirectUri(req);
-  if (!redirectUri) {
-    return res.status(400).send("Redirect URI của ứng dụng không hợp lệ.");
+  return code;
+}
+
+function finishMobileOAuth(req, res, user, provider) {
+  const mobile = req.session.mobileOAuth;
+  if (!mobile?.redirectUri) return false;
+
+  const redirectUri = mobile.redirectUri;
+  delete req.session.mobileOAuth;
+
+  if (!isAllowedMobileRedirect(redirectUri)) {
+    return res.status(400).send("Mobile OAuth redirect URI không hợp lệ.");
   }
 
-  req.session.mobileOAuth = { provider: "discord", redirectUri };
-  req.session.save((saveErr) => {
-    if (saveErr) return next(saveErr);
-    passport.authenticate("discord")(req, res, next);
-  });
-});
+  if (
+    user.status === "banned" &&
+    (user.isPermanentBan || (user.banUntil && new Date(user.banUntil) > new Date()))
+  ) {
+    const url = `${redirectUri}${redirectUri.includes("?") ? "&" : "?"}error=${encodeURIComponent("Tài khoản đã bị khóa.")}`;
+    return res.redirect(url);
+  }
 
-router.get("/mobile-app-auth", (req, res) => {
-  res.status(200).send(`<!doctype html>
-<html lang="vi">
-<head>
-<meta name="viewport" content="width=device-width,initial-scale=1">
-<title>MangaNest - Đăng nhập</title>
-<style>
-body{font-family:Arial,sans-serif;background:#111;color:#fff;display:flex;min-height:100vh;align-items:center;justify-content:center;text-align:center}
-.box{padding:28px}.ok{font-size:42px}.text{opacity:.8}
-</style>
-</head>
-<body><div class="box"><div class="ok">✓</div><h2>Đăng nhập thành công</h2><div class="text">Bạn có thể quay lại MangaNest.</div></div></body>
-</html>`);
-});
+  const code = issueMobileOAuthCode(req, user);
+  const separator = redirectUri.includes("?") ? "&" : "?";
+  const target = `${redirectUri}${separator}code=${encodeURIComponent(code)}&provider=${encodeURIComponent(provider)}`;
+
+  return res.redirect(target);
+}
 
 // =====================
 // Google
 // =====================
 
-router.get(
-  "/auth/google",
-  passport.authenticate("google", {
+router.get("/auth/google", (req, res, next) => {
+  if (req.query.mobile === "1") {
+    const redirectUri = req.query.redirect_uri;
+    if (!isAllowedMobileRedirect(redirectUri)) {
+      return res.status(400).send("Mobile OAuth redirect URI không hợp lệ.");
+    }
+    req.session.mobileOAuth = { redirectUri };
+  }
+
+  return passport.authenticate("google", {
     scope: ["profile", "email"],
-  }),
-);
+  })(req, res, next);
+});
 
 router.get("/auth/google/callback", (req, res, next) => {
   passport.authenticate("google", (err, user) => {
@@ -131,34 +128,11 @@ router.get("/auth/google/callback", (req, res, next) => {
         return next(err);
       }
 
-      console.log("GOOGLE LOGIN SUCCESS:", user.email);
-
-      if (req.session.mobileOAuth?.provider === "google") {
-        const mobileRedirectUri = req.session.mobileOAuth.redirectUri;
-        delete req.session.mobileOAuth;
-
-        const stillBanned =
-          user.status === "banned" &&
-          (user.isPermanentBan ||
-            (user.banUntil && new Date(user.banUntil) > new Date()));
-
-        if (stillBanned) {
-          return req.session.save(() => {
-            return res.redirect(
-              `${mobileRedirectUri}#error=${encodeURIComponent("Tài khoản đã bị khóa.")}`
-            );
-          });
-        }
-
-        const accessToken = signAccessToken(user);
-        const refreshToken = signRefreshToken(user);
-        return req.session.save(() => {
-          return res.redirect(
-            `${mobileRedirectUri}#accessToken=${encodeURIComponent(accessToken)}&refreshToken=${encodeURIComponent(refreshToken)}`
-          );
-        });
+      if (req.session.mobileOAuth?.redirectUri) {
+        return finishMobileOAuth(req, res, user, "google");
       }
 
+      console.log("GOOGLE LOGIN SUCCESS:", user.email);
       console.log("GOOGLE DEBUG user.status:", user.status);
       console.log(
         "GOOGLE DEBUG isPermanentBan:",
@@ -193,7 +167,17 @@ router.get("/auth/google/callback", (req, res, next) => {
 // Discord
 // =====================
 
-router.get("/auth/discord", passport.authenticate("discord"));
+router.get("/auth/discord", (req, res, next) => {
+  if (req.query.mobile === "1") {
+    const redirectUri = req.query.redirect_uri;
+    if (!isAllowedMobileRedirect(redirectUri)) {
+      return res.status(400).send("Mobile OAuth redirect URI không hợp lệ.");
+    }
+    req.session.mobileOAuth = { redirectUri };
+  }
+
+  return passport.authenticate("discord")(req, res, next);
+});
 
 router.get("/auth/discord/callback", (req, res, next) => {
   passport.authenticate("discord", (err, user) => {
@@ -213,34 +197,11 @@ router.get("/auth/discord/callback", (req, res, next) => {
         return next(err);
       }
 
-      console.log("DISCORD LOGIN SUCCESS:", user.email);
-
-      if (req.session.mobileOAuth?.provider === "discord") {
-        const mobileRedirectUri = req.session.mobileOAuth.redirectUri;
-        delete req.session.mobileOAuth;
-
-        const stillBanned =
-          user.status === "banned" &&
-          (user.isPermanentBan ||
-            (user.banUntil && new Date(user.banUntil) > new Date()));
-
-        if (stillBanned) {
-          return req.session.save(() => {
-            return res.redirect(
-              `${mobileRedirectUri}#error=${encodeURIComponent("Tài khoản đã bị khóa.")}`
-            );
-          });
-        }
-
-        const accessToken = signAccessToken(user);
-        const refreshToken = signRefreshToken(user);
-        return req.session.save(() => {
-          return res.redirect(
-            `${mobileRedirectUri}#accessToken=${encodeURIComponent(accessToken)}&refreshToken=${encodeURIComponent(refreshToken)}`
-          );
-        });
+      if (req.session.mobileOAuth?.redirectUri) {
+        return finishMobileOAuth(req, res, user, "discord");
       }
 
+      console.log("DISCORD LOGIN SUCCESS:", user.email);
       console.log("DISCORD DEBUG user.status:", user.status);
       console.log(
         "DISCORD DEBUG isPermanentBan:",
