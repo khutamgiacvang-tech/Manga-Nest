@@ -1,0 +1,11 @@
+const express = require("express");
+const router = express.Router();
+const { requireAuth } = require("../../middleware/apiAuth");
+const adminApi = require("../../controllers/api/adminApiController");
+router.use(requireAuth);
+router.get("/dashboard", adminApi.dashboard);
+router.post("/application/:id/approve", adminApi.approveApplication);
+router.post("/application/:id/reject", adminApi.rejectApplication);
+router.post("/manga/:id/approve", adminApi.approveManga);
+router.post("/manga/:id/reject", adminApi.rejectManga);
+module.exports = router;

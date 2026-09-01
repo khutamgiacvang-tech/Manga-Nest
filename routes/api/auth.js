@@ -38,9 +38,6 @@ router.post("/login", authApi.login);
 // POST /api/v1/auth/refresh -> { accessToken }
 router.post("/refresh", authApi.refresh);
 
-// POST /api/v1/auth/oauth/exchange -> đổi mã OAuth mobile dùng 1 lần thành JWT
-router.post("/oauth/exchange", authApi.exchangeOAuthCode);
-
 // GET /api/v1/auth/me  (cần Authorization: Bearer <accessToken>)
 router.get("/me", requireAuth, authApi.me);
 
