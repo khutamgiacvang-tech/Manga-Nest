@@ -495,6 +495,59 @@ exports.historyList = async (req, res) => {
 };
 
 // =========================
+// GET /api/v1/manga/follow/list?page=1  (yêu cầu requireAuth)
+// (bản JSON của profileController.followLibrary — dùng cho màn
+// "Danh sách theo dõi" trên mobile app)
+// =========================
+exports.followList = async (req, res) => {
+  try {
+    const followedIds = req.user.followedManga || [];
+    const limit = 24;
+    const page = parseInt(req.query.page) || 1;
+
+    const [totalMangas, mangas] = await Promise.all([
+      Manga.countDocuments({ _id: { $in: followedIds } }),
+      Manga.find({ _id: { $in: followedIds } })
+        .sort({ lastUpdated: -1 })
+        .skip((page - 1) * limit)
+        .limit(limit)
+        .lean(),
+    ]);
+
+    if (mangas.length > 0) {
+      const mangaIds = mangas.map((m) => m._id);
+      const latestChapters = await Chapter.aggregate([
+        { $match: { manga: { $in: mangaIds } } },
+        { $sort: { manga: 1, chapterOrder: -1, createdAt: -1 } },
+        {
+          $group: {
+            _id: "$manga",
+            chapterNumber: { $first: "$chapterNumber" },
+          },
+        },
+      ]);
+      const latestMap = new Map(
+        latestChapters.map((c) => [String(c._id), c.chapterNumber]),
+      );
+      for (const manga of mangas) {
+        manga.lastChapter = latestMap.get(String(manga._id)) || manga.lastChapter || "0";
+      }
+    }
+
+    return res.json({
+      success: true,
+      mangas,
+      page,
+      totalPages: Math.max(1, Math.ceil(totalMangas / limit)),
+      totalMangas,
+    });
+  } catch (err) {
+    console.error("[api/manga/followList]", err);
+    return res.status(500).json({ success: false, mangas: [] });
+  }
+};
+
+// =========================
 // GET /api/v1/manga/list?genre=romance,comedy&page=1
 // (bản JSON của route GET /manga trong routes/manga.js - lọc theo thể
 // loại + phân trang, giữ đúng logic $all/regex như bản web)

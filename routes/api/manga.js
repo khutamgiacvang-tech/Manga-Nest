@@ -26,6 +26,9 @@ router.get("/genres", mangaApi.genres);
 // GET /api/v1/manga/history/list  (cần đăng nhập)
 router.get("/history/list", requireAuth, mangaApi.historyList);
 
+// GET /api/v1/manga/follow/list?page=1  (cần đăng nhập) — danh sách truyện đang theo dõi
+router.get("/follow/list", requireAuth, mangaApi.followList);
+
 // POST /api/v1/manga/history  (lưu tiến độ đọc, cần đăng nhập)
 router.post("/history", requireAuth, mangaApi.saveHistory);
 
