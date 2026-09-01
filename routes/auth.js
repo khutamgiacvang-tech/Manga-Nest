@@ -52,6 +52,13 @@ function isAllowedMobileRedirect(uri) {
   );
 }
 
+function getMobileOAuthStateStore(req) {
+  if (!req.app.locals.mobileOAuthStates) {
+    req.app.locals.mobileOAuthStates = new Map();
+  }
+  return req.app.locals.mobileOAuthStates;
+}
+
 function issueMobileOAuthCode(req, user) {
   if (!req.app.locals.mobileOAuthCodes) {
     req.app.locals.mobileOAuthCodes = new Map();
@@ -66,12 +73,47 @@ function issueMobileOAuthCode(req, user) {
   return code;
 }
 
-function finishMobileOAuth(req, res, user, provider) {
-  const mobile = req.session.mobileOAuth;
-  if (!mobile?.redirectUri) return false;
+function createMobileOAuthState(req, redirectUri, provider) {
+  if (!isAllowedMobileRedirect(redirectUri)) return null;
 
-  const redirectUri = mobile.redirectUri;
-  delete req.session.mobileOAuth;
+  const state = crypto.randomBytes(32).toString("hex");
+  getMobileOAuthStateStore(req).set(state, {
+    redirectUri,
+    provider,
+    expiresAt: Date.now() + 5 * 60 * 1000,
+  });
+
+  // Dọn state cũ để Map không phình vô hạn.
+  for (const [key, value] of getMobileOAuthStateStore(req)) {
+    if (value.expiresAt < Date.now()) {
+      getMobileOAuthStateStore(req).delete(key);
+    }
+  }
+
+  return state;
+}
+
+function getMobileOAuthRedirect(req) {
+  const state = req.query.state;
+  if (state) {
+    const entry = getMobileOAuthStateStore(req).get(state);
+    if (entry) {
+      getMobileOAuthStateStore(req).delete(state);
+      if (entry.expiresAt >= Date.now()) return entry.redirectUri;
+    }
+  }
+
+  // Fallback cho các phiên mobile cũ đã lưu redirect trong session.
+  return req.session.mobileOAuth?.redirectUri || null;
+}
+
+function finishMobileOAuth(req, res, user, provider, redirectUriOverride = null) {
+  const redirectUri = redirectUriOverride || getMobileOAuthRedirect(req);
+  if (!redirectUri) return false;
+
+  if (req.session.mobileOAuth) {
+    delete req.session.mobileOAuth;
+  }
 
   if (!isAllowedMobileRedirect(redirectUri)) {
     return res.status(400).send("Mobile OAuth redirect URI không hợp lệ.");
@@ -97,17 +139,20 @@ function finishMobileOAuth(req, res, user, provider) {
 // =====================
 
 router.get("/auth/google", (req, res, next) => {
+  const options = { scope: ["profile", "email"] };
+
   if (req.query.mobile === "1") {
     const redirectUri = req.query.redirect_uri;
     if (!isAllowedMobileRedirect(redirectUri)) {
       return res.status(400).send("Mobile OAuth redirect URI không hợp lệ.");
     }
+
+    const state = createMobileOAuthState(req, redirectUri, "google");
     req.session.mobileOAuth = { redirectUri };
+    options.state = state;
   }
 
-  return passport.authenticate("google", {
-    scope: ["profile", "email"],
-  })(req, res, next);
+  return passport.authenticate("google", options)(req, res, next);
 });
 
 router.get("/auth/google/callback", (req, res, next) => {
@@ -168,15 +213,20 @@ router.get("/auth/google/callback", (req, res, next) => {
 // =====================
 
 router.get("/auth/discord", (req, res, next) => {
+  const options = {};
+
   if (req.query.mobile === "1") {
     const redirectUri = req.query.redirect_uri;
     if (!isAllowedMobileRedirect(redirectUri)) {
       return res.status(400).send("Mobile OAuth redirect URI không hợp lệ.");
     }
+
+    const state = createMobileOAuthState(req, redirectUri, "discord");
     req.session.mobileOAuth = { redirectUri };
+    options.state = state;
   }
 
-  return passport.authenticate("discord")(req, res, next);
+  return passport.authenticate("discord", options)(req, res, next);
 });
 
 router.get("/auth/discord/callback", (req, res, next) => {
