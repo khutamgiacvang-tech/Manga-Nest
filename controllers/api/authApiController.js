@@ -1,6 +1,10 @@
 const crypto = require("crypto");
+const fs = require("fs");
 const User = require("../../models/User");
 const { sendVerifyEmail } = require("../../utils/mailer");
+const uploadImage = require("../../utils/storageManager");
+const cloudinary = require("../../config/cloudinary");
+const storageManager = require("../../utils/storageManager");
 const {
   signAccessToken,
   signRefreshToken,
@@ -37,6 +41,8 @@ function publicUser(user) {
     avatar: user.avatar,
     bio: user.bio,
     displayName: user.displayName,
+    facebook: user.facebook,
+    description: user.description,
     role: user.role,
     provider: user.provider,
     isVerified: user.isVerified,
@@ -246,4 +252,143 @@ exports.refresh = async (req, res) => {
 // =======================
 exports.me = async (req, res) => {
   return res.json({ success: true, user: publicUser(req.user) });
+};
+
+// =======================
+// Cập nhật hồ sơ (bản JSON của controllers/profileController.js -> updateProfile)
+// multipart/form-data: avatar (file, optional), username, bio,
+// displayName, facebook, description (2 field cuối chỉ có ý nghĩa với
+// translator/admin nhưng cứ lưu nếu app gửi lên, giống hệt web)
+// =======================
+exports.updateProfile = async (req, res) => {
+  try {
+    const user = await User.findById(req.user._id);
+
+    if (!user) {
+      return res
+        .status(404)
+        .json({ success: false, message: "Không tìm thấy tài khoản." });
+    }
+
+    const { username, bio, facebook, displayName, description } = req.body;
+
+    if (username !== undefined) user.username = username;
+    if (bio !== undefined) user.bio = bio;
+    if (facebook !== undefined) user.facebook = facebook.trim();
+    if (displayName !== undefined) user.displayName = displayName.trim();
+    if (description !== undefined) user.description = description.trim();
+
+    if (req.file) {
+      if (user.avatar) {
+        if (user.avatar.includes("cloudinary.com")) {
+          try {
+            const publicId = user.avatar
+              .split("/upload/")[1]
+              .replace(/^v\d+\//, "")
+              .replace(/\.[^/.]+$/, "");
+            await cloudinary.uploader.destroy(publicId);
+          } catch (err) {
+            console.log("Không xóa được avatar cũ:", err.message);
+          }
+        } else {
+          try {
+            await storageManager.deleteByUrl(user.avatar);
+          } catch (err) {
+            console.log("Không xóa được avatar cũ:", err.message);
+          }
+        }
+      }
+
+      const uploaded = await uploadImage(req.file.path, "manganest/avatar", {
+        provider: "supabase",
+      });
+
+      user.avatar = uploaded.url;
+
+      if (fs.existsSync(req.file.path)) {
+        fs.unlinkSync(req.file.path);
+      }
+    }
+
+    await user.save();
+
+    return res.json({
+      success: true,
+      message: "Cập nhật hồ sơ thành công.",
+      user: publicUser(user),
+    });
+  } catch (err) {
+    console.error("[api/updateProfile]", err);
+
+    if (req.file && fs.existsSync(req.file.path)) {
+      fs.unlinkSync(req.file.path);
+    }
+
+    return res
+      .status(500)
+      .json({ success: false, message: "Có lỗi xảy ra." });
+  }
+};
+
+// =======================
+// Đổi mật khẩu (bản JSON của controllers/profileController.js -> changePassword)
+// =======================
+exports.changePassword = async (req, res) => {
+  try {
+    const { currentPassword, newPassword, confirmPassword } = req.body;
+
+    if (!currentPassword || !newPassword || !confirmPassword) {
+      return res
+        .status(400)
+        .json({ success: false, message: "Vui lòng nhập đầy đủ thông tin." });
+    }
+
+    if (newPassword.length < 6) {
+      return res.status(400).json({
+        success: false,
+        message: "Mật khẩu mới phải có ít nhất 6 ký tự.",
+      });
+    }
+
+    if (newPassword !== confirmPassword) {
+      return res
+        .status(400)
+        .json({ success: false, message: "Mật khẩu xác nhận mới không khớp." });
+    }
+
+    const user = await User.findById(req.user._id);
+
+    if (!user) {
+      return res
+        .status(404)
+        .json({ success: false, message: "Không tìm thấy tài khoản." });
+    }
+
+    if (user.provider !== "local" || !user.password) {
+      return res.status(400).json({
+        success: false,
+        message: `Tài khoản này đăng nhập bằng ${
+          user.provider === "google" ? "Google" : "Discord"
+        }, không thể đổi mật khẩu ở đây.`,
+      });
+    }
+
+    const isMatch = await user.comparePassword(currentPassword);
+
+    if (!isMatch) {
+      return res
+        .status(401)
+        .json({ success: false, message: "Mật khẩu hiện tại không đúng." });
+    }
+
+    user.password = newPassword; // hook pre("save") trong User model sẽ tự hash
+    await user.save();
+
+    return res.json({ success: true, message: "Đổi mật khẩu thành công." });
+  } catch (err) {
+    console.error("[api/changePassword]", err);
+    return res
+      .status(500)
+      .json({ success: false, message: "Có lỗi xảy ra." });
+  }
 };
