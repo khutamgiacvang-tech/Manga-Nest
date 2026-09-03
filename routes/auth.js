@@ -1,5 +1,6 @@
 const express = require("express");
 const passport = require("passport");
+const { createCode } = require("../utils/mobileOAuthCodes");
 
 const router = express.Router();
 
@@ -41,6 +42,16 @@ router.post("/reset-password/:token", authController.resetPassword);
 
 router.get(
   "/auth/google",
+  (req, res, next) => {
+    // App mobile gửi kèm ?mobile=1&redirect_uri=... -> lưu vào session để
+    // callback biết cần redirect code về app thay vì trang web.
+    if (req.query.mobile === "1" && req.query.redirect_uri) {
+      req.session.mobileOAuthRedirect = req.query.redirect_uri;
+    } else {
+      delete req.session.mobileOAuthRedirect;
+    }
+    next();
+  },
   passport.authenticate("google", {
     scope: ["profile", "email"],
   }),
@@ -55,6 +66,11 @@ router.get("/auth/google/callback", (req, res, next) => {
 
     if (!user) {
       console.log("GOOGLE: no user returned from strategy");
+      if (req.session.mobileOAuthRedirect) {
+        const redirectUri = req.session.mobileOAuthRedirect;
+        delete req.session.mobileOAuthRedirect;
+        return res.redirect(`${redirectUri}?error=${encodeURIComponent("Đăng nhập Google thất bại.")}`);
+      }
       req.flash("error", "Đăng nhập Google thất bại.");
       return res.redirect("/");
     }
@@ -73,6 +89,9 @@ router.get("/auth/google/callback", (req, res, next) => {
         user.banUntil,
       );
 
+      const mobileRedirectUri = req.session.mobileOAuthRedirect;
+      delete req.session.mobileOAuthRedirect;
+
       if (user.status === "banned") {
         const stillBanned =
           user.isPermanentBan ||
@@ -81,10 +100,22 @@ router.get("/auth/google/callback", (req, res, next) => {
         console.log("GOOGLE DEBUG stillBanned:", stillBanned);
 
         if (stillBanned) {
+          if (mobileRedirectUri) {
+            return res.redirect(
+              `${mobileRedirectUri}?error=${encodeURIComponent("Tài khoản đã bị khóa.")}`,
+            );
+          }
           return res.redirect(
             `/banned?email=${encodeURIComponent(user.email)}`,
           );
         }
+      }
+
+      if (mobileRedirectUri) {
+        // Đăng nhập từ app mobile: đổi session lấy 1 code ngắn hạn,
+        // đưa app đi đổi code này lấy JWT ở POST /api/v1/auth/oauth/exchange.
+        const code = createCode(user._id);
+        return res.redirect(`${mobileRedirectUri}?code=${code}`);
       }
 
       console.log("GOOGLE DEBUG falling through to redirect /");
@@ -99,7 +130,18 @@ router.get("/auth/google/callback", (req, res, next) => {
 // Discord
 // =====================
 
-router.get("/auth/discord", passport.authenticate("discord"));
+router.get(
+  "/auth/discord",
+  (req, res, next) => {
+    if (req.query.mobile === "1" && req.query.redirect_uri) {
+      req.session.mobileOAuthRedirect = req.query.redirect_uri;
+    } else {
+      delete req.session.mobileOAuthRedirect;
+    }
+    next();
+  },
+  passport.authenticate("discord"),
+);
 
 router.get("/auth/discord/callback", (req, res, next) => {
   passport.authenticate("discord", (err, user) => {
@@ -110,6 +152,11 @@ router.get("/auth/discord/callback", (req, res, next) => {
 
     if (!user) {
       console.log("DISCORD: no user returned from strategy");
+      if (req.session.mobileOAuthRedirect) {
+        const redirectUri = req.session.mobileOAuthRedirect;
+        delete req.session.mobileOAuthRedirect;
+        return res.redirect(`${redirectUri}?error=${encodeURIComponent("Đăng nhập Discord thất bại.")}`);
+      }
       req.flash("error", "Đăng nhập Discord thất bại.");
       return res.redirect("/");
     }
@@ -128,6 +175,9 @@ router.get("/auth/discord/callback", (req, res, next) => {
         user.banUntil,
       );
 
+      const mobileRedirectUri = req.session.mobileOAuthRedirect;
+      delete req.session.mobileOAuthRedirect;
+
       if (user.status === "banned") {
         const stillBanned =
           user.isPermanentBan ||
@@ -136,10 +186,20 @@ router.get("/auth/discord/callback", (req, res, next) => {
         console.log("DISCORD DEBUG stillBanned:", stillBanned);
 
         if (stillBanned) {
+          if (mobileRedirectUri) {
+            return res.redirect(
+              `${mobileRedirectUri}?error=${encodeURIComponent("Tài khoản đã bị khóa.")}`,
+            );
+          }
           return res.redirect(
             `/banned?email=${encodeURIComponent(user.email)}`,
           );
         }
+      }
+
+      if (mobileRedirectUri) {
+        const code = createCode(user._id);
+        return res.redirect(`${mobileRedirectUri}?code=${code}`);
       }
 
       console.log("DISCORD DEBUG falling through to redirect /");

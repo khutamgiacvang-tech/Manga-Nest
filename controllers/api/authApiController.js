@@ -198,6 +198,54 @@ exports.login = async (req, res) => {
 };
 
 // =======================
+// Đổi code (từ luồng Google/Discord OAuth, xem routes/auth.js) lấy JWT
+// =======================
+exports.oauthExchange = async (req, res) => {
+  try {
+    const { code } = req.body;
+    if (!code) {
+      return res.status(400).json({ success: false, message: "Thiếu mã đăng nhập." });
+    }
+
+    const { consumeCode } = require("../../utils/mobileOAuthCodes");
+    const userId = consumeCode(code);
+    if (!userId) {
+      return res.status(400).json({
+        success: false,
+        message: "Mã đăng nhập không hợp lệ hoặc đã hết hạn.",
+      });
+    }
+
+    const user = await User.findById(userId);
+    if (!user) {
+      return res.status(404).json({ success: false, message: "Không tìm thấy tài khoản." });
+    }
+
+    if (
+      user.status === "banned" &&
+      (user.isPermanentBan || (user.banUntil && user.banUntil > new Date()))
+    ) {
+      return res.status(403).json({
+        success: false,
+        message: "Tài khoản đã bị khóa.",
+        banReason: user.banReason,
+        banUntil: user.banUntil,
+      });
+    }
+
+    return res.json({
+      success: true,
+      accessToken: signAccessToken(user),
+      refreshToken: signRefreshToken(user),
+      user: publicUser(user),
+    });
+  } catch (err) {
+    console.error("[api/oauthExchange]", err);
+    return res.status(500).json({ success: false, message: "Lỗi máy chủ." });
+  }
+};
+
+// =======================
 // Cấp lại access token mới từ refresh token
 // (app di động lưu refreshToken trong SecureStore, gọi endpoint này khi
 // accessToken hết hạn thay vì bắt user đăng nhập lại mỗi 15 phút)

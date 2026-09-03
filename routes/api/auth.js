@@ -35,6 +35,9 @@ router.post("/register", authApi.register);
 // POST /api/v1/auth/login  -> { accessToken, refreshToken, user }
 router.post("/login", authApi.login);
 
+// POST /api/v1/auth/oauth/exchange -> đổi code từ Google/Discord (routes/auth.js) lấy JWT
+router.post("/oauth/exchange", authApi.oauthExchange);
+
 // POST /api/v1/auth/refresh -> { accessToken }
 router.post("/refresh", authApi.refresh);
 
