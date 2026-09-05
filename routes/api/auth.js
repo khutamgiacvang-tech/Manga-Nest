@@ -38,6 +38,9 @@ router.post("/login", authApi.login);
 // POST /api/v1/auth/oauth/exchange -> đổi code từ Google/Discord (routes/auth.js) lấy JWT
 router.post("/oauth/exchange", authApi.oauthExchange);
 
+// POST /api/v1/auth/oauth/google -> đăng nhập Google native bằng ID token
+router.post("/oauth/google", authApi.googleNativeLogin);
+
 // POST /api/v1/auth/refresh -> { accessToken }
 router.post("/refresh", authApi.refresh);
 

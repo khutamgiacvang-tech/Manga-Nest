@@ -246,6 +246,148 @@ exports.oauthExchange = async (req, res) => {
 };
 
 // =======================
+// Đăng nhập Google Native (React Native)
+// App nhận ID token trực tiếp từ Google Play Services rồi gửi token lên đây.
+// Server xác thực token qua endpoint chính thức của Google, kiểm tra audience
+// đúng Web OAuth Client ID của MangaNest, sau đó cấp JWT cho mobile.
+// =======================
+exports.googleNativeLogin = async (req, res) => {
+  try {
+    const { idToken } = req.body || {};
+
+    if (!idToken) {
+      return res.status(400).json({
+        success: false,
+        message: "Thiếu Google ID token.",
+      });
+    }
+
+    const expectedClientId = (
+      process.env.GOOGLE_WEB_CLIENT_ID || process.env.GOOGLE_CLIENT_ID || ""
+    ).trim();
+
+    if (!expectedClientId) {
+      console.error("[api/googleNativeLogin] Thiếu GOOGLE_WEB_CLIENT_ID/GOOGLE_CLIENT_ID");
+      return res.status(500).json({
+        success: false,
+        message: "Máy chủ chưa cấu hình Google Client ID.",
+      });
+    }
+
+    // tokeninfo là endpoint xác minh ID token chính thức của Google.
+    // Không tin bất kỳ email/sub nào do app tự gửi; chỉ lấy dữ liệu sau khi
+    // Google xác nhận chữ ký, issuer, audience và thời hạn của token.
+    const googleResponse = await fetch(
+      `https://oauth2.googleapis.com/tokeninfo?id_token=${encodeURIComponent(idToken)}`,
+      {
+        method: "GET",
+        headers: { Accept: "application/json" },
+      },
+    );
+
+    if (!googleResponse.ok) {
+      const detail = await googleResponse.text().catch(() => "");
+      console.error("[api/googleNativeLogin] Google tokeninfo rejected:", detail);
+      return res.status(401).json({
+        success: false,
+        message: "Google ID token không hợp lệ hoặc đã hết hạn.",
+      });
+    }
+
+    const payload = await googleResponse.json();
+
+    if (payload.aud !== expectedClientId) {
+      console.error("[api/googleNativeLogin] Audience mismatch:", {
+        received: payload.aud,
+        expected: expectedClientId,
+      });
+      return res.status(401).json({
+        success: false,
+        message: "Google Client ID không khớp với máy chủ MangaNest.",
+      });
+    }
+
+    if (payload.iss !== "https://accounts.google.com" && payload.iss !== "accounts.google.com") {
+      return res.status(401).json({
+        success: false,
+        message: "Nguồn Google token không hợp lệ.",
+      });
+    }
+
+    if (payload.email_verified !== "true") {
+      return res.status(401).json({
+        success: false,
+        message: "Google chưa xác minh địa chỉ email này.",
+      });
+    }
+
+    const googleId = String(payload.sub || "").trim();
+    const email = String(payload.email || "").toLowerCase().trim();
+
+    if (!googleId || !email) {
+      return res.status(401).json({
+        success: false,
+        message: "Google token thiếu thông tin tài khoản.",
+      });
+    }
+
+    const googleAvatar = payload.picture || "/images/icon/avatar.png";
+    const displayName = String(payload.name || payload.given_name || email.split("@")[0]).trim();
+
+    let user = await User.findOne({ googleId });
+
+    if (!user) {
+      // Nếu email đã có tài khoản local/Google, liên kết Google ID thay vì
+      // tạo tài khoản trùng email.
+      user = await User.findOne({ email });
+
+      if (user) {
+        user.googleId = googleId;
+        if (!user.avatar || user.avatar === "/images/icon/avatar.png") {
+          user.avatar = googleAvatar;
+        }
+        await user.save();
+      } else {
+        user = await User.create({
+          username: displayName,
+          email,
+          avatar: googleAvatar,
+          provider: "google",
+          googleId,
+          role: "user",
+          isVerified: true,
+        });
+      }
+    }
+
+    if (
+      user.status === "banned" &&
+      (user.isPermanentBan || (user.banUntil && user.banUntil > new Date()))
+    ) {
+      return res.status(403).json({
+        success: false,
+        message: "Tài khoản đã bị khóa.",
+        banReason: user.banReason,
+        banUntil: user.banUntil,
+      });
+    }
+
+    return res.json({
+      success: true,
+      accessToken: signAccessToken(user),
+      refreshToken: signRefreshToken(user),
+      user: publicUser(user),
+    });
+  } catch (err) {
+    console.error("[api/googleNativeLogin]", err);
+    return res.status(500).json({
+      success: false,
+      message: "Lỗi máy chủ khi đăng nhập Google.",
+    });
+  }
+};
+
+// =======================
 // Cấp lại access token mới từ refresh token
 // (app di động lưu refreshToken trong SecureStore, gọi endpoint này khi
 // accessToken hết hạn thay vì bắt user đăng nhập lại mỗi 15 phút)
