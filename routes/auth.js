@@ -133,6 +133,15 @@ router.get("/auth/google/callback", (req, res, next) => {
 router.get(
   "/auth/discord",
   (req, res, next) => {
+    console.log("[DISCORD OAUTH] start", {
+      mobile: req.query.mobile,
+      redirect_uri: req.query.redirect_uri,
+      clientIdConfigured: !!process.env.DISCORD_CLIENT_ID,
+      callbackUrl: process.env.DISCORD_CALLBACK_URL,
+    });
+    if (!process.env.DISCORD_CLIENT_ID || !process.env.DISCORD_CLIENT_SECRET || !process.env.DISCORD_CALLBACK_URL) {
+      return res.status(500).send("Discord OAuth chưa được cấu hình đầy đủ trên Render.");
+    }
     if (req.query.mobile === "1" && req.query.redirect_uri) {
       req.session.mobileOAuthRedirect = req.query.redirect_uri;
     } else {
