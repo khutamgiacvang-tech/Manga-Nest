@@ -130,6 +130,11 @@
                         🕒 Lịch sử đọc
                     </a>
 
+                    <!-- Chỉ hiển thị khi người dùng truy cập MangaNest bằng điện thoại -->
+                    <a href="/download/manganest.apk" class="mobile-app-download">
+                        📱 Tải xuống Mobile
+                    </a>
+
                     <div class="dropdown-nav-links">
                         <div style="border-top:1px solid rgba(255,255,255,.08); margin:6px 0;"></div>
 
@@ -475,5 +480,22 @@
             }
         });
     })();
-    </script>
+    
+
+        // ==========================
+        // TẢI MANGA NEST MOBILE
+        // Chỉ hiện trên điện thoại, không hiện trên PC/laptop.
+        // ==========================
+        (function () {
+            const mobileDownload = document.querySelector('.mobile-app-download');
+            if (!mobileDownload) return;
+
+            const ua = navigator.userAgent || navigator.vendor || window.opera || '';
+            const isPhone = /Android.*Mobile|iPhone|iPod|Windows Phone/i.test(ua);
+
+            if (isPhone) {
+                mobileDownload.classList.add('mobile-app-download-visible');
+            }
+        })();
+</script>
 </header>

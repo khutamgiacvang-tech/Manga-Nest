@@ -13,5 +13,6 @@ router.use("/comments", require("./comment"));
 router.use("/notifications", require("./notification"));
 router.use("/upload", require("./upload"));
 router.use("/translator", require("./translator"));
+router.use("/admin", require("./admin"));
 
 module.exports = router;

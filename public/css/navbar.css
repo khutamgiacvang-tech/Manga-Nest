@@ -444,6 +444,15 @@ body.search-overlay-open {
     display: none;
 }
 
+/* Tải app: mặc định ẩn. JavaScript chỉ bật trên điện thoại. */
+.dropdown-menu .mobile-app-download {
+    display: none !important;
+}
+
+.dropdown-menu .mobile-app-download.mobile-app-download-visible {
+    display: flex !important;
+}
+
 /* Hiện menu (click, không còn hover) */
 
 .user-dropdown.active .dropdown-menu {
