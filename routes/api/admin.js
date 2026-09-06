@@ -4,6 +4,8 @@ const {requireAuth}=require("../../middleware/apiAuth");
 const adminApi=require("../../controllers/api/adminApiController");
 router.use(requireAuth);
 router.get("/dashboard",adminApi.dashboard);
+router.get("/application/:id",adminApi.getApplication);
+router.get("/manga/:id",adminApi.getManga);
 router.post("/application/:id/approve",adminApi.approveApplication);
 router.post("/application/:id/reject",adminApi.rejectApplication);
 router.post("/manga/:id/approve",adminApi.approveManga);

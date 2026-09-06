@@ -12,6 +12,57 @@ function denied(res) { return res.status(403).json({ success:false, message:"B�
 exports.dashboard = async (req,res) => {
   try {
     if (!isAdmin(req)) return denied(res);
+
+    // Mobile admin uses sectioned requests so opening one tab does not
+    // download hundreds of comments/chapters and all other admin data.
+    const section = String(req.query?.section || "approval");
+
+    const map=(items,type)=>items.map(data=>({type,data}));
+    if (section === "approval") {
+      const [
+        pendingApplications, approvedApplications, rejectedApplications,
+        pendingMangas, approvedMangas, rejectedMangas,
+        users, translators, admins
+      ] = await Promise.all([
+        TranslatorApplication.find({status:"pending"}).populate("user","username displayName email avatar role").sort({createdAt:-1}).lean(),
+        TranslatorApplication.find({status:"approved"}).populate("user","username displayName email avatar role").sort({updatedAt:-1}).lean(),
+        TranslatorApplication.find({status:"rejected"}).populate("user","username displayName email avatar role").sort({updatedAt:-1}).lean(),
+        Manga.find({status:"pending"}).populate("translator","username displayName").sort({createdAt:-1}).lean(),
+        Manga.find({status:"approved"}).populate("translator","username displayName").sort({updatedAt:-1}).lean(),
+        Manga.find({status:"rejected"}).populate("translator","username displayName").sort({updatedAt:-1}).lean(),
+        User.countDocuments({role:"user"}), User.countDocuments({role:"translator"}), User.countDocuments({role:"admin"})
+      ]);
+      const pending=[...map(pendingApplications,"translator"),...map(pendingMangas,"manga")].sort((a,b)=>new Date(b.data.createdAt)-new Date(a.data.createdAt));
+      const approved=[...map(approvedApplications,"translator"),...map(approvedMangas,"manga")].sort((a,b)=>new Date(b.data.updatedAt||b.data.createdAt)-new Date(a.data.updatedAt||a.data.createdAt));
+      const rejected=[...map(rejectedApplications,"translator"),...map(rejectedMangas,"manga")].sort((a,b)=>new Date(b.data.updatedAt||b.data.createdAt)-new Date(a.data.updatedAt||a.data.createdAt));
+      return res.json({success:true,pending,approved,rejected,counts:{pending:pending.length,approved:approved.length,rejected:rejected.length,users,translators,admins}});
+    }
+
+    if (section === "users") {
+      const [users,translators,admins]=await Promise.all([
+        User.find({role:{$ne:"admin"}}).select("username displayName email avatar role status banUntil isPermanentBan banReason createdAt").sort({createdAt:-1}).lean(),
+        User.find({role:"translator"}).select("username displayName email avatar role status banUntil isPermanentBan banReason createdAt").sort({createdAt:-1}).lean(),
+        User.countDocuments({role:"admin"})
+      ]);
+      return res.json({success:true,users,translators,counts:{admins}});
+    }
+
+    if (section === "comments") {
+      const comments=await Comment.find({}).populate("user","username displayName avatar").populate("manga","title slug").populate("chapter","chapterNumber").sort({createdAt:-1}).limit(300).lean();
+      return res.json({success:true,comments});
+    }
+
+    if (section === "chapters") {
+      const chapters=await Chapter.find({}).populate("manga","title slug cover").populate("uploadedBy","username displayName").sort({createdAt:-1}).limit(300).lean();
+      return res.json({success:true,chapters});
+    }
+
+    if (section === "categories") {
+      const categories=await Category.find({}).sort({name:1}).lean();
+      return res.json({success:true,categories});
+    }
+
+    return res.status(400).json({success:false,message:"Section không hợp lệ."});
     const [pendingApplications, approvedApplications, rejectedApplications,
       pendingMangas, approvedMangas, rejectedMangas, users, translators, admins,
       allUsers, allTranslators, comments, chapters, categories] = await Promise.all([
@@ -36,6 +87,34 @@ exports.dashboard = async (req,res) => {
       counts:{pending:pending.length,approved:approved.length,rejected:rejected.length,users,translators,admins},
       users:allUsers, translators:allTranslators, comments, chapters, categories});
   } catch(e) { console.error("[api/admin/dashboard]",e); return res.status(500).json({success:false,message:"Lỗi máy chủ."}); }
+};
+
+exports.getApplication = async (req,res) => {
+  try {
+    if (!isAdmin(req)) return denied(res);
+    const application = await TranslatorApplication.findById(req.params.id)
+      .populate("user","username displayName email avatar role status")
+      .lean();
+    if (!application) return res.status(404).json({success:false,message:"Không tìm thấy đơn."});
+    return res.json({success:true,application});
+  } catch(e) {
+    console.error("[api/admin/application]",e);
+    return res.status(500).json({success:false,message:"Lỗi máy chủ."});
+  }
+};
+
+exports.getManga = async (req,res) => {
+  try {
+    if (!isAdmin(req)) return denied(res);
+    const manga = await Manga.findById(req.params.id)
+      .populate("translator","username displayName email avatar role")
+      .lean();
+    if (!manga) return res.status(404).json({success:false,message:"Không tìm thấy truyện."});
+    return res.json({success:true,manga});
+  } catch(e) {
+    console.error("[api/admin/manga]",e);
+    return res.status(500).json({success:false,message:"Lỗi máy chủ."});
+  }
 };
 
 exports.approveApplication=async(req,res)=>{try{if(!isAdmin(req))return denied(res);const a=await TranslatorApplication.findById(req.params.id);if(!a)return res.status(404).json({success:false,message:"Không tìm thấy đơn."});if(a.status!=="pending")return res.json({success:false,message:"Đơn đã được xử lý."});a.status="approved";await a.save();await User.findByIdAndUpdate(a.user,{role:"translator"});await Notification.create({user:a.user,title:"🎉 Đơn Translator",message:"Đơn của bạn đã được chấp nhận.",link:"/profile",image:"/images/icon/favicon.png"});res.json({success:true});}catch(e){console.error(e);res.status(500).json({success:false,message:"Lỗi máy chủ."});}};
