@@ -63,29 +63,6 @@ exports.dashboard = async (req,res) => {
     }
 
     return res.status(400).json({success:false,message:"Section không hợp lệ."});
-    const [pendingApplications, approvedApplications, rejectedApplications,
-      pendingMangas, approvedMangas, rejectedMangas, users, translators, admins,
-      allUsers, allTranslators, comments, chapters, categories] = await Promise.all([
-      TranslatorApplication.find({status:"pending"}).populate("user","username displayName email avatar role").sort({createdAt:-1}).lean(),
-      TranslatorApplication.find({status:"approved"}).populate("user","username displayName email avatar role").sort({updatedAt:-1}).lean(),
-      TranslatorApplication.find({status:"rejected"}).populate("user","username displayName email avatar role").sort({updatedAt:-1}).lean(),
-      Manga.find({status:"pending"}).populate("translator","username displayName").sort({createdAt:-1}).lean(),
-      Manga.find({status:"approved"}).populate("translator","username displayName").sort({updatedAt:-1}).lean(),
-      Manga.find({status:"rejected"}).populate("translator","username displayName").sort({updatedAt:-1}).lean(),
-      User.countDocuments({role:"user"}), User.countDocuments({role:"translator"}), User.countDocuments({role:"admin"}),
-      User.find({role:{$ne:"admin"}}).select("username displayName email avatar role status banUntil isPermanentBan banReason createdAt").sort({createdAt:-1}).lean(),
-      User.find({role:"translator"}).select("username displayName email avatar role status banUntil isPermanentBan banReason createdAt").sort({createdAt:-1}).lean(),
-      Comment.find({}).populate("user","username displayName avatar").populate("manga","title slug").populate("chapter","chapterNumber").sort({createdAt:-1}).limit(750).lean(),
-      Chapter.find({}).populate("manga","title slug cover").populate("uploadedBy","username displayName").sort({createdAt:-1}).limit(500).lean(),
-      Category.find({}).sort({name:1}).lean()
-    ]);
-    const map=(items,type)=>items.map(data=>({type,data}));
-    const pending=[...map(pendingApplications,"translator"),...map(pendingMangas,"manga")].sort((a,b)=>new Date(b.data.createdAt)-new Date(a.data.createdAt));
-    const approved=[...map(approvedApplications,"translator"),...map(approvedMangas,"manga")].sort((a,b)=>new Date(b.data.updatedAt||b.data.createdAt)-new Date(a.data.updatedAt||a.data.createdAt));
-    const rejected=[...map(rejectedApplications,"translator"),...map(rejectedMangas,"manga")].sort((a,b)=>new Date(b.data.updatedAt||b.data.createdAt)-new Date(a.data.updatedAt||a.data.createdAt));
-    return res.json({success:true,pending,approved,rejected,
-      counts:{pending:pending.length,approved:approved.length,rejected:rejected.length,users,translators,admins},
-      users:allUsers, translators:allTranslators, comments, chapters, categories});
   } catch(e) { console.error("[api/admin/dashboard]",e); return res.status(500).json({success:false,message:"Lỗi máy chủ."}); }
 };
 
