@@ -4,6 +4,14 @@ const { createCode } = require("../utils/mobileOAuthCodes");
 
 const router = express.Router();
 
+// Ghép query vào deep-link mobile an toàn, tránh tạo URL kiểu
+// manganest://oauth?code=... sai khi redirect URI đã có query.
+function mobileRedirect(redirectUri, params = {}) {
+  const url = new URL(redirectUri);
+  Object.entries(params).forEach(([key, value]) => url.searchParams.set(key, value));
+  return url.toString();
+}
+
 const authController = require("../controllers/authController");
 
 // =====================
@@ -69,7 +77,7 @@ router.get("/auth/google/callback", (req, res, next) => {
       if (req.session.mobileOAuthRedirect) {
         const redirectUri = req.session.mobileOAuthRedirect;
         delete req.session.mobileOAuthRedirect;
-        return res.redirect(`${redirectUri}?error=${encodeURIComponent("Đăng nhập Google thất bại.")}`);
+        return res.redirect(mobileRedirect(redirectUri, { error: "Đăng nhập Google thất bại." }));
       }
       req.flash("error", "Đăng nhập Google thất bại.");
       return res.redirect("/");
@@ -102,7 +110,7 @@ router.get("/auth/google/callback", (req, res, next) => {
         if (stillBanned) {
           if (mobileRedirectUri) {
             return res.redirect(
-              `${mobileRedirectUri}?error=${encodeURIComponent("Tài khoản đã bị khóa.")}`,
+              mobileRedirect(mobileRedirectUri, { error: "Tài khoản đã bị khóa." }),
             );
           }
           return res.redirect(
@@ -115,7 +123,7 @@ router.get("/auth/google/callback", (req, res, next) => {
         // Đăng nhập từ app mobile: đổi session lấy 1 code ngắn hạn,
         // đưa app đi đổi code này lấy JWT ở POST /api/v1/auth/oauth/exchange.
         const code = createCode(user._id);
-        return res.redirect(`${mobileRedirectUri}?code=${code}`);
+        return res.redirect(mobileRedirect(mobileRedirectUri, { code }));
       }
 
       console.log("GOOGLE DEBUG falling through to redirect /");
@@ -133,15 +141,6 @@ router.get("/auth/google/callback", (req, res, next) => {
 router.get(
   "/auth/discord",
   (req, res, next) => {
-    console.log("[DISCORD OAUTH] start", {
-      mobile: req.query.mobile,
-      redirect_uri: req.query.redirect_uri,
-      clientIdConfigured: !!process.env.DISCORD_CLIENT_ID,
-      callbackUrl: process.env.DISCORD_CALLBACK_URL,
-    });
-    if (!process.env.DISCORD_CLIENT_ID || !process.env.DISCORD_CLIENT_SECRET || !process.env.DISCORD_CALLBACK_URL) {
-      return res.status(500).send("Discord OAuth chưa được cấu hình đầy đủ trên Render.");
-    }
     if (req.query.mobile === "1" && req.query.redirect_uri) {
       req.session.mobileOAuthRedirect = req.query.redirect_uri;
     } else {
@@ -164,7 +163,7 @@ router.get("/auth/discord/callback", (req, res, next) => {
       if (req.session.mobileOAuthRedirect) {
         const redirectUri = req.session.mobileOAuthRedirect;
         delete req.session.mobileOAuthRedirect;
-        return res.redirect(`${redirectUri}?error=${encodeURIComponent("Đăng nhập Discord thất bại.")}`);
+        return res.redirect(mobileRedirect(redirectUri, { error: "Đăng nhập Discord thất bại." }));
       }
       req.flash("error", "Đăng nhập Discord thất bại.");
       return res.redirect("/");
@@ -197,7 +196,7 @@ router.get("/auth/discord/callback", (req, res, next) => {
         if (stillBanned) {
           if (mobileRedirectUri) {
             return res.redirect(
-              `${mobileRedirectUri}?error=${encodeURIComponent("Tài khoản đã bị khóa.")}`,
+              mobileRedirect(mobileRedirectUri, { error: "Tài khoản đã bị khóa." }),
             );
           }
           return res.redirect(
@@ -208,7 +207,7 @@ router.get("/auth/discord/callback", (req, res, next) => {
 
       if (mobileRedirectUri) {
         const code = createCode(user._id);
-        return res.redirect(`${mobileRedirectUri}?code=${code}`);
+        return res.redirect(mobileRedirect(mobileRedirectUri, { code }));
       }
 
       console.log("DISCORD DEBUG falling through to redirect /");
