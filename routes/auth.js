@@ -1,4 +1,5 @@
 const express = require("express");
+const crypto = require("crypto");
 const passport = require("passport");
 const { createCode } = require("../utils/mobileOAuthCodes");
 
@@ -10,6 +11,57 @@ function mobileRedirect(redirectUri, params = {}) {
   const url = new URL(redirectUri);
   Object.entries(params).forEach(([key, value]) => url.searchParams.set(key, value));
   return url.toString();
+}
+
+// Discord có thể mở callback ở một trình duyệt khác với trình duyệt đã
+// bắt đầu OAuth, vì vậy không nên chỉ dựa vào req.session để nhớ deep-link
+// của app. Ta mang redirect URI theo OAuth state có chữ ký.
+const MOBILE_OAUTH_STATE_TTL_MS = 10 * 60 * 1000;
+
+function getMobileStateSecret() {
+  return process.env.SESSION_SECRET || "manganest-secret";
+}
+
+function isAllowedMobileRedirect(uri) {
+  try {
+    const url = new URL(uri);
+    return url.protocol === "manganest:" && (!url.hostname || url.hostname === "oauth");
+  } catch (_) {
+    return false;
+  }
+}
+
+function createMobileOAuthState(redirectUri) {
+  if (!isAllowedMobileRedirect(redirectUri)) return null;
+  const payload = Buffer.from(
+    JSON.stringify({ r: redirectUri, t: Date.now() }),
+    "utf8",
+  ).toString("base64url");
+  const sig = crypto
+    .createHmac("sha256", getMobileStateSecret())
+    .update(payload)
+    .digest("base64url");
+  return `${payload}.${sig}`;
+}
+
+function readMobileOAuthState(state) {
+  try {
+    if (!state || typeof state !== "string") return null;
+    const [payload, sig] = state.split(".");
+    if (!payload || !sig) return null;
+    const expected = crypto
+      .createHmac("sha256", getMobileStateSecret())
+      .update(payload)
+      .digest("base64url");
+    if (sig.length !== expected.length || !crypto.timingSafeEqual(Buffer.from(sig), Buffer.from(expected))) {
+      return null;
+    }
+    const data = JSON.parse(Buffer.from(payload, "base64url").toString("utf8"));
+    if (!data?.r || !data?.t || Date.now() - Number(data.t) > MOBILE_OAUTH_STATE_TTL_MS) return null;
+    return isAllowedMobileRedirect(data.r) ? data.r : null;
+  } catch (_) {
+    return null;
+  }
 }
 
 const authController = require("../controllers/authController");
@@ -85,6 +137,11 @@ router.get("/auth/google/callback", (req, res, next) => {
 
     req.logIn(user, function (err) {
       if (err) {
+        const redirectUri = readMobileOAuthState(req.query.state) || req.session.mobileOAuthRedirect;
+        if (redirectUri) {
+          delete req.session.mobileOAuthRedirect;
+          return res.redirect(mobileRedirect(redirectUri, { error: "Không tạo được phiên đăng nhập Discord." }));
+        }
         return next(err);
       }
 
@@ -142,26 +199,42 @@ router.get(
   "/auth/discord",
   (req, res, next) => {
     if (req.query.mobile === "1" && req.query.redirect_uri) {
-      req.session.mobileOAuthRedirect = req.query.redirect_uri;
-    } else {
-      delete req.session.mobileOAuthRedirect;
+      const redirectUri = String(req.query.redirect_uri);
+      const state = createMobileOAuthState(redirectUri);
+
+      if (!state) {
+        return res.status(400).send("Redirect URI mobile không hợp lệ.");
+      }
+
+      // Giữ lại session như fallback, nhưng state có chữ ký mới là nguồn
+      // chính để callback tìm lại deep-link của APK.
+      req.session.mobileOAuthRedirect = redirectUri;
+      return passport.authenticate("discord", { state })(req, res, next);
     }
-    next();
+
+    delete req.session.mobileOAuthRedirect;
+    return passport.authenticate("discord")(req, res, next);
   },
-  passport.authenticate("discord"),
 );
 
 router.get("/auth/discord/callback", (req, res, next) => {
   passport.authenticate("discord", (err, user) => {
+    const stateRedirectUri = readMobileOAuthState(req.query.state);
+
     if (err) {
       console.log("DISCORD ERR:", err);
+      const redirectUri = stateRedirectUri || req.session.mobileOAuthRedirect;
+      if (redirectUri) {
+        delete req.session.mobileOAuthRedirect;
+        return res.redirect(mobileRedirect(redirectUri, { error: "Đăng nhập Discord thất bại." }));
+      }
       return next(err);
     }
 
     if (!user) {
       console.log("DISCORD: no user returned from strategy");
-      if (req.session.mobileOAuthRedirect) {
-        const redirectUri = req.session.mobileOAuthRedirect;
+      const redirectUri = stateRedirectUri || req.session.mobileOAuthRedirect;
+      if (redirectUri) {
         delete req.session.mobileOAuthRedirect;
         return res.redirect(mobileRedirect(redirectUri, { error: "Đăng nhập Discord thất bại." }));
       }
@@ -183,7 +256,11 @@ router.get("/auth/discord/callback", (req, res, next) => {
         user.banUntil,
       );
 
-      const mobileRedirectUri = req.session.mobileOAuthRedirect;
+      // Ưu tiên redirect URI được ký trong OAuth state. Điều này tránh lỗi
+      // browser/Chrome/Oppo Browser làm mất session cookie sau khi Discord
+      // redirect về callback. Session vẫn được dùng làm fallback.
+      const mobileRedirectUri =
+        readMobileOAuthState(req.query.state) || req.session.mobileOAuthRedirect;
       delete req.session.mobileOAuthRedirect;
 
       if (user.status === "banned") {
@@ -207,10 +284,12 @@ router.get("/auth/discord/callback", (req, res, next) => {
 
       if (mobileRedirectUri) {
         const code = createCode(user._id);
-        return res.redirect(mobileRedirect(mobileRedirectUri, { code }));
+        const target = mobileRedirect(mobileRedirectUri, { code });
+        console.log("DISCORD MOBILE REDIRECT:", target);
+        return res.redirect(target);
       }
 
-      console.log("DISCORD DEBUG falling through to redirect /");
+      console.log("DISCORD DEBUG: no mobile redirect found; falling through to /");
 
       req.flash("success", "Đăng nhập Discord thành công.");
       return res.redirect("/");
