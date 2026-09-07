@@ -900,9 +900,7 @@ function saveReadingProgress(percentOverride, scrollPositionOverride){
 
             cover: "<%= manga.cover %>",
 
-            chapterTitle: <%= JSON.stringify(chapter.title || "") %>,
-
-            chapterNumber: <%= JSON.stringify(String(chapter.chapterNumber)) %>,
+            chapterNumber: <%= chapter.chapterNumber %>,
 
             progress: percent,
 
@@ -915,6 +913,46 @@ function saveReadingProgress(percentOverride, scrollPositionOverride){
 }
 
 // Zen UI: lưu tiến độ theo trang hiện tại (không có scroll event để dựa vào)
+
+// Classic UI: tự động lưu lịch sử theo vị trí cuộn.
+// Lưu định kỳ khi người đọc cuộn để lịch sử web luôn được cập nhật,
+// kể cả khi người dùng chưa chuyển sang Zen UI.
+let classicSaveTimer = null;
+let lastClassicSave = 0;
+
+function scheduleClassicHistorySave(){
+
+    if(document.body.classList.contains("zen-immersive")) return;
+
+    clearTimeout(classicSaveTimer);
+
+    classicSaveTimer = setTimeout(() => {
+
+        const now = Date.now();
+
+        // Tránh spam request khi người dùng cuộn liên tục.
+        if(now - lastClassicSave < 1500){
+            return;
+        }
+
+        lastClassicSave = now;
+        saveReadingProgress();
+
+    }, 250);
+
+}
+
+window.addEventListener("scroll", scheduleClassicHistorySave, { passive: true });
+
+// Lưu ngay khi trang reader tải xong (0% nếu đang ở đầu chapter).
+window.addEventListener("load", () => {
+    setTimeout(() => {
+        if(!document.body.classList.contains("zen-immersive")){
+            saveReadingProgress();
+        }
+    }, 1000);
+});
+
 function saveZenProgress(index){
 
     if(!mangaPages.length) return;
