@@ -5,7 +5,7 @@ const ReadingHistory =
     require("../models/ReadingHistory");
     router.post("/save", async (req,res)=>{
 
-    if(!req.user){
+    if(!req.session.user){
 
         return res.json({
             success:false
@@ -28,7 +28,7 @@ const ReadingHistory =
     await ReadingHistory.findOneAndUpdate(
 
         {
-            user:req.user._id,
+            user:req.session.user._id,
             manga:mangaId
         },
 
@@ -60,7 +60,7 @@ router.get("/", async (req,res)=>{
     const histories =
         await ReadingHistory.find({
 
-            user:req.user._id
+            user:req.session.user._id
 
         })
 
