@@ -454,8 +454,5 @@ router.get("/search", async (req, res) => {
 
 router.get("/api/search", mangaController.searchAjax);
 
-router.post("/history/save", mangaController.saveHistory);
-
-router.get("/history", mangaController.history);
 
 module.exports = router;

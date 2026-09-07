@@ -831,7 +831,7 @@ if(!localStorage.getItem(READER_MODE_INTRO_KEY)){
 let saveTimer;
 let zenSaveTimer;
 
-function saveReadingProgress(percentOverride, scrollPositionOverride){
+function saveReadingProgress(percentOverride, scrollPositionOverride, options = {}){
 
     let percent;
     let currentScroll;
@@ -869,7 +869,7 @@ function saveReadingProgress(percentOverride, scrollPositionOverride){
         const endY = Math.max(startY, lastBottom - window.innerHeight);
         const range = endY - startY;
 
-        currentScroll = Math.max(0, window.scrollY - startY);
+        currentScroll = Math.max(0, window.scrollY);
 
         percent = range <= 0
             ? (window.scrollY >= endY ? 100 : 0)
@@ -882,23 +882,15 @@ function saveReadingProgress(percentOverride, scrollPositionOverride){
             );
     }
 
-    fetch("/history/save", {
+    const historyPayload = {
 
-        method: "POST",
+            mangaId: <%= JSON.stringify(String(manga._id)) %>,
 
-        headers: {
-            "Content-Type": "application/json"
-        },
+            mangaTitle: <%= JSON.stringify(manga.title || "") %>,
 
-        body: JSON.stringify({
+            mangaSlug: <%= JSON.stringify(manga.slug || "") %>,
 
-            mangaId: "<%= manga._id %>",
-
-            mangaTitle: "<%= manga.title %>",
-
-            mangaSlug: "<%= manga.slug %>",
-
-            cover: "<%= manga.cover %>",
+            cover: <%= JSON.stringify(manga.cover || "") %>,
 
             chapterTitle: <%= JSON.stringify(chapter.title || "") %>,
 
@@ -908,9 +900,37 @@ function saveReadingProgress(percentOverride, scrollPositionOverride){
 
             scrollPosition: currentScroll
 
-        })
+    };
 
-    }).catch(err => console.error(err));
+    if (options.beacon && navigator.sendBeacon) {
+        try {
+            const ok = navigator.sendBeacon(
+                "/history/save",
+                new Blob([JSON.stringify(historyPayload)], { type: "application/json" })
+            );
+            console.log("[reading-history] beacon queued:", ok);
+            return historyPayload;
+        } catch (err) {
+            console.error("[reading-history] beacon error", err);
+        }
+    }
+
+    fetch("/history/save", {
+        method: "POST",
+        credentials: "same-origin",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(historyPayload),
+        keepalive: true,
+    }).then(async (response) => {
+        if (!response.ok) {
+            const text = await response.text().catch(() => "");
+            console.error("[reading-history] save failed", response.status, text);
+        } else {
+            console.log("[reading-history] saved", historyPayload.progress + "%");
+        }
+    }).catch(err => console.error("[reading-history] save error", err));
+
+    return historyPayload;
 
 }
 
@@ -936,26 +956,44 @@ function saveZenProgress(index){
 
 
 /* =========================
+   TỰ ĐỘNG LƯU CLASSIC UI
+========================= */
+
+function queueClassicHistorySave() {
+    clearTimeout(saveTimer);
+    saveTimer = setTimeout(() => {
+        saveReadingProgress();
+    }, 500);
+}
+
+window.addEventListener("scroll", queueClassicHistorySave, { passive: true });
+
+window.addEventListener("pagehide", () => {
+    clearTimeout(saveTimer);
+    saveReadingProgress(undefined, undefined, { beacon: true });
+});
+
+/* =========================
    KHÔI PHỤC VỊ TRÍ ĐỌC
 ========================= */
+
 
 window.addEventListener("load", () => {
 
     const savedPosition =
         <%= savedScroll || 0 %>;
 
-    if(savedPosition > 0){
-
-        setTimeout(() => {
-
+    setTimeout(() => {
+        if(savedPosition > 0){
             window.scrollTo({
                 top: savedPosition,
                 behavior: "smooth"
             });
+        }
 
-        }, 800);
-
-    }
+        // Ghi nhận chapter ngay cả khi người dùng chưa cuộn.
+        setTimeout(() => saveReadingProgress(), 100);
+    }, 800);
 
 });
 
