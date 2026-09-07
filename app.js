@@ -161,14 +161,11 @@ app.use("/", require("./routes/auth"));
 app.use("/", require("./routes/profile"));
 app.use("/", require("./routes/translator"));
 app.use("/", require("./routes/admin"));
-// Reading history MUST be mounted before the generic manga router.
-// Otherwise /history/save is swallowed by routes/manga.js and the dedicated
-// history logger never runs.
-app.use("/history", require("./routes/history"));
 app.use("/", require("./routes/manga"));
 app.use("/", require("./routes/notification"));
 app.use("/api", require("./routes/push"));
 app.use("/", require("./routes/comment"));
+
 // API riêng cho Mobile App (React Native) - xác thực JWT, không dùng session
 app.use("/api/v1", require("./routes/api"));
 
