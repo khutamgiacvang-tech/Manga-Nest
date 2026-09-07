@@ -329,7 +329,7 @@ exports.readChapter = async (req, res) => {
 
     return res.json({
       success: true,
-      manga: { title: manga.title, slug: manga.slug, translator: manga.translator },
+      manga: { title: manga.title, slug: manga.slug, cover: manga.cover || "", translator: manga.translator },
       chapter: { ...chapter, pages: undefined },
       pages,
       allChapters,
