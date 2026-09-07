@@ -1993,8 +1993,7 @@ exports.readChapter = async (req, res) => {
 exports.saveHistory = async (req, res) => {
   try {
     if (!req.user) {
-      console.warn("[history/save] 401 - no req.user", req.headers["user-agent"]);
-      return res.status(401).json({ success: false, message: "Vui lòng đăng nhập." });
+      return res.json({ success: false });
     }
 
     const {
@@ -2006,87 +2005,57 @@ exports.saveHistory = async (req, res) => {
       chapterNumber,
       progress,
       scrollPosition,
-    } = req.body || {};
-
-    if (!mangaId || chapterNumber === undefined || chapterNumber === null) {
-      return res.status(400).json({ success: false, message: "Thiếu mangaId/chapterNumber." });
-    }
-
-    const chapterNum = Number(chapterNumber);
-    if (!Number.isFinite(chapterNum)) {
-      return res.status(400).json({ success: false, message: "chapterNumber không hợp lệ." });
-    }
-
-    const incomingProgress = Math.min(
-      100,
-      Math.max(0, Number.isFinite(Number(progress)) ? Number(progress) : 0)
-    );
-
-    const incomingScroll = Math.max(
-      0,
-      Number.isFinite(Number(scrollPosition)) ? Number(scrollPosition) : 0
-    );
+    } = req.body;
 
     const oldHistory = await ReadingHistory.findOne({
       user: req.user._id,
       manga: mangaId,
-      chapterNumber: chapterNum,
-    }).lean();
+      chapterNumber,
+    });
 
-    // Lịch sử lưu theo TỪNG CHƯƠNG. Tiến độ chỉ tăng, tránh request
-    // cũ/chậm ghi đè tiến độ cao hơn.
-    const oldProgress = Math.min(
-      100,
-      Math.max(0, Number(oldHistory?.progress) || 0)
-    );
+    let finalProgress = progress;
+    let finalScroll = scrollPosition;
 
-    const finalProgress = Math.max(oldProgress, incomingProgress);
+    if (oldHistory) {
+      finalProgress = Math.max(oldHistory.progress || 0, progress || 0);
 
-    // Nếu request cũ có progress thấp hơn bản đã lưu thì giữ vị trí
-    // đã lưu, tránh việc request trễ kéo người đọc về vị trí cũ.
-    const finalScroll =
-      incomingProgress < oldProgress
-        ? Number(oldHistory?.scrollPosition) || 0
-        : incomingScroll;
+      if (progress < oldHistory.progress) {
+        finalScroll = oldHistory.scrollPosition || 0;
+      }
+    }
 
-    const saved = await ReadingHistory.findOneAndUpdate(
+    await ReadingHistory.findOneAndUpdate(
       {
         user: req.user._id,
         manga: mangaId,
-        chapterNumber: chapterNum,
+        chapterNumber,
       },
       {
-        $set: {
-          manga: mangaId,
-          mangaTitle: mangaTitle || oldHistory?.mangaTitle || "",
-          mangaSlug: mangaSlug || oldHistory?.mangaSlug || "",
-          cover: cover || oldHistory?.cover || "",
-          chapterNumber: chapterNum,
-          chapterTitle: chapterTitle || oldHistory?.chapterTitle || "",
-          progress: finalProgress,
-          scrollPosition: finalScroll,
-          updatedAt: new Date(),
-        },
-        $setOnInsert: {
-          user: req.user._id,
-        },
+        manga: mangaId,
+        mangaTitle,
+        mangaSlug,
+        cover: cover || oldHistory?.cover || "",
+        chapterNumber,
+        chapterTitle: chapterTitle || oldHistory?.chapterTitle || "",
+        progress: finalProgress,
+        scrollPosition: finalScroll,
+        updatedAt: new Date(),
       },
-      { upsert: true, new: true, setDefaultsOnInsert: true }
-    ).lean();
-
-    console.log(
-      `[history/save] user=${req.user._id} manga=${mangaId} chapter=${chapterNum} progress=${finalProgress}`
+      {
+        upsert: true,
+        returnDocument: "after",
+      },
     );
 
-    return res.json({
+    res.json({
       success: true,
-      historyId: saved?._id,
-      chapterNumber: chapterNum,
-      progress: finalProgress,
     });
   } catch (err) {
-    console.error("[history/save] ERROR:", err);
-    return res.status(500).json({ success: false, message: "Không thể lưu lịch sử." });
+    console.error(err);
+
+    res.status(500).json({
+      success: false,
+    });
   }
 };
 

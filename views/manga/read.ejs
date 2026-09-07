@@ -833,10 +833,6 @@ let zenSaveTimer;
 
 function saveReadingProgress(percentOverride, scrollPositionOverride){
 
-    // Khách chưa đăng nhập không có lịch sử cá nhân để lưu.
-    const isLoggedIn = <%= user ? "true" : "false" %>;
-    if(!isLoggedIn) return;
-
     let percent;
     let currentScroll;
 
@@ -914,17 +910,7 @@ function saveReadingProgress(percentOverride, scrollPositionOverride){
 
         })
 
-    }).then(async response => {
-        if(!response.ok){
-            const text = await response.text().catch(() => "");
-            console.error("[history/save]", response.status, text);
-            return;
-        }
-        const data = await response.json().catch(() => null);
-        if(!data || data.success !== true){
-            console.error("[history/save] server rejected", data);
-        }
-    }).catch(err => console.error("[history/save] network error", err));
+    }).catch(err => console.error(err));
 
 }
 
@@ -964,57 +950,7 @@ window.addEventListener("scroll", queueClassicHistorySave, { passive: true });
 
 window.addEventListener("pagehide", () => {
     clearTimeout(saveTimer);
-
-    // fetch thường có thể bị trình duyệt hủy khi rời trang. Beacon giúp
-    // request cuối cùng vẫn tới server khi đóng/chuyển trang.
-    const isLoggedIn = <%= user ? "true" : "false" %>;
-    if(!isLoggedIn) return;
-
-    try {
-        const pages = document.querySelectorAll("#classicReader .reader-page");
-        if(!pages.length) return;
-
-        const first = pages[0];
-        const last = pages[pages.length - 1];
-        const firstRect = first.getBoundingClientRect();
-        const lastRect = last.getBoundingClientRect();
-        const startY = firstRect.top + window.scrollY;
-        const endY = Math.max(
-            startY,
-            lastRect.bottom + window.scrollY - window.innerHeight
-        );
-        const range = endY - startY;
-        const percent = range <= 0
-            ? (window.scrollY >= endY ? 100 : 0)
-            : Math.min(
-                100,
-                Math.max(
-                    0,
-                    Math.round(((window.scrollY - startY) / range) * 100)
-                )
-            );
-
-        const payload = {
-            mangaId: "<%= manga._id %>",
-            mangaTitle: "<%= manga.title %>",
-            mangaSlug: "<%= manga.slug %>",
-            cover: "<%= manga.cover %>",
-            chapterTitle: <%= JSON.stringify(chapter.title || "") %>,
-            chapterNumber: <%= JSON.stringify(String(chapter.chapterNumber)) %>,
-            progress: percent,
-            scrollPosition: Math.max(0, window.scrollY || 0)
-        };
-
-        const blob = new Blob([JSON.stringify(payload)], {
-            type: "application/json"
-        });
-
-        if(!navigator.sendBeacon("/history/save", blob)){
-            saveReadingProgress(percent, window.scrollY || 0);
-        }
-    }catch(err){
-        console.error("[history/save beacon]", err);
-    }
+    saveReadingProgress();
 });
 
 /* =========================
@@ -1037,18 +973,6 @@ window.addEventListener("load", () => {
 
         // Ghi nhận chapter ngay cả khi người dùng chưa cuộn.
         setTimeout(() => saveReadingProgress(), 100);
-
-        // Ảnh chapter có thể load muộn làm thay đổi chiều cao trang.
-        // Tính lại sau khi ảnh cuối cùng đã load.
-        const readerImages = document.querySelectorAll("#classicReader .reader-page img");
-        readerImages.forEach(img => {
-            if(!img.complete){
-                img.addEventListener("load", () => {
-                    clearTimeout(saveTimer);
-                    saveTimer = setTimeout(() => saveReadingProgress(), 100);
-                }, { once: true });
-            }
-        });
     }, 800);
 
 });
