@@ -165,7 +165,6 @@ app.use("/", require("./routes/manga"));
 app.use("/", require("./routes/notification"));
 app.use("/api", require("./routes/push"));
 app.use("/", require("./routes/comment"));
-app.use("/history", require("./routes/history"));
 
 // API riêng cho Mobile App (React Native) - xác thực JWT, không dùng session
 app.use("/api/v1", require("./routes/api"));

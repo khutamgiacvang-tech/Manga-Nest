@@ -1,8 +1,10 @@
 const express = require("express");
 const router = express.Router();
+
 const ReadingHistory = require("../models/ReadingHistory");
 
-// Lưu lịch sử đọc Web. Passport đặt user ở req.user.
+// POST /history/save
+// Web reader và mobile app dùng chung ReadingHistory trong MongoDB.
 router.post("/save", async (req, res) => {
   try {
     if (!req.user) {
@@ -20,9 +22,8 @@ router.post("/save", async (req, res) => {
       scrollPosition,
     } = req.body;
 
-    if (!mangaId || chapterNumber === undefined || chapterNumber === null) {
-      return res.status(400).json({ success: false, message: "Thiếu thông tin chapter." });
-    }
+    const numericProgress = Math.min(100, Math.max(0, Number(progress) || 0));
+    const numericScroll = Math.max(0, Number(scrollPosition) || 0);
 
     const oldHistory = await ReadingHistory.findOne({
       user: req.user._id,
@@ -30,17 +31,15 @@ router.post("/save", async (req, res) => {
       chapterNumber,
     });
 
-    const incomingProgress = Number(progress) || 0;
-    const oldProgress = Number(oldHistory?.progress) || 0;
+    // Không làm tụt tiến độ đã đạt được khi người đọc quay lại vị trí cũ.
+    const finalProgress = oldHistory
+      ? Math.max(oldHistory.progress || 0, numericProgress)
+      : numericProgress;
 
-    // Không lùi tiến độ khi trình duyệt gửi request cũ/chậm hơn.
-    const finalProgress = Math.min(100, Math.max(oldProgress, incomingProgress));
-
-    // Nếu request cũ có progress thấp hơn bản đã lưu, giữ vị trí cũ.
     const finalScroll =
-      incomingProgress < oldProgress
-        ? Number(oldHistory?.scrollPosition) || 0
-        : Math.max(0, Number(scrollPosition) || 0);
+      oldHistory && numericProgress < (oldHistory.progress || 0)
+        ? oldHistory.scrollPosition || 0
+        : numericScroll;
 
     await ReadingHistory.findOneAndUpdate(
       {
@@ -50,8 +49,8 @@ router.post("/save", async (req, res) => {
       },
       {
         manga: mangaId,
-        mangaTitle: mangaTitle || oldHistory?.mangaTitle || "",
-        mangaSlug: mangaSlug || oldHistory?.mangaSlug || "",
+        mangaTitle,
+        mangaSlug,
         cover: cover || oldHistory?.cover || "",
         chapterNumber,
         chapterTitle: chapterTitle || oldHistory?.chapterTitle || "",
@@ -59,29 +58,28 @@ router.post("/save", async (req, res) => {
         scrollPosition: finalScroll,
         updatedAt: new Date(),
       },
-      { upsert: true, returnDocument: "after", setDefaultsOnInsert: true }
+      { upsert: true, returnDocument: "after" }
     );
 
     return res.json({ success: true });
   } catch (err) {
-    console.error("[history/save]", err);
+    console.error("[web/history/save]", err);
     return res.status(500).json({ success: false });
   }
 });
 
+// Giữ route này nếu nơi khác trong project còn dùng /history.
+// Trang lịch sử chính hiện được xử lý bởi mangaController.history.
 router.get("/", async (req, res) => {
-  try {
-    if (!req.user) return res.redirect("/login");
-
-    const histories = await ReadingHistory.find({ user: req.user._id })
-      .sort({ updatedAt: -1 })
-      .lean();
-
-    return res.render("history/index", { histories });
-  } catch (err) {
-    console.error("[history]", err);
-    return res.status(500).send("Không thể tải lịch sử đọc.");
+  if (!req.user) {
+    return res.redirect("/login");
   }
+
+  const histories = await ReadingHistory.find({
+    user: req.user._id,
+  }).sort({ updatedAt: -1 });
+
+  return res.render("manga/history", { histories });
 });
 
 module.exports = router;
