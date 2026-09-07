@@ -838,25 +838,48 @@ function saveReadingProgress(percentOverride, scrollPositionOverride){
 
     if(typeof percentOverride === "number"){
 
-        // Gọi từ Zen UI: tiến độ tính theo trang, không theo scroll
+        // Zen UI: tiến độ tính theo số trang.
         percent = Math.min(100, Math.max(0, percentOverride));
-        currentScroll = scrollPositionOverride || 0;
+        currentScroll = Number(scrollPositionOverride) || 0;
 
     }else{
 
-        const totalHeight =
-            document.documentElement.scrollHeight -
-            window.innerHeight;
+        /*
+         * CLASSIC UI:
+         * 0% bắt đầu đúng tại mép trên của ẢNH ĐẦU TIÊN.
+         * 100% kết thúc đúng tại mép dưới của ẢNH CUỐI CÙNG.
+         *
+         * Không tính reader-header, chapter navigation, footer...
+         */
+        const pages = document.querySelectorAll("#classicReader .reader-page");
 
-        if(totalHeight <= 0) return;
+        if(!pages.length) return;
 
-        currentScroll = window.scrollY;
+        const first = pages[0];
+        const last = pages[pages.length - 1];
 
-        percent = Math.min(
-            100,
-            Math.round((currentScroll / totalHeight) * 100)
-        );
+        const firstRect = first.getBoundingClientRect();
+        const lastRect = last.getBoundingClientRect();
 
+        const firstTop = firstRect.top + window.scrollY;
+        const lastBottom = lastRect.bottom + window.scrollY;
+
+        // Điểm 100% là lúc đáy ảnh cuối vừa chạm đáy viewport.
+        const startY = firstTop;
+        const endY = Math.max(startY, lastBottom - window.innerHeight);
+        const range = endY - startY;
+
+        currentScroll = Math.max(0, window.scrollY - startY);
+
+        percent = range <= 0
+            ? (window.scrollY >= endY ? 100 : 0)
+            : Math.min(
+                100,
+                Math.max(
+                    0,
+                    Math.round(((window.scrollY - startY) / range) * 100)
+                )
+            );
     }
 
     fetch("/history/save", {
@@ -888,18 +911,6 @@ function saveReadingProgress(percentOverride, scrollPositionOverride){
     }).catch(err => console.error(err));
 
 }
-
-window.addEventListener("scroll", () => {
-
-    clearTimeout(saveTimer);
-
-    saveTimer = setTimeout(() => {
-
-        saveReadingProgress();
-
-    }, 1000);
-
-});
 
 // Zen UI: lưu tiến độ theo trang hiện tại (không có scroll event để dựa vào)
 function saveZenProgress(index){
