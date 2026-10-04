@@ -898,9 +898,11 @@ function saveReadingProgress(percentOverride, scrollPositionOverride){
 
             mangaSlug: "<%= manga.slug %>",
 
-            cover: "<%= manga.cover %>",
+            cover: <%= JSON.stringify(manga.cover || "") %>,
 
-            chapterNumber: <%= chapter.chapterNumber %>,
+            chapterTitle: <%= JSON.stringify(chapter.title && chapter.title !== "Không có tiêu đề" ? chapter.title : "") %>,
+
+            chapterNumber: <%= JSON.stringify(chapter.chapterNumber) %>,
 
             progress: percent,
 

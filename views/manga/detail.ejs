@@ -140,9 +140,11 @@
 
                             <strong>Chương <%= chapter.chapterNumber %></strong>
 
-                            <div class="chapter-sub">
-                                <%= chapter.title || "Không có tiêu đề" %>
-                            </div>
+                            <% if(chapter.title && chapter.title !== "Không có tiêu đề"){ %>
+                                <div class="chapter-sub">
+                                    <%= chapter.title %>
+                                </div>
+                            <% } %>
 
                             <div class="chapter-meta">
                                 <%= timeAgo(chapter.createdAt) %>

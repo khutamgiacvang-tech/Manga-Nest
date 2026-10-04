@@ -336,7 +336,7 @@ exports.uploadChapter = async (req, res) => {
     console.log("2. Đã tìm thấy manga:", manga.title);
 
     const rawChapterInput = req.body.chapterNumber?.trim();
-    const title = req.body.title?.trim() || "Không có tiêu đề";
+    const title = req.body.title?.trim() || "";
 
     if (!rawChapterInput) {
       req.flash("error", "Số chapter không hợp lệ.");
@@ -1829,6 +1829,12 @@ exports.readChapter = async (req, res) => {
       return res.redirect("/manga/" + manga.slug);
     }
 
+    // "Không có tiêu đề" là placeholder cũ, không phải tên chương thật.
+    if (chapter.title === "Không có tiêu đề") chapter.title = "";
+    allChapters.forEach((c) => {
+      if (c.title === "Không có tiêu đề") c.title = "";
+    });
+
     // =========================
     // Hỗ trợ cả dữ liệu cũ và Cloudinary
     // =========================
@@ -2007,6 +2013,11 @@ exports.saveHistory = async (req, res) => {
       scrollPosition,
     } = req.body;
 
+    const normalizedChapterTitle =
+      typeof chapterTitle === "string" && chapterTitle.trim() && chapterTitle.trim() !== "Không có tiêu đề"
+        ? chapterTitle.trim()
+        : "";
+
     const oldHistory = await ReadingHistory.findOne({
       user: req.user._id,
       manga: mangaId,
@@ -2036,7 +2047,7 @@ exports.saveHistory = async (req, res) => {
         mangaSlug,
         cover,
         chapterNumber,
-        chapterTitle,
+        chapterTitle: normalizedChapterTitle,
         progress: finalProgress,
         scrollPosition: finalScroll,
         updatedAt: new Date(),
@@ -2149,6 +2160,14 @@ exports.history = async (req, res) => {
         },
       },
     ]);
+
+    // Chuẩn hóa dữ liệu lịch sử: "Không có tiêu đề" chỉ là giá trị cũ/placeholder,
+    // không phải tên chương thật. Web và mobile đều không được hiển thị chuỗi này.
+    grouped.forEach((g) => {
+      g.chapters.forEach((c) => {
+        if (c.title === "Không có tiêu đề") c.title = "";
+      });
+    });
 
     // Với các bản ghi lịch sử cũ (tạo trước khi có field chapterTitle)
     // thì title sẽ rỗng. Thay vì gọi Chapter.findOne() riêng lẻ cho

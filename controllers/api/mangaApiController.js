@@ -5,6 +5,11 @@ const ReadingHistory = require("../../models/ReadingHistory");
 const ChapterView = require("../../models/ChapterView");
 const removeVietnameseTones = require("../../utils/removeVietnameseTones");
 
+function cleanChapterTitle(title) {
+  const value = String(title || "").trim();
+  return value === "Không có tiêu đề" ? "" : value;
+}
+
 // =========================
 // GET /api/v1/manga/home
 // (bản JSON của controllers/homeController.js -> exports.home)
@@ -202,6 +207,7 @@ exports.detail = async (req, res) => {
     chapters = chapters
       .map((c) => ({
         ...c,
+        title: cleanChapterTitle(c.title),
         commentCount: commentCountMap.get(String(c._id)) || 0,
         readProgress:
           history.find((h) => h.chapterNumber === c.chapterNumber)?.progress || 0,
@@ -267,6 +273,11 @@ exports.readChapter = async (req, res) => {
         message: "Chương này đã bị ẩn do vi phạm quy định nội dung.",
       });
     }
+
+    chapter.title = cleanChapterTitle(chapter.title);
+    allChapters.forEach((c) => {
+      c.title = cleanChapterTitle(c.title);
+    });
 
     let pages = [];
     if (Array.isArray(chapter.pages)) {
@@ -405,6 +416,11 @@ exports.saveHistory = async (req, res) => {
       scrollPosition,
     } = req.body;
 
+    const normalizedChapterTitle =
+      typeof chapterTitle === "string" && chapterTitle.trim() && chapterTitle.trim() !== "Không có tiêu đề"
+        ? chapterTitle.trim()
+        : "";
+
     const oldHistory = await ReadingHistory.findOne({
       user: req.user._id,
       manga: mangaId,
@@ -429,7 +445,7 @@ exports.saveHistory = async (req, res) => {
         mangaSlug,
         cover,
         chapterNumber,
-        chapterTitle,
+        chapterTitle: normalizedChapterTitle,
         progress: finalProgress,
         scrollPosition: finalScroll,
         updatedAt: new Date(),
@@ -486,6 +502,12 @@ exports.historyList = async (req, res) => {
         },
       },
     ]);
+
+    grouped.forEach((g) => {
+      g.chapters?.forEach((c) => {
+        if (c.title === "Không có tiêu đề") c.title = "";
+      });
+    });
 
     return res.json({ success: true, histories: grouped });
   } catch (err) {

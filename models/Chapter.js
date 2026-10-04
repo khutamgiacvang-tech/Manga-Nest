@@ -31,7 +31,7 @@ const chapterSchema = new mongoose.Schema(
     // =========================
     title: {
       type: String,
-      default: "Không có tiêu đề",
+      default: "",
     },
 
     // =========================

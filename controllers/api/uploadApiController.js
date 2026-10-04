@@ -253,7 +253,7 @@ exports.uploadChapter = async (req, res) => {
     }
 
     const rawChapterInput = req.body.chapterNumber?.trim();
-    const title = req.body.title?.trim() || "Không có tiêu đề";
+    const title = req.body.title?.trim() || "";
 
     if (!rawChapterInput) {
       safeUnlink(req.file?.path);

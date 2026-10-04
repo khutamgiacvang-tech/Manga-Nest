@@ -26,7 +26,7 @@
                                     <div class="history-chapter-row">
                                         <div class="history-chapter-info">
                                             <a href="/manga/<%= item.mangaSlug %>/chapter/<%= chap.chapterNumber %>" class="history-chapter-link">
-                                                Chương <%= chap.chapterNumber %><% if(chap.title){ %>: <%= chap.title %><% } %>
+                                                Chương <%= chap.chapterNumber %><% if(chap.title && chap.title !== "Không có tiêu đề"){ %>: <%= chap.title %><% } %>
                                             </a>
                                         </div>
                                         <div class="progress">
