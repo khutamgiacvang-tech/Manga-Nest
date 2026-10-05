@@ -45,7 +45,9 @@ exports.showApply = async (req, res) => {
       return res.redirect("/");
     }
 
-    if (req.user.role === "translator") {
+    // Translator và Admin đều đã có quyền đăng truyện,
+    // nên không được đưa tới form đăng ký Translator.
+    if (req.user.role === "translator" || req.user.role === "admin") {
       return res.redirect("/upload");
     }
 

@@ -8,7 +8,7 @@
         <!-- Menu -->
         <nav class="nav-menu" id="navMenu">
             <a href="/support">❤️ Ủng hộ</a>
-            <a href="/translator/apply">📝 Đăng truyện</a>
+            <a href="<%= (user && (user.role === "translator" || user.role === "admin")) ? "/upload" : "/translator/apply" %>">📝 Đăng truyện</a>
             <a href="https://discord.gg/dREjzkdGu" target="_blank">
                 💬 Discord
             </a>
@@ -142,7 +142,7 @@
                             ❤️ Ủng hộ
                         </a>
 
-                        <a href="/translator/apply">
+                        <a href="<%= (user && (user.role === "translator" || user.role === "admin")) ? "/upload" : "/translator/apply" %>">
                             📝 Đăng truyện
                         </a>
 
