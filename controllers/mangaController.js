@@ -1975,6 +1975,48 @@ exports.readChapter = async (req, res) => {
       }
     }
 
+    // Ghi nhận lịch sử ngay khi người dùng mở chapter.
+    // Trước đây Web chỉ lưu qua JavaScript /history/save khi load/scroll,
+    // nên nếu request JS bị chặn, trang vừa mở hoặc người dùng thoát quá
+    // nhanh thì chapter mới không xuất hiện trong Lịch sử đọc.
+    if (req.user) {
+      try {
+        const historyChapterTitle =
+          typeof chapter.title === "string" &&
+          chapter.title.trim() &&
+          chapter.title.trim() !== "Không có tiêu đề"
+            ? chapter.title.trim()
+            : "";
+
+        await ReadingHistory.findOneAndUpdate(
+          {
+            user: req.user._id,
+            manga: manga._id,
+            chapterNumber,
+          },
+          {
+            $set: {
+              manga: manga._id,
+              mangaTitle: manga.title,
+              mangaSlug: manga.slug,
+              cover: manga.cover || "",
+              chapterNumber,
+              chapterTitle: historyChapterTitle,
+              updatedAt: new Date(),
+            },
+            $setOnInsert: {
+              progress: 0,
+              scrollPosition: 0,
+            },
+          },
+          { upsert: true }
+        );
+      } catch (historyErr) {
+        // Lịch sử không được làm hỏng việc đọc chapter nếu DB history lỗi.
+        console.error("[readChapter] Không thể lưu lịch sử đọc:", historyErr);
+      }
+    }
+
     const savedScroll = historyDoc?.scrollPosition || 0;
     const savedProgress = historyDoc?.progress || 0;
 
