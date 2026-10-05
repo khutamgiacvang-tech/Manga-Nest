@@ -131,7 +131,7 @@ exports.showCreate = async (req, res) => {
       return res.redirect("/");
     }
 
-    if (req.user.role !== "translator") {
+    if (req.user.role !== "translator" && req.user.role !== "admin") {
       req.flash("error", "Bạn không có quyền.");
       return res.redirect("/");
     }
@@ -155,6 +155,13 @@ exports.showCreate = async (req, res) => {
 
 exports.create = async (req, res) => {
   try {
+    // Defense-in-depth: route đã có translatorMiddleware, nhưng vẫn kiểm tra
+    // quyền ngay trong controller để không thể gọi thẳng controller mà bỏ qua guard.
+    if (!req.isAuthenticated() || !["translator", "admin"].includes(req.user.role)) {
+      req.flash("error", "Bạn chưa có quyền đăng truyện.");
+      return res.redirect("/translator/apply");
+    }
+
     const { title, alternativeTitles, author, description, status } = req.body;
 
     let slug = slugify(title, {
@@ -279,8 +286,12 @@ exports.showUploadChapter = async (req, res) => {
       return res.redirect("/");
     }
 
+    // Chỉ owner của manga mới được vào trang đăng chapter.
+    // Admin cũng phải là owner của manga đó; không được đăng chapter
+    // vào manga thuộc translator khác.
     const manga = await Manga.findOne({
       slug: req.params.slug,
+      translator: req.user._id,
     });
 
     if (!manga) {
@@ -322,14 +333,22 @@ exports.showUploadChapter = async (req, res) => {
 
 exports.uploadChapter = async (req, res) => {
   try {
+    if (!req.isAuthenticated() || !["translator", "admin"].includes(req.user.role)) {
+      req.flash("error", "Bạn chưa có quyền đăng chương.");
+      return res.redirect("/translator/apply");
+    }
+
     console.log("1. Tìm manga");
 
+    // Admin không được đăng chapter vào manga của translator khác.
+    // Dù là admin vẫn phải là owner của manga mới được đăng chapter.
     const manga = await Manga.findOne({
       slug: req.params.slug,
+      translator: req.user._id,
     });
 
     if (!manga) {
-      req.flash("error", "Không tìm thấy manga.");
+      req.flash("error", "Không tìm thấy truyện hoặc bạn không có quyền đăng chương.");
       return res.redirect("/upload");
     }
 

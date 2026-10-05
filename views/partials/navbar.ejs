@@ -112,7 +112,7 @@
                         👤 Hồ sơ
                     </a>
 
-                    <% if(user && user.role === "translator"){ %>
+                    <% if(user && (user.role === "translator" || user.role === "admin")){ %>
                     <a href="/my-manga" class="dropdown-item">
                         📚 Truyện của tôi
                     </a>

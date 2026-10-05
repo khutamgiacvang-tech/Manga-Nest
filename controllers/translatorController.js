@@ -93,6 +93,14 @@ exports.submitApplication = async (req, res) => {
       return res.redirect("/");
     }
 
+    // Admin là role cao nhất và đã có toàn bộ quyền của Translator,
+    // vì vậy không tạo đơn xin Translator và cũng không được phép
+    // vô tình bị hạ role thành translator khi duyệt đơn.
+    if (req.user.role === "admin") {
+      req.flash("success", "Tài khoản Admin đã có đầy đủ quyền đăng truyện.");
+      return res.redirect("/upload");
+    }
+
     const { groupName, introduction, note } = req.body;
 
     const existed = await TranslatorApplication.findOne({

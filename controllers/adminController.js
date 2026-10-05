@@ -323,13 +323,14 @@ exports.approveApplication = async (req, res) => {
 
     await application.save();
 
-    await User.findByIdAndUpdate(
-      application.user,
+    const applicant = await User.findById(application.user).select("role");
 
-      {
+    // Admin là role cao nhất: duyệt đơn không được hạ Admin xuống Translator.
+    if (applicant && applicant.role !== "admin") {
+      await User.findByIdAndUpdate(application.user, {
         role: "translator",
-      },
-    );
+      });
+    }
 
     await Notification.create({
       user: application.user,

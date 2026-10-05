@@ -8,6 +8,7 @@ const Manga = require("../models/Manga");
 const mangaController = require("../controllers/mangaController");
 const Chapter = require("../models/Chapter");
 const removeVietnameseTones = require("../utils/removeVietnameseTones");
+const translatorMiddleware = require("../middleware/translatorMiddleware");
 
 // =======================
 // Tạo thư mục temp
@@ -73,6 +74,8 @@ router.get(
 router.post(
   "/upload",
 
+  translatorMiddleware,
+
   upload.fields([
     {
       name: "cover",
@@ -97,11 +100,15 @@ router.post(
 router.get(
   "/upload/:slug/chapter",
 
+  translatorMiddleware,
+
   mangaController.showUploadChapter,
 );
 
 router.post(
   "/upload/:slug/chapter",
+
+  translatorMiddleware,
 
   chapterUpload.single("zip"),
 
