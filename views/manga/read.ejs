@@ -911,17 +911,17 @@ function saveReadingProgress(percentOverride, scrollPositionOverride){
 
         body: JSON.stringify({
 
-            mangaId: "<%= manga._id %>",
+            mangaId: <%- JSON.stringify(String(manga._id)).replace(/</g, '\\u003c') %>,
 
-            mangaTitle: "<%= manga.title %>",
+            mangaTitle: <%- JSON.stringify(manga.title || "").replace(/</g, '\\u003c') %>,
 
-            mangaSlug: "<%= manga.slug %>",
+            mangaSlug: <%- JSON.stringify(manga.slug || "").replace(/</g, '\\u003c') %>,
 
-            cover: <%= JSON.stringify(manga.cover || "") %>,
+            cover: <%- JSON.stringify(manga.cover || "").replace(/</g, '\\u003c') %>,
 
-            chapterTitle: <%= JSON.stringify(chapter.title && chapter.title !== "Không có tiêu đề" ? chapter.title : "") %>,
+            chapterTitle: <%- JSON.stringify(chapter.title && chapter.title !== "Không có tiêu đề" ? chapter.title : "").replace(/</g, '\\u003c') %>,
 
-            chapterNumber: <%= JSON.stringify(chapter.chapterNumber) %>,
+            chapterNumber: <%- JSON.stringify(chapter.chapterNumber).replace(/</g, '\\u003c') %>,
 
             progress: percent,
 
