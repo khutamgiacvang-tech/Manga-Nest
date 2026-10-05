@@ -2174,6 +2174,10 @@ exports.history = async (req, res) => {
       return res.redirect("/login");
     }
 
+    // Không cho browser cache trang lịch sử (kể cả khi bấm Back) để luôn
+    // thấy tiến độ vừa lưu.
+    res.set("Cache-Control", "no-store");
+
     // Giới hạn số truyện hiển thị trên trang lịch sử và số chương/truyện
     // -> tránh việc tài khoản đọc hàng trăm/nghìn chương làm trang lịch
     // sử phải xử lý toàn bộ dữ liệu mỗi lần mở.
