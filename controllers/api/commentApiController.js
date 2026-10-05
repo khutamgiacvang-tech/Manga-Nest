@@ -49,6 +49,16 @@ exports.getComments = async (req, res) => {
         _id: c._id,
         content: c.content,
         username: c.user ? c.user.displayName || c.user.username : "Người dùng ẩn danh",
+        // Giữ cả dạng phẳng `username` và object `user` để Web/Mobile dùng chung
+        // cùng một response mà không bị hiển thị thành "Ẩn danh".
+        user: c.user
+          ? {
+              _id: c.user._id,
+              username: c.user.username,
+              displayName: c.user.displayName,
+              avatar: c.user.avatar,
+            }
+          : null,
         avatar: c.user?.avatar || "/images/icon/avatar.png",
         timeAgo: timeAgo(c.createdAt),
         isEdited: c.isEdited,
@@ -101,6 +111,12 @@ exports.postComment = async (req, res) => {
         _id: comment._id,
         content: comment.content,
         username: req.user.displayName || req.user.username,
+        user: {
+          _id: req.user._id,
+          username: req.user.username,
+          displayName: req.user.displayName,
+          avatar: req.user.avatar,
+        },
         avatar: req.user.avatar || "/images/icon/avatar.png",
         timeAgo: "vừa xong",
         isEdited: false,
