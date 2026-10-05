@@ -2079,45 +2079,45 @@ exports.saveHistory = async (req, res) => {
         ? chapterTitle.trim()
         : "";
 
-    const oldHistory = await ReadingHistory.findOne({
+    const pct = Math.min(100, Math.max(0, Math.round(Number(progress) || 0)));
+    const scroll = Math.max(0, Number(scrollPosition) || 0);
+    const chapterNo = Number(chapterNumber);
+
+    const filter = {
       user: req.user._id,
       manga: mangaId,
-      chapterNumber,
-    });
+      chapterNumber: chapterNo,
+    };
 
-    let finalProgress = progress;
-    let finalScroll = scrollPosition;
+    const meta = {
+      mangaTitle,
+      mangaSlug,
+      cover,
+      chapterTitle: normalizedChapterTitle,
+      updatedAt: new Date(),
+    };
 
-    if (oldHistory) {
-      finalProgress = Math.max(oldHistory.progress || 0, progress || 0);
-
-      if (progress < oldHistory.progress) {
-        finalScroll = oldHistory.scrollPosition || 0;
-      }
-    }
-
-    await ReadingHistory.findOneAndUpdate(
-      {
-        user: req.user._id,
-        manga: mangaId,
-        chapterNumber,
-      },
-      {
-        manga: mangaId,
-        mangaTitle,
-        mangaSlug,
-        cover,
-        chapterNumber,
-        chapterTitle: normalizedChapterTitle,
-        progress: finalProgress,
-        scrollPosition: finalScroll,
-        updatedAt: new Date(),
-      },
-      {
-        upsert: true,
-        returnDocument: "after",
-      },
+    // Chỉ ghi progress/scroll khi tiến độ MỚI cao hơn tiến độ đã lưu.
+    // Làm bằng một update nguyên tử (filter progress < pct) thay vì
+    // findOne -> tính max -> ghi như cũ: hai request lưu gần nhau (scroll
+    // + pagehide) không còn ghi đè nhau bằng giá trị thấp hơn.
+    const advanced = await ReadingHistory.updateOne(
+      { ...filter, progress: { $not: { $gte: pct } } }, // gồm cả bản ghi cũ thiếu field progress
+      { $set: { ...meta, progress: pct, scrollPosition: scroll } },
     );
+
+    if (advanced.matchedCount === 0) {
+      // Không tiến thêm (hoặc chưa có bản ghi): chỉ cập nhật metadata /
+      // thời gian đọc, giữ nguyên progress cao nhất đã có.
+      await ReadingHistory.updateOne(
+        filter,
+        {
+          $set: { ...meta, manga: mangaId },
+          $setOnInsert: { progress: pct, scrollPosition: scroll },
+        },
+        { upsert: true },
+      );
+    }
 
     res.json({
       success: true,

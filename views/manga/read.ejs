@@ -892,6 +892,13 @@ function saveReadingProgress(percentOverride, scrollPositionOverride){
 
         method: "POST",
 
+        // keepalive: request vẫn được gửi đi khi người dùng đóng tab /
+        // chuyển trang (pagehide). Thiếu cờ này browser sẽ hủy request
+        // ngay lúc rời trang -> lần lưu cuối không bao giờ tới server.
+        keepalive: true,
+
+        credentials: "same-origin",
+
         headers: {
             "Content-Type": "application/json"
         },
@@ -927,26 +934,45 @@ function saveReadingProgress(percentOverride, scrollPositionOverride){
 // kể cả khi người dùng chưa chuyển sang Zen UI.
 let classicSaveTimer = null;
 let lastClassicSave = 0;
+const CLASSIC_SAVE_INTERVAL = 1500;
 
+// Trailing throttle: tối đa 1 request / 1.5s nhưng LUÔN có một lần lưu
+// cuối cùng với vị trí cuộn mới nhất.
+// Bản cũ dùng debounce 250ms + "nếu < 1.5s kể từ lần lưu trước thì
+// return" -> lần lưu đó bị VỨT BỎ hẳn và không có timer nào lưu bù.
+// Ví dụ: lần lưu 0% lúc load trang (1.2s), người đọc kéo xuống rồi dừng
+// ở giây thứ 2 -> bị bỏ -> lịch sử kẹt ở 0%.
 function scheduleClassicHistorySave(){
 
     if(document.body.classList.contains("zen-immersive")) return;
 
-    clearTimeout(classicSaveTimer);
+    // Đã có một lần lưu đang chờ -> nó sẽ đọc vị trí cuộn mới nhất khi chạy.
+    if(classicSaveTimer) return;
+
+    const wait = Math.max(
+        300,
+        CLASSIC_SAVE_INTERVAL - (Date.now() - lastClassicSave)
+    );
 
     classicSaveTimer = setTimeout(() => {
 
-        const now = Date.now();
-
-        // Tránh spam request khi người dùng cuộn liên tục.
-        if(now - lastClassicSave < 1500){
-            return;
-        }
-
-        lastClassicSave = now;
+        classicSaveTimer = null;
+        lastClassicSave = Date.now();
         saveReadingProgress();
 
-    }, 250);
+    }, wait);
+
+}
+
+// Lưu ngay (bỏ qua throttle) khi người đọc rời trang / chuyển tab.
+function flushClassicHistorySave(){
+
+    if(document.body.classList.contains("zen-immersive")) return;
+
+    clearTimeout(classicSaveTimer);
+    classicSaveTimer = null;
+    lastClassicSave = Date.now();
+    saveReadingProgress();
 
 }
 
@@ -974,9 +1000,12 @@ window.addEventListener("load", () => {
 
 // Nếu người dùng đóng/chuyển trang ngay sau khi đọc, cố gắng gửi lần lưu
 // cuối mà không chặn thao tác rời trang.
-window.addEventListener("pagehide", () => {
-    if(!document.body.classList.contains("zen-immersive")){
-        saveReadingProgress();
+window.addEventListener("pagehide", flushClassicHistorySave);
+
+// Mobile / tab bị ẩn thường không bắn pagehide đáng tin cậy.
+document.addEventListener("visibilitychange", () => {
+    if(document.visibilityState === "hidden"){
+        flushClassicHistorySave();
     }
 });
 
