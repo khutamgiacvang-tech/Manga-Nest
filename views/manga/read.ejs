@@ -1367,12 +1367,34 @@ async function loadComments(){
 
 const chapterSelectOverlay = document.getElementById("chapterSelectOverlay");
 
+// Khi popup Chuyển chương mở, chặn wheel của trang đọc.
+// Nếu lăn ngay trên danh sách chương thì chỉ danh sách đó được cuộn.
+if (chapterSelectOverlay) {
+    document.addEventListener('wheel', function(e){
+        if (!chapterSelectOverlay.classList.contains('open')) return;
+
+        const grid = document.getElementById('chapterSelectGrid');
+        if (grid && grid.contains(e.target)) {
+            const canScrollUp = grid.scrollTop > 0;
+            const canScrollDown =
+                grid.scrollTop + grid.clientHeight < grid.scrollHeight;
+
+            if ((e.deltaY < 0 && canScrollUp) || (e.deltaY > 0 && canScrollDown)) {
+                return;
+            }
+        }
+
+        e.preventDefault();
+    }, { passive: false });
+}
+
 function openChapterSelectModal(){
 
     if(!chapterSelectOverlay) return;
 
     chapterSelectOverlay.classList.add("open");
     document.body.classList.add("chapter-select-open");
+    document.documentElement.classList.add("chapter-select-open");
 
     const active = chapterSelectOverlay.querySelector(".chapter-select-item.active");
 
@@ -1388,6 +1410,7 @@ function closeChapterSelectModal(){
 
     chapterSelectOverlay.classList.remove("open");
     document.body.classList.remove("chapter-select-open");
+    document.documentElement.classList.remove("chapter-select-open");
 
 }
 

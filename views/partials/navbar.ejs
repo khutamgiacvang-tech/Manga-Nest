@@ -272,6 +272,7 @@
             overlay.classList.add('active');
             if (backdrop) backdrop.classList.add('active');
             document.body.classList.add('search-overlay-open');
+            document.documentElement.classList.add('search-overlay-open');
             // Focus vào ô input sau khi hiệu ứng đổ xuống bắt đầu
             setTimeout(() => overlayInput && overlayInput.focus(), 150);
         }
@@ -280,6 +281,7 @@
             overlay.classList.remove('active');
             if (backdrop) backdrop.classList.remove('active');
             document.body.classList.remove('search-overlay-open');
+            document.documentElement.classList.remove('search-overlay-open');
         }
 
         toggleBtn.addEventListener('click', function(e){
@@ -321,6 +323,26 @@
                 closeOverlay();
             }
         });
+
+        // Khi search đang mở, không cho con lăn chuột làm cuộn trang nền.
+        // Nếu con trỏ nằm trên danh sách kết quả thì chỉ cho phép danh sách
+        // kết quả tự cuộn; không để wheel truyền thành scroll của trang.
+        document.addEventListener('wheel', function(e){
+            if (!overlay.classList.contains('active')) return;
+
+            const dropdown = document.getElementById('searchDropdown');
+            if (dropdown && dropdown.contains(e.target)) {
+                const canScrollUp = dropdown.scrollTop > 0;
+                const canScrollDown =
+                    dropdown.scrollTop + dropdown.clientHeight < dropdown.scrollHeight;
+
+                if ((e.deltaY < 0 && canScrollUp) || (e.deltaY > 0 && canScrollDown)) {
+                    return;
+                }
+            }
+
+            e.preventDefault();
+        }, { passive: false });
     })();
 
     // ==========================

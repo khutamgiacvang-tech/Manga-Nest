@@ -1249,8 +1249,16 @@ main {
 }
 
 /* Khoá scroll nền khi popup "Chuyển chương" đang mở */
+html.chapter-select-open,
 body.chapter-select-open {
-    overflow: hidden;
+    overflow: hidden !important;
+    overscroll-behavior: none;
+}
+
+.chapter-select-overlay,
+.chapter-select-modal,
+.chapter-select-grid {
+    overscroll-behavior: contain;
 }
 
 .mode-toggle {

@@ -216,8 +216,15 @@ body.reader-page main {
 }
 
 /* Khoá scroll nền khi overlay search đang mở (mobile) */
+html.search-overlay-open,
 body.search-overlay-open {
-    overflow: hidden;
+    overflow: hidden !important;
+    overscroll-behavior: none;
+}
+
+.search-overlay,
+.search-backdrop {
+    overscroll-behavior: contain;
 }
 
 /* ==========================
