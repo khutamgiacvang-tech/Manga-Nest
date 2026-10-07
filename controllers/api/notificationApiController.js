@@ -49,3 +49,48 @@ exports.readAll = async (req, res) => {
     return res.status(500).json({ success: false });
   }
 };
+
+// =========================
+// POST /api/v1/notifications/expo-token
+// Đăng ký thiết bị Mobile nhận push chapter mới.
+// =========================
+exports.saveExpoToken = async (req, res) => {
+  try {
+    const token = String(req.body?.token || "").trim();
+
+    if (!token || (!token.startsWith("ExponentPushToken[") && !token.startsWith("ExpoPushToken["))) {
+      return res.status(400).json({
+        success: false,
+        message: "Expo Push Token không hợp lệ.",
+      });
+    }
+
+    await req.user.updateOne({
+      $addToSet: { expoPushTokens: token },
+    });
+
+    return res.json({ success: true });
+  } catch (err) {
+    console.error("[api/notifications/save-expo-token]", err);
+    return res.status(500).json({ success: false, message: "Không thể lưu Push Token." });
+  }
+};
+
+// =========================
+// POST /api/v1/notifications/expo-token/remove
+// =========================
+exports.removeExpoToken = async (req, res) => {
+  try {
+    const token = String(req.body?.token || "").trim();
+    if (!token) return res.json({ success: true });
+
+    await req.user.updateOne({
+      $pull: { expoPushTokens: token },
+    });
+
+    return res.json({ success: true });
+  } catch (err) {
+    console.error("[api/notifications/remove-expo-token]", err);
+    return res.status(500).json({ success: false });
+  }
+};

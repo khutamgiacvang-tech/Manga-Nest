@@ -165,6 +165,13 @@ const userSchema = new mongoose.Schema(
       default: null,
     },
 
+    // Expo Push Token của các thiết bị Mobile App. Có thể có nhiều token
+    // vì một tài khoản có thể đăng nhập trên nhiều điện thoại.
+    expoPushTokens: {
+      type: [String],
+      default: [],
+    },
+
     // Đã từng thấy popup gợi ý bật thông báo đẩy (hiện khi follow truyện lần đầu) hay chưa
     hasSeenNotifPrompt: {
       type: Boolean,

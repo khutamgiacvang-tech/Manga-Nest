@@ -14,6 +14,7 @@ const uploadImage = require("../../utils/storageManager");
 const uploadChapterPageImage = require("../../utils/storageManager");
 const deleteUploadedImage = require("../../utils/deleteUploadedImage");
 const sendPushNotification = require("../../utils/sendPushNotification");
+const sendExpoPushNotification = require("../../utils/sendExpoPushNotification");
 
 // =========================
 // Bản JSON của controllers/mangaController.js — dùng riêng cho mobile
@@ -373,7 +374,6 @@ exports.uploadChapter = async (req, res) => {
 
       const pushFollowers = await User.find({
         followedManga: manga._id,
-        pushSubscription: { $ne: null },
       });
 
       const baseUrl = `${req.protocol}://${req.get("host")}`;
@@ -393,6 +393,15 @@ exports.uploadChapter = async (req, res) => {
           url: `/manga/${manga.slug}/chapter/${rawChapterInput}`,
         });
         sendPushNotification(follower._id, follower.pushSubscription, payload);
+        await sendExpoPushNotification(follower._id, follower.expoPushTokens, {
+          title: "📚 Truyện bạn theo dõi có chương mới!",
+          body: `${manga.title} vừa mới được đăng chapter ${rawChapterInput}!`,
+          data: {
+            type: "new_chapter",
+            mangaSlug: manga.slug,
+            chapterNumber: String(rawChapterInput),
+          },
+        });
       }
 
       return res.json({
