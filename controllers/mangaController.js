@@ -2098,10 +2098,17 @@ exports.saveHistory = async (req, res) => {
       chapterNumber: chapterNo,
     };
 
+    // Không bao giờ ghi đè cover bằng chuỗi rỗng; ưu tiên cover từ DB.
+    let safeCover = typeof cover === "string" ? cover.trim() : "";
+    try {
+      const mangaDoc = await Manga.findById(mangaId).select("cover").lean();
+      if (mangaDoc?.cover) safeCover = mangaDoc.cover;
+    } catch (_) {}
+
     const meta = {
       mangaTitle,
       mangaSlug,
-      cover,
+      ...(safeCover ? { cover: safeCover } : {}),
       chapterTitle: normalizedChapterTitle,
       updatedAt: new Date(),
     };
@@ -2275,6 +2282,21 @@ exports.history = async (req, res) => {
             c.title = found && found !== "Không có tiêu đề" ? found : "";
           }
         });
+      });
+    }
+
+    // Bù cover/slug/title mới nhất từ bảng Manga (sửa cả bản ghi cũ bị rỗng).
+    const mangaIdsForCover = grouped.map((g) => g.manga).filter(Boolean);
+    if (mangaIdsForCover.length > 0) {
+      const mangaDocs = await Manga.find({ _id: { $in: mangaIdsForCover } })
+        .select("cover slug title")
+        .lean();
+      const coverMap = new Map(mangaDocs.map((m) => [String(m._id), m]));
+      grouped.forEach((g) => {
+        const m = coverMap.get(String(g.manga));
+        if (m?.cover) g.cover = m.cover;
+        if (m?.slug) g.mangaSlug = m.slug;
+        if (m?.title) g.mangaTitle = m.title;
       });
     }
 

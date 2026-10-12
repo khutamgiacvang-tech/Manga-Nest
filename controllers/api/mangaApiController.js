@@ -421,6 +421,14 @@ exports.saveHistory = async (req, res) => {
         ? chapterTitle.trim()
         : "";
 
+    // Cover luôn lấy từ bảng Manga (nguồn chuẩn) thay vì tin client:
+    // app từng gửi cover: "" khi thoát chương làm ảnh trong Lịch sử bị vỡ.
+    let safeCover = typeof cover === "string" ? cover.trim() : "";
+    try {
+      const mangaDoc = await Manga.findById(mangaId).select("cover").lean();
+      if (mangaDoc?.cover) safeCover = mangaDoc.cover;
+    } catch (_) {}
+
     const oldHistory = await ReadingHistory.findOne({
       user: req.user._id,
       manga: mangaId,
@@ -443,7 +451,8 @@ exports.saveHistory = async (req, res) => {
         manga: mangaId,
         mangaTitle,
         mangaSlug,
-        cover,
+        // Chỉ ghi cover khi có giá trị, tránh ghi đè bằng chuỗi rỗng
+        ...(safeCover ? { cover: safeCover } : {}),
         chapterNumber,
         chapterTitle: normalizedChapterTitle,
         progress: finalProgress,
@@ -508,6 +517,22 @@ exports.historyList = async (req, res) => {
         if (c.title === "Không có tiêu đề") c.title = "";
       });
     });
+
+    // Bù cover từ bảng Manga (1 query duy nhất) -> sửa cả các bản ghi cũ
+    // đã bị lưu cover rỗng và luôn đúng khi truyện đổi ảnh bìa.
+    const mangaIds = grouped.map((g) => g.manga).filter(Boolean);
+    if (mangaIds.length > 0) {
+      const mangaDocs = await Manga.find({ _id: { $in: mangaIds } })
+        .select("cover slug title")
+        .lean();
+      const coverMap = new Map(mangaDocs.map((m) => [String(m._id), m]));
+      grouped.forEach((g) => {
+        const m = coverMap.get(String(g.manga));
+        if (m?.cover) g.cover = m.cover;
+        if (m?.slug) g.mangaSlug = m.slug;
+        if (m?.title) g.mangaTitle = m.title;
+      });
+    }
 
     return res.json({ success: true, histories: grouped });
   } catch (err) {
