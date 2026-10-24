@@ -57,9 +57,11 @@ exports.requireAuth = async (req, res, next) => {
     ) {
       return res.status(403).json({
         success: false,
+        code: "ACCOUNT_BANNED",
         message: "Tài khoản đã bị khóa.",
         banReason: user.banReason,
         banUntil: user.banUntil,
+        isPermanentBan: !!user.isPermanentBan,
       });
     }
 

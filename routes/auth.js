@@ -13,6 +13,17 @@ function mobileRedirect(redirectUri, params = {}) {
   return url.toString();
 }
 
+// Thông tin ban gửi kèm deep-link về app để app dựng lại trang "Tài khoản đã bị khóa"
+function banParams(user) {
+  return {
+    error: "Tài khoản đã bị khóa.",
+    banned: "1",
+    banReason: user.banReason || "",
+    banUntil: user.banUntil ? new Date(user.banUntil).toISOString() : "",
+    isPermanentBan: user.isPermanentBan ? "1" : "0",
+  };
+}
+
 // Discord có thể mở callback ở một trình duyệt khác với trình duyệt đã
 // bắt đầu OAuth, vì vậy không nên chỉ dựa vào req.session để nhớ deep-link
 // của app. Ta mang redirect URI theo OAuth state có chữ ký.
@@ -167,7 +178,7 @@ router.get("/auth/google/callback", (req, res, next) => {
         if (stillBanned) {
           if (mobileRedirectUri) {
             return res.redirect(
-              mobileRedirect(mobileRedirectUri, { error: "Tài khoản đã bị khóa." }),
+              mobileRedirect(mobileRedirectUri, banParams(user)),
             );
           }
           return res.redirect(
@@ -273,7 +284,7 @@ router.get("/auth/discord/callback", (req, res, next) => {
         if (stillBanned) {
           if (mobileRedirectUri) {
             return res.redirect(
-              mobileRedirect(mobileRedirectUri, { error: "Tài khoản đã bị khóa." }),
+              mobileRedirect(mobileRedirectUri, banParams(user)),
             );
           }
           return res.redirect(

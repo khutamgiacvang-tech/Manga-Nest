@@ -179,9 +179,11 @@ exports.login = async (req, res) => {
     ) {
       return res.status(403).json({
         success: false,
+        code: "ACCOUNT_BANNED",
         message: "Tài khoản đã bị khóa.",
         banReason: user.banReason,
         banUntil: user.banUntil,
+        isPermanentBan: !!user.isPermanentBan,
       });
     }
 
@@ -227,9 +229,11 @@ exports.oauthExchange = async (req, res) => {
     ) {
       return res.status(403).json({
         success: false,
+        code: "ACCOUNT_BANNED",
         message: "Tài khoản đã bị khóa.",
         banReason: user.banReason,
         banUntil: user.banUntil,
+        isPermanentBan: !!user.isPermanentBan,
       });
     }
 
@@ -366,9 +370,11 @@ exports.googleNativeLogin = async (req, res) => {
     ) {
       return res.status(403).json({
         success: false,
+        code: "ACCOUNT_BANNED",
         message: "Tài khoản đã bị khóa.",
         banReason: user.banReason,
         banUntil: user.banUntil,
+        isPermanentBan: !!user.isPermanentBan,
       });
     }
 
@@ -425,6 +431,20 @@ exports.refresh = async (req, res) => {
       return res
         .status(401)
         .json({ success: false, message: "Tài khoản không tồn tại." });
+    }
+
+    if (
+      user.status === "banned" &&
+      (user.isPermanentBan || (user.banUntil && user.banUntil > new Date()))
+    ) {
+      return res.status(403).json({
+        success: false,
+        code: "ACCOUNT_BANNED",
+        message: "Tài khoản đã bị khóa.",
+        banReason: user.banReason,
+        banUntil: user.banUntil,
+        isPermanentBan: !!user.isPermanentBan,
+      });
     }
 
     return res.json({
