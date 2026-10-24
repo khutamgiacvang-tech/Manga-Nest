@@ -1660,7 +1660,13 @@ exports.showManga = async (req, res) => {
 
     if (similarManga.length > 0) {
       const latestChapters = await Chapter.aggregate([
-        { $match: { manga: { $in: similarManga.map((item) => item._id) } } },
+        {
+          $match: {
+            manga: { $in: similarManga.map((item) => item._id) },
+            isHidden: { $ne: true },
+            isDeleted: { $ne: true },
+          },
+        },
         { $sort: { manga: 1, chapterOrder: -1, createdAt: -1 } },
         {
           $group: {

@@ -62,7 +62,13 @@ exports.home = async (req, res) => {
 
     if (mangaIds.length > 0) {
       const latestChapters = await Chapter.aggregate([
-        { $match: { manga: { $in: mangaIds } } },
+        {
+          $match: {
+            manga: { $in: mangaIds },
+            isHidden: { $ne: true },
+            isDeleted: { $ne: true },
+          },
+        },
         { $sort: { manga: 1, chapterOrder: -1, createdAt: -1 } },
         {
           $group: {

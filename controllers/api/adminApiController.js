@@ -5,9 +5,22 @@ const Comment = require("../../models/Comment");
 const Chapter = require("../../models/Chapter");
 const Category = require("../../models/Category");
 const Notification = require("../../models/Notification");
+const cloudinary = require("../../config/cloudinary");
+const { notifyUser } = require("../../utils/moderationNotify");
 
 function isAdmin(req) { return req.user?.role === "admin"; }
 function denied(res) { return res.status(403).json({ success:false, message:"Bạn không có quyền quản trị." }); }
+// Tính lại tổng chương + chương mới nhất của truyện (bỏ qua chương ẩn/xóa) - giống web
+async function refreshMangaChapterStats(mangaId) {
+  const manga = await Manga.findById(mangaId);
+  if (!manga) return;
+  manga.totalChapters = await Chapter.countDocuments({ manga: manga._id, isHidden: { $ne: true } });
+  const last = await Chapter.find({ manga: manga._id, isHidden: { $ne: true } }).sort({ chapterOrder: -1 }).limit(1);
+  manga.lastChapter = last.length > 0 ? last[0].chapterNumber : "0";
+  manga.lastUpdated = new Date();
+  await manga.save();
+}
+
 
 exports.dashboard = async (req,res) => {
   try {
@@ -102,8 +115,110 @@ exports.rejectManga=async(req,res)=>{try{if(!isAdmin(req))return denied(res);con
 exports.banUser=async(req,res)=>{try{if(!isAdmin(req))return denied(res);const u=await User.findById(req.params.id);if(!u)return res.status(404).json({success:false,message:"Không tìm thấy tài khoản."});if(u.role==="admin")return res.json({success:false,message:"Không thể ban Admin."});const days=Number(req.body?.days),reason=req.body?.reason||"Không có.";u.status="banned";u.banReason=reason;if(days===-1){u.isPermanentBan=true;u.banUntil=null;}else{u.isPermanentBan=false;const d=new Date();d.setDate(d.getDate()+(days>0?days:7));u.banUntil=d;}await u.save();res.json({success:true,user:u});}catch(e){console.error(e);res.status(500).json({success:false,message:"Có lỗi xảy ra."});}};
 exports.unbanUser=async(req,res)=>{try{if(!isAdmin(req))return denied(res);const u=await User.findById(req.params.id);if(!u)return res.status(404).json({success:false,message:"Không tìm thấy tài khoản."});u.status="active";u.isPermanentBan=false;u.banUntil=null;u.banReason="";await u.save();res.json({success:true});}catch(e){console.error(e);res.status(500).json({success:false,message:"Có lỗi xảy ra."});}};
 exports.deleteUser=async(req,res)=>{try{if(!isAdmin(req))return denied(res);const u=await User.findById(req.params.id);if(!u)return res.status(404).json({success:false,message:"Không tìm thấy tài khoản."});if(u.role==="admin")return res.json({success:false,message:"Không thể xóa Admin."});if(u.role==="translator"&&await Manga.exists({translator:u._id}))return res.json({success:false,message:"Không thể xóa Translator đang có truyện."});await User.findByIdAndDelete(u._id);res.json({success:true});}catch(e){console.error(e);res.status(500).json({success:false,message:"Có lỗi xảy ra."});}};
-exports.toggleHideComment=async(req,res)=>{try{if(!isAdmin(req))return denied(res);const c=await Comment.findById(req.params.id);if(!c)return res.status(404).json({success:false,message:"Không tìm thấy bình luận."});c.isHidden=!c.isHidden;c.hiddenReason=c.isHidden?(req.body?.reason||"Vi phạm quy định nội dung."): "";await c.save();res.json({success:true,isHidden:c.isHidden});}catch(e){console.error(e);res.status(500).json({success:false,message:"Có lỗi xảy ra."});}};
-exports.toggleHideChapter=async(req,res)=>{try{if(!isAdmin(req))return denied(res);const c=await Chapter.findById(req.params.id);if(!c)return res.status(404).json({success:false,message:"Không tìm thấy chương."});c.isHidden=!c.isHidden;c.hiddenReason=c.isHidden?(req.body?.reason||"Vi phạm quy định nội dung."): "";await c.save();res.json({success:true,isHidden:c.isHidden});}catch(e){console.error(e);res.status(500).json({success:false,message:"Có lỗi xảy ra."});}};
-exports.deleteChapter=async(req,res)=>{try{if(!isAdmin(req))return denied(res);const c=await Chapter.findById(req.params.id);if(!c)return res.status(404).json({success:false,message:"Không tìm thấy chương."});c.pages=[];c.isHidden=true;c.isDeleted=true;c.hiddenReason=req.body?.reason||"Vi phạm quy định nội dung.";c.deletedAt=new Date();await c.save();res.json({success:true});}catch(e){console.error(e);res.status(500).json({success:false,message:"Có lỗi xảy ra."});}};
+exports.toggleHideComment = async (req, res) => {
+  try {
+    if (!isAdmin(req)) return denied(res);
+    const c = await Comment.findById(req.params.id).populate("manga", "title slug cover");
+    if (!c) return res.status(404).json({ success: false, message: "Không tìm thấy bình luận." });
+    c.isHidden = !c.isHidden;
+    c.hiddenReason = c.isHidden ? (req.body?.reason || "Vi phạm quy định nội dung.") : "";
+    await c.save();
+
+    // Thông báo cho user bị ẩn bình luận (giống web)
+    if (c.isHidden && c.user) {
+      await notifyUser({
+        userId: c.user,
+        title: "🚫 Bình luận của bạn đã bị ẩn",
+        message: `Bình luận của bạn trên "${c.manga ? c.manga.title : "truyện"}" đã bị Admin ẩn. Lý do: ${c.hiddenReason}`,
+        link: c.manga ? `/manga/${c.manga.slug}` : "#",
+        image: c.manga ? c.manga.cover : "",
+      });
+    }
+
+    res.json({ success: true, isHidden: c.isHidden, message: c.isHidden ? "Đã ẩn bình luận." : "Đã hiện lại bình luận." });
+  } catch (e) { console.error(e); res.status(500).json({ success: false, message: "Có lỗi xảy ra." }); }
+};
+exports.toggleHideChapter = async (req, res) => {
+  try {
+    if (!isAdmin(req)) return denied(res);
+    const c = await Chapter.findById(req.params.id).populate("manga", "title slug cover");
+    if (!c) return res.status(404).json({ success: false, message: "Không tìm thấy chương." });
+    c.isHidden = !c.isHidden;
+    c.hiddenReason = c.isHidden ? (req.body?.reason || "Vi phạm quy định nội dung.") : "";
+    await c.save();
+
+    // Ẩn/hiện chương làm đổi "chương mới nhất" -> cập nhật lại truyện (giống web)
+    if (c.manga) await refreshMangaChapterStats(c.manga._id);
+
+    // Thông báo cho translator (giống web)
+    if (c.uploadedBy) {
+      const title = c.manga ? c.manga.title : "truyện";
+      const slug = c.manga ? c.manga.slug : "";
+      const cover = c.manga ? c.manga.cover : "";
+      if (c.isHidden) {
+        await notifyUser({
+          userId: c.uploadedBy,
+          title: "🚫 Chương truyện của bạn đã bị ẩn",
+          message: `Chương ${c.chapterNumber} của "${title}" đã bị Admin ẩn. Nhấn để xem lý do và chỉnh sửa.`,
+          link: slug ? `/my-manga/${slug}/chapter/${c._id}/status` : "#",
+          image: cover,
+        });
+      } else {
+        await notifyUser({
+          userId: c.uploadedBy,
+          title: "✅ Chương truyện của bạn đã được hiện lại",
+          message: `Chương ${c.chapterNumber} của "${title}" đã được Admin hiện lại, mọi người có thể đọc bình thường.`,
+          link: slug ? `/manga/${slug}` : "#",
+          image: cover,
+        });
+      }
+    }
+
+    res.json({ success: true, isHidden: c.isHidden, message: c.isHidden ? "Đã ẩn chương." : "Đã hiện lại chương." });
+  } catch (e) { console.error(e); res.status(500).json({ success: false, message: "Có lỗi xảy ra." }); }
+};
+exports.deleteChapter = async (req, res) => {
+  try {
+    if (!isAdmin(req)) return denied(res);
+    const c = await Chapter.findById(req.params.id);
+    if (!c) return res.status(404).json({ success: false, message: "Không tìm thấy chương." });
+    const manga = await Manga.findById(c.manga);
+
+    // Xóa ảnh trên Cloudinary (giống web)
+    if (manga) {
+      try {
+        const prefix = `manganest/chapters/${manga.slug}/${c.chapterNumber}`;
+        await cloudinary.api.delete_resources_by_prefix(prefix);
+        await cloudinary.api.delete_folder(prefix);
+      } catch (err) {
+        console.log("Cloudinary:", err.message);
+      }
+    }
+
+    // Soft-delete: giữ bản ghi để translator thấy chương đã bị xóa + lý do
+    const reason = req.body?.reason || "Vi phạm quy định nội dung.";
+    c.pages = [];
+    c.isHidden = true;
+    c.isDeleted = true;
+    c.hiddenReason = reason;
+    c.deletedAt = new Date();
+    await c.save();
+
+    // Cập nhật lại truyện: chương mới nhất = chương còn hiển thị phía sau
+    if (manga) await refreshMangaChapterStats(manga._id);
+
+    if (c.uploadedBy) {
+      await notifyUser({
+        userId: c.uploadedBy,
+        title: "🗑 Chương truyện của bạn đã bị xóa",
+        message: `Chương ${c.chapterNumber} của "${manga ? manga.title : "truyện"}" đã bị Admin xóa. Nhấn để xem lý do.`,
+        link: manga ? `/my-manga/${manga.slug}/chapter/${c._id}/status` : "#",
+        image: manga ? manga.cover : "",
+      });
+    }
+
+    res.json({ success: true, message: "Đã xóa chương." });
+  } catch (e) { console.error(e); res.status(500).json({ success: false, message: "Có lỗi xảy ra." }); }
+};
 exports.createCategory=async(req,res)=>{try{if(!isAdmin(req))return denied(res);const name=String(req.body?.name||"").trim();if(!name)return res.status(400).json({success:false,message:"Tên thể loại không được trống."});const exists=await Category.findOne({name});if(exists)return res.status(400).json({success:false,message:"Thể loại đã tồn tại."});const c=await Category.create({name});res.json({success:true,category:c});}catch(e){console.error(e);res.status(500).json({success:false,message:"Không thể tạo thể loại."});}};
-exports.deleteCategory=async(req,res)=>{try{if(!isAdmin(req))return denied(res);await Category.findByIdAndDelete(req.params.id);res.json({success:true});}catch(e){console.error(e);res.status(500).json({success:false,message:"Không thể xóa thể loại."});}};
+exports.deleteCategory=async(req,res)=>{try{if(!isAdmin(req))return denied(res);const cat=await Category.findById(req.params.id);if(!cat)return res.status(404).json({success:false,message:"Không tìm thấy thể loại."});const mangaCount=await Manga.countDocuments({genres:cat.name});if(mangaCount>0)return res.json({success:false,message:`Không thể xóa thể loại "${cat.name}" vì đang có ${mangaCount} truyện sử dụng.`});await Category.findByIdAndDelete(req.params.id);res.json({success:true,message:`Đã xóa thể loại "${cat.name}".`});}catch(e){console.error(e);res.status(500).json({success:false,message:"Không thể xóa thể loại."});}};

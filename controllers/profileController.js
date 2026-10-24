@@ -227,7 +227,13 @@ exports.followLibrary = async (req, res) => {
     // hiển thị cùng 1 kiểu thông tin (C. X - x phút trước).
     if (finalMangas.length > 0) {
       const latestChapters = await Chapter.aggregate([
-        { $match: { manga: { $in: finalMangas.map((manga) => manga._id) } } },
+        {
+          $match: {
+            manga: { $in: finalMangas.map((manga) => manga._id) },
+            isHidden: { $ne: true },
+            isDeleted: { $ne: true },
+          },
+        },
         { $sort: { manga: 1, chapterOrder: -1, createdAt: -1 } },
         {
           $group: {

@@ -68,7 +68,13 @@ exports.home = async (req, res) => {
 
     if (mangaIds.length > 0) {
       const latestChapters = await Chapter.aggregate([
-        { $match: { manga: { $in: mangaIds } } },
+        {
+          $match: {
+            manga: { $in: mangaIds },
+            isHidden: { $ne: true },
+            isDeleted: { $ne: true },
+          },
+        },
         { $sort: { manga: 1, chapterOrder: -1, createdAt: -1 } },
         {
           $group: {
@@ -564,7 +570,13 @@ exports.followList = async (req, res) => {
     if (mangas.length > 0) {
       const mangaIds = mangas.map((m) => m._id);
       const latestChapters = await Chapter.aggregate([
-        { $match: { manga: { $in: mangaIds } } },
+        {
+          $match: {
+            manga: { $in: mangaIds },
+            isHidden: { $ne: true },
+            isDeleted: { $ne: true },
+          },
+        },
         { $sort: { manga: 1, chapterOrder: -1, createdAt: -1 } },
         {
           $group: {
@@ -631,7 +643,13 @@ exports.list = async (req, res) => {
     if (mangas.length > 0) {
       const mangaIds = mangas.map((m) => m._id);
       const latestChapters = await Chapter.aggregate([
-        { $match: { manga: { $in: mangaIds } } },
+        {
+          $match: {
+            manga: { $in: mangaIds },
+            isHidden: { $ne: true },
+            isDeleted: { $ne: true },
+          },
+        },
         { $sort: { manga: 1, chapterOrder: -1, createdAt: -1 } },
         {
           $group: {
