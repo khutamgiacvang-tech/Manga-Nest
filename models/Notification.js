@@ -53,4 +53,49 @@ notificationSchema.index(
   { expireAfterSeconds: 7 * 24 * 60 * 60 },
 );
 
+// =======================================================
+// Mọi thông báo mới tạo (Notification.create) đều được đẩy luôn xuống điện
+// thoại bằng Expo Push -> hiện thông báo NỔI trên app mobile.
+// Trước đây chỉ thông báo "chương mới" có gửi Expo Push, còn duyệt truyện,
+// duyệt translator, ẩn/xóa bình luận/chương... chỉ lưu vào chuông nên điện
+// thoại không hiện thông báo nổi.
+// Riêng "📚 Chương mới" đã được gửi push riêng (kèm data mangaSlug) trong
+// mangaController/uploadApiController nên bỏ qua ở đây để không bị gửi 2 lần.
+// =======================================================
+const SKIP_EXPO_PUSH_TITLES = ["📚 Chương mới"];
+
+notificationSchema.pre("save", function () {
+  this.$locals.wasNew = this.isNew;
+});
+
+notificationSchema.post("save", function (doc) {
+  if (!doc.$locals || !doc.$locals.wasNew) return;
+  if (SKIP_EXPO_PUSH_TITLES.includes(doc.title)) return;
+
+  // fire-and-forget: push lỗi không được làm hỏng việc tạo thông báo
+  (async () => {
+    try {
+      // require trễ để tránh vòng lặp require giữa các model
+      const User = mongoose.model("User");
+      const sendExpoPushNotification = require("../utils/sendExpoPushNotification");
+      const user = await User.findById(doc.user).select("expoPushTokens");
+      if (!user || !user.expoPushTokens || !user.expoPushTokens.length) return;
+
+      const slugMatch = /^\/manga\/([^/]+)/.exec(doc.link || "");
+      await sendExpoPushNotification(user._id, user.expoPushTokens, {
+        title: doc.title,
+        body: doc.message,
+        data: {
+          type: "notification",
+          notificationId: String(doc._id),
+          link: doc.link || "#",
+          ...(slugMatch ? { mangaSlug: slugMatch[1] } : {}),
+        },
+      });
+    } catch (err) {
+      console.error("[notification/expo-push]", err.message);
+    }
+  })();
+});
+
 module.exports = mongoose.model("Notification", notificationSchema);

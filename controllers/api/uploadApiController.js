@@ -508,12 +508,15 @@ exports.updateManga = async (req, res) => {
     }
 
     manga.title = req.body.title || manga.title;
-    manga.alternativeTitles = req.body.alternativeTitles
-      ? req.body.alternativeTitles
-          .split(",")
-          .map((i) => i.trim())
-          .filter((i) => i !== "")
-      : [];
+    // App không còn ô "Tên khác": chỉ cập nhật khi client có gửi, tránh xóa mất dữ liệu cũ
+    if (req.body.alternativeTitles !== undefined) {
+      manga.alternativeTitles = req.body.alternativeTitles
+        ? req.body.alternativeTitles
+            .split(",")
+            .map((i) => i.trim())
+            .filter((i) => i !== "")
+        : [];
+    }
     manga.author = req.body.author || manga.author;
     manga.description = req.body.description
       ? req.body.description.trim()
