@@ -1,7 +1,7 @@
 const crypto = require("crypto");
 const fs = require("fs");
 const User = require("../../models/User");
-const { sendVerifyEmail } = require("../../utils/mailer");
+const { sendVerifyEmail, sendResetPasswordEmail } = require("../../utils/mailer");
 const uploadImage = require("../../utils/storageManager");
 const cloudinary = require("../../config/cloudinary");
 const storageManager = require("../../utils/storageManager");
@@ -600,5 +600,67 @@ exports.changePassword = async (req, res) => {
     return res
       .status(500)
       .json({ success: false, message: "Có lỗi xảy ra." });
+  }
+};
+
+// =======================
+// POST /api/v1/auth/forgot-password
+// Logic giong het authController.forgotPassword ben web (token 15 phut,
+// gui email link /reset-password/:token), chi khac la tra JSON thay vi redirect.
+// Nguoi dung bam link trong email -> mo trang dat lai mat khau cua web.
+// =======================
+exports.forgotPassword = async (req, res) => {
+  try {
+    const email = (req.body.email || "").toLowerCase().trim();
+
+    if (!email) {
+      return res.status(400).json({ success: false, message: "Vui lòng nhập email." });
+    }
+
+    const okMessage =
+      "Nếu email tồn tại trong hệ thống, chúng tôi đã gửi link đặt lại mật khẩu.";
+
+    const user = await User.findOne({ email });
+
+    // Không tiết lộ email có tồn tại hay không
+    if (!user) {
+      return res.json({ success: true, message: okMessage });
+    }
+
+    if (user.provider !== "local") {
+      const providerName = user.provider === "google" ? "Google" : "Discord";
+      return res.status(400).json({
+        success: false,
+        message: `Tài khoản này đăng nhập bằng ${providerName}, không thể đặt lại mật khẩu.`,
+      });
+    }
+
+    const rawToken = crypto.randomBytes(32).toString("hex");
+    const hashedToken = crypto.createHash("sha256").update(rawToken).digest("hex");
+
+    user.resetPasswordToken = hashedToken;
+    user.resetPasswordExpires = Date.now() + 15 * 60 * 1000;
+    await user.save();
+
+    const baseUrl = (process.env.APP_URL || "https://manganest.site").replace(/\/$/, "");
+    const resetUrl = `${baseUrl}/reset-password/${rawToken}`;
+
+    try {
+      await sendResetPasswordEmail({ to: user.email, username: user.username, resetUrl });
+    } catch (mailErr) {
+      console.error("SEND MAIL ERROR:", mailErr);
+      user.resetPasswordToken = null;
+      user.resetPasswordExpires = null;
+      await user.save();
+      return res.status(500).json({
+        success: false,
+        message: "Không thể gửi email lúc này. Vui lòng thử lại sau.",
+      });
+    }
+
+    return res.json({ success: true, message: okMessage });
+  } catch (err) {
+    console.error("API FORGOT PASSWORD ERROR:", err);
+    return res.status(500).json({ success: false, message: "Có lỗi xảy ra, vui lòng thử lại." });
   }
 };

@@ -55,6 +55,9 @@ router.post(
   authApi.updateProfile,
 );
 
+// POST /api/v1/auth/forgot-password -> gửi email link đặt lại mật khẩu (không cần đăng nhập)
+router.post("/forgot-password", authApi.forgotPassword);
+
 // POST /api/v1/auth/change-password
 router.post("/change-password", requireAuth, authApi.changePassword);
 
