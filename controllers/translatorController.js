@@ -225,7 +225,7 @@ exports.submitApplication = async (req, res) => {
         message: `${req.user.username} vừa gửi đơn xin Translator.`,
 
         link: "/admin",
-        image: "/images/icon/favicon.png",
+        image: req.user.avatar || "/images/icon/avatar.png",
       });
     }
 
