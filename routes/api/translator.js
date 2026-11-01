@@ -11,6 +11,10 @@ const upload = multer({
   limits: { fileSize: 10 * 1024 * 1024 },
 });
 
+// Trang nhóm dịch: công khai (không cần đăng nhập), giống web
+router.get("/profile/:username", translatorApi.profile);
+router.get("/profile/:username/mangas", translatorApi.profileMangas);
+
 router.use(requireAuth);
 router.get("/applications", translatorApi.myApplications);
 router.get("/application", translatorApi.myApplication);
