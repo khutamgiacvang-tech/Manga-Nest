@@ -65,6 +65,13 @@ router.delete("/my-manga/:slug", uploadApi.deleteManga);
 // DELETE /api/v1/upload/my-manga/:slug/chapter/:id  (xóa chapter)
 router.delete("/my-manga/:slug/chapter/:id", uploadApi.deleteChapter);
 
+// POST /api/v1/upload/my-manga/:slug/chapter/:id/edit  (sửa chapter, multipart: chapterNumber, title, zip tuỳ chọn)
+router.post(
+  "/my-manga/:slug/chapter/:id/edit",
+  chapterUpload.single("zip"),
+  uploadApi.updateChapter,
+);
+
 // POST /api/v1/upload/manga  (tạo truyện mới, multipart: cover, banner)
 router.post(
   "/manga",

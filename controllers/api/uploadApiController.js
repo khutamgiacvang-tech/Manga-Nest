@@ -508,15 +508,12 @@ exports.updateManga = async (req, res) => {
     }
 
     manga.title = req.body.title || manga.title;
-    // App không còn ô "Tên khác": chỉ cập nhật khi client có gửi, tránh xóa mất dữ liệu cũ
-    if (req.body.alternativeTitles !== undefined) {
-      manga.alternativeTitles = req.body.alternativeTitles
-        ? req.body.alternativeTitles
-            .split(",")
-            .map((i) => i.trim())
-            .filter((i) => i !== "")
-        : [];
-    }
+    manga.alternativeTitles = req.body.alternativeTitles
+      ? req.body.alternativeTitles
+          .split(",")
+          .map((i) => i.trim())
+          .filter((i) => i !== "")
+      : [];
     manga.author = req.body.author || manga.author;
     manga.description = req.body.description
       ? req.body.description.trim()
@@ -740,5 +737,221 @@ exports.deleteChapter = async (req, res) => {
     return res
       .status(500)
       .json({ success: false, message: "Không thể xóa Chapter." });
+  }
+};
+
+// =========================
+// POST /api/v1/upload/my-manga/:slug/chapter/:id/edit  (sửa chương)
+// multipart: chapterNumber, title, zip (không bắt buộc)
+// Bản JSON của mangaController.updateChapter bên web: đổi số chương,
+// đổi tiêu đề, và (tuỳ chọn) thay toàn bộ ảnh bằng file ZIP mới.
+// =========================
+exports.updateChapter = async (req, res) => {
+  try {
+    const manga = await Manga.findOne({
+      slug: req.params.slug,
+      translator: req.user._id,
+    });
+
+    if (!manga) {
+      return res
+        .status(404)
+        .json({ success: false, message: "Không tìm thấy truyện." });
+    }
+
+    const chapter = await Chapter.findOne({
+      _id: req.params.id,
+      manga: manga._id,
+    });
+
+    if (!chapter) {
+      return res
+        .status(404)
+        .json({ success: false, message: "Không tìm thấy Chapter." });
+    }
+
+    // Web ẩn nút Sửa với chương đã bị Admin xóa -> API cũng chặn tương ứng
+    if (chapter.isDeleted) {
+      return res.status(400).json({
+        success: false,
+        message: "Chương đã bị Admin xóa, không thể sửa.",
+      });
+    }
+
+    // Dùng !== undefined (không dùng if (title)) để cho phép lưu tiêu đề rỗng
+    if (req.body.title !== undefined) {
+      chapter.title = String(req.body.title).trim();
+    }
+
+    // Số chương CŨ: ảnh trên storage đang nằm trong folder đặt theo số chương cũ
+    const oldChapterNumber = chapter.chapterNumber;
+
+    if (
+      req.body.chapterNumber !== undefined &&
+      req.body.chapterNumber !== null &&
+      req.body.chapterNumber.toString().trim() !== ""
+    ) {
+      const rawChapterInput = req.body.chapterNumber.toString().trim();
+      const newChapterNumber =
+        rawChapterInput.toLowerCase() === "oneshot" ? "Oneshot" : rawChapterInput;
+
+      if (newChapterNumber !== oldChapterNumber) {
+        // Kiểm tra trùng số chương với chương khác trong cùng truyện
+        const existed = await Chapter.findOne({
+          manga: manga._id,
+          chapterNumber: newChapterNumber,
+          _id: { $ne: chapter._id },
+        });
+
+        if (existed) {
+          if (existed.isDeleted) {
+            // Bản ghi rỗng của chương đã bị Admin xóa -> xóa hẳn để giải phóng số chương
+            await Chapter.deleteOne({ _id: existed._id });
+          } else {
+            return res
+              .status(409)
+              .json({ success: false, message: "Chapter này đã tồn tại." });
+          }
+        }
+
+        chapter.chapterNumber = newChapterNumber;
+        chapter.chapterOrder = parseFloat(newChapterNumber) || 999999;
+      }
+    }
+
+    const oldFolder = `manganest/chapters/${manga.slug}/${oldChapterNumber}`;
+    const finalFolder = `manganest/chapters/${manga.slug}/${chapter.chapterNumber}`;
+
+    // Có upload ZIP mới -> thay toàn bộ ảnh của chương
+    if (req.file) {
+      const zip = new AdmZip(req.file.path);
+
+      let entries = zip.getEntries().filter((entry) => {
+        if (entry.isDirectory) return false;
+        const ext = path.extname(entry.entryName).toLowerCase();
+        return [".jpg", ".jpeg", ".png", ".webp", ".jfif"].includes(ext);
+      });
+
+      if (entries.length === 0) {
+        return res.status(400).json({
+          success: false,
+          message: "File ZIP không chứa ảnh hợp lệ (jpg, png, webp).",
+        });
+      }
+
+      entries.sort((a, b) =>
+        a.entryName.localeCompare(b.entryName, undefined, {
+          numeric: true,
+          sensitivity: "base",
+        }),
+      );
+
+      // Upload ảnh mới lên folder TẠM, chưa đụng tới ảnh cũ
+      const tempFolder = `${finalFolder}_temp_${Date.now()}`;
+      let pages = [];
+
+      try {
+        pages = await runWithConcurrency(
+          entries,
+          UPLOAD_CONCURRENCY,
+          async (entry, i) => {
+            const index = i + 1;
+            const ext = path.extname(entry.entryName).toLowerCase();
+            const tempImage = path.join(
+              os.tmpdir(),
+              `${Date.now()}-${index}${ext}`,
+            );
+
+            fs.writeFileSync(tempImage, entry.getData());
+
+            const finalImagePath = await ensureUnderSizeLimit(
+              tempImage,
+              index,
+              entry.entryName,
+            );
+
+            const imageUrl = await uploadChapterPageImage(
+              finalImagePath,
+              tempFolder,
+              { provider: "cloudinary" },
+            );
+
+            safeUnlink(finalImagePath);
+            return imageUrl;
+          },
+        );
+      } catch (uploadErr) {
+        // Upload lỗi giữa chừng -> dọn folder tạm, giữ nguyên ảnh cũ của chương
+        try {
+          await uploadChapterPageImage.deleteByPrefix(tempFolder);
+        } catch (cleanupErr) {
+          console.log("Không dọn được folder tạm:", cleanupErr.message);
+        }
+        throw uploadErr;
+      }
+
+      // Ảnh mới đã lên đủ -> bây giờ mới xóa ảnh cũ (best-effort, cả 2 provider).
+      // Cloudinary khớp prefix theo chuỗi, nên PHẢI có "/" ở cuối để không xóa
+      // nhầm folder tạm "<số chương>_temp_...".
+      try {
+        await cloudinary.api.delete_resources_by_prefix(`${oldFolder}/`);
+        await cloudinary.api.delete_folder(oldFolder);
+      } catch (err) {
+        console.log("Không xóa được ảnh cũ trên Cloudinary:", err?.message || err);
+      }
+
+      try {
+        await uploadChapterPageImage.deleteByPrefix(oldFolder);
+      } catch (err) {
+        console.log("Không xóa được ảnh cũ trên Supabase:", err?.message || err);
+      }
+
+      // Chuyển ảnh từ folder tạm về folder chuẩn. Lỗi thì vẫn dùng được ở folder tạm.
+      try {
+        const movedPages = [];
+        for (const page of pages) {
+          const moved = await uploadChapterPageImage.moveObject(
+            page.public_id,
+            finalFolder,
+          );
+          movedPages.push({ url: moved.url, public_id: moved.public_id });
+        }
+        pages = movedPages;
+      } catch (moveErr) {
+        console.log(
+          "Không move được ảnh về folder chuẩn:",
+          moveErr?.message || moveErr,
+        );
+      }
+
+      chapter.pages = pages;
+      chapter.totalPages = pages.length;
+    }
+    // Không upload ZIP: chỉ đổi dữ liệu trong DB, KHÔNG đụng tới ảnh trên storage
+    // (url ảnh đã lưu sẵn trong chapter.pages nên không phụ thuộc tên folder).
+
+    await chapter.save();
+
+    manga.lastUpdated = new Date();
+    await manga.save();
+
+    return res.json({
+      success: true,
+      message: "Đã cập nhật Chapter thành công.",
+      chapter: {
+        _id: chapter._id,
+        chapterNumber: chapter.chapterNumber,
+        title: chapter.title,
+        totalPages: chapter.totalPages,
+      },
+    });
+  } catch (err) {
+    console.error("[api/upload/updateChapter]", err);
+    return res.status(500).json({
+      success: false,
+      message: "Không thể cập nhật Chapter: " + err.message,
+    });
+  } finally {
+    safeUnlink(req.file?.path);
   }
 };
